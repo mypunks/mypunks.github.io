@@ -1,109 +1,546 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Dynamic NFT Viewer</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<style>
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#0f172a;
-  font-family:Arial;
-}
-
-/* NFT Container 512x512 */
-.nft-box{
-  width:512px;
-  height:512px;
-  position:relative;
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 0 25px rgba(0,0,0,0.5);
-}
-
-/* NFT Image */
-.nft-box img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  transition:0.4s ease;
-}
-
-/* Overlay Buttons */
-.buttons{
-  position:absolute;
-  top:10px;
-  right:10px;
-  display:flex;
-  gap:10px;
-}
-
-button{
-  padding:8px 12px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  background:rgba(255,255,255,0.2);
-  color:white;
-  backdrop-filter:blur(8px);
-  transition:0.3s;
-}
-
-button:hover{
-  background:rgba(255,255,255,0.4);
-  transform:scale(1.05);
-}
-
-/* Active button */
-button.active{
-  background:#38bdf8;
-  color:black;
-}
-
-/* Mobile responsive */
-@media(max-width:600px){
-  .nft-box{
-    width:90vw;
-    height:90vw;
-  }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Metadata Downloader - All in One</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <style>
+        body {
+            background: #0a0a12;
+            font-family: 'Inter', sans-serif;
+        }
+        .mono {
+            font-family: 'Courier New', monospace;
+        }
+        .btn-download {
+            background: linear-gradient(135deg, #ff5a5f, #ff2a2f);
+            transition: all 0.2s ease;
+        }
+        .btn-download:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255,90,95,0.4);
+        }
+        .btn-download:active {
+            transform: scale(0.98);
+        }
+        .btn-download-all {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transition: all 0.2s ease;
+        }
+        .btn-download-all:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(124,58,237,0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            border: 1px solid rgba(255,90,95,0.2);
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            border-color: #ff5a5f;
+            transform: scale(1.02);
+        }
+        .preview-box {
+            background: #16162a;
+            border: 1px solid #2a2a4a;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .preview-box pre {
+            color: #e0e0e0;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .status-bar {
+            background: #1a1a2a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            border-left: 3px solid #ff5a5f;
+        }
+        .progress-bar-bg {
+            background: #0a0a12;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 6px;
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #ff5a5f, #ff8a8f);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 20px;
+        }
+        .badge-count {
+            background: rgba(255,90,95,0.2);
+            color: #ff8a8f;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        .json-key {
+            color: #ff8a8f;
+        }
+        .json-string {
+            color: #6ee7b7;
+        }
+        .json-number {
+            color: #93c5fd;
+        }
+        .json-boolean {
+            color: #fde68a;
+        }
+        .json-null {
+            color: #9ca3af;
+        }
+    </style>
 </head>
-
 <body>
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-1 h-8 bg-[#ff5a5f] rounded-full"></div>
+            <div>
+                <h1 class="mono text-2xl font-bold text-white">📦 JSON Metadata Downloader</h1>
+                <p class="text-sm text-gray-400">CryptoDickbutts · Series 3 — All JSON in one file</p>
+            </div>
+        </div>
 
-<div class="nft-box">
-  <img id="nftImage" src="https://raw.githubusercontent.com/mypunks/mypunks.github.io/main/org/1.png">
+        <!-- Download All Button -->
+        <div class="bg-[#12121f] rounded-2xl p-6 border border-white/10 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="layers" class="w-5 h-5 text-[#8b5cf6]"></i>
+                    <div>
+                        <span class="text-sm font-bold text-white">All JSON Files (1-5360)</span>
+                        <p class="text-xs text-gray-500">Download all metadata as a single JSON file</p>
+                    </div>
+                </div>
+                <button id="download-all-btn" class="btn-download-all flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold mono transition-all shadow-lg">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    📥 Download All as index.json
+                </button>
+            </div>
+        </div>
 
-  <div class="buttons">
-    <button class="active" onclick="changeImage(1)">ORG</button>
-    <button onclick="changeImage(2)">HL</button>
-  </div>
-</div>
+        <!-- Range Download Buttons -->
+        <div class="bg-[#12121f] rounded-2xl p-6 border border-white/10 mb-6">
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <i data-lucide="folder" class="w-4 h-4 text-[#ff5a5f]"></i>
+                <span class="text-sm font-bold text-white">Or download by CID range:</span>
+            </div>
+            <div id="button-container" class="flex flex-wrap gap-2">
+                <!-- বাটন গুলো JavaScript দিয়ে তৈরি হবে -->
+            </div>
+        </div>
 
-<script>
-const img1 = "https://raw.githubusercontent.com/mypunks/mypunks.github.io/main/org/1.png";
-const img2 = "https://raw.githubusercontent.com/mypunks/mypunks.github.io/main/hl/1.gif";
+        <!-- Status & Progress -->
+        <div id="status-container" class="status-bar mb-4 hidden">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span id="status-text" class="text-sm text-gray-300">Downloading...</span>
+                    <span id="status-detail" class="text-xs text-gray-500 ml-2"></span>
+                </div>
+                <span id="status-count" class="text-sm font-mono text-[#ff5a5f]">0/0</span>
+            </div>
+            <div class="progress-bar-bg mt-2">
+                <div id="progress-bar" class="progress-bar-fill"></div>
+            </div>
+        </div>
 
-const nftImage = document.getElementById("nftImage");
-const buttons = document.querySelectorAll("button");
+        <!-- JSON Preview Section -->
+        <div class="bg-[#12121f] rounded-2xl border border-white/10 overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="file-code" class="w-4 h-4 text-[#ff5a5f]"></i>
+                    <span class="text-sm font-bold text-white">JSON Preview</span>
+                    <span id="file-count" class="badge-count">0 files</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="clear-preview" class="btn-secondary flex items-center gap-1 px-3 py-1 rounded-xl text-xs text-gray-400 transition-all">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div id="preview-container" class="preview-box p-4">
+                <div class="text-center text-gray-500 py-8">
+                    <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-3 text-gray-600"></i>
+                    <p class="text-sm">No JSON loaded yet</p>
+                    <p class="text-xs text-gray-600 mt-1">Click a download button above to fetch and preview files</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-function changeImage(num){
-  if(num === 1){
-    nftImage.src = img1;
-  } else {
-    nftImage.src = img2;
-  }
+    <script>
+        // ======================== CONFIGURATION ========================
+        const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+        const CONCURRENT_LIMIT = 30;
+        const TOTAL_NFTS = 5360;
 
-  buttons.forEach(b => b.classList.remove("active"));
-  buttons[num-1].classList.add("active");
-}
-</script>
+        const CID_RANGES = [
+            { start: 160, end: 499, cid: 'QmcENAp91phXWRT7JpEpAasVve4oCsYbev56HNHD2BgLjE', folder: '0', label: '160-499' },
+            { start: 500, end: 999, cid: 'QmfUxUc1iu2RQSm1AygUEtX7giPrrzhvhKToQ4biQcimLf', folder: '1', label: '500-999' },
+            { start: 1000, end: 1499, cid: 'Qmeo1JdaA4hufbKneRQVNYQS5BJGGziBr4k14gzHeCgb9L', folder: '2', label: '1000-1499' },
+            { start: 1500, end: 1999, cid: 'QmUQu8Q66QYW2pn77oojimEQhvjH8tCs1jMbDHj43tcCFu', folder: '3', label: '1500-1999' },
+            { start: 2000, end: 2499, cid: 'Qmd8YGp9yUKtXas1cT3UsYFpWwfWHvV4Bssj8Pbvrq6BZ5', folder: '4', label: '2000-2499' },
+            { start: 2500, end: 2999, cid: 'QmfWsA2JKaDE3ipd8FdLHsayGQ6PQ4wVAfCK4PEb1ykUif', folder: '5', label: '2500-2999' },
+            { start: 3000, end: 3499, cid: 'QmdDkgz1a85LaJZxEr6awGCaf2CpZBMWc9eQ1ezEh8sqJW', folder: '6', label: '3000-3499' },
+            { start: 3500, end: 3999, cid: 'QmaduZqVgbqtJAoW7eyejNSLVsqXVeaRPC5HkG1SeGCyut', folder: '7', label: '3500-3999' },
+            { start: 4000, end: 4499, cid: 'QmQLmSXT5zY6XcNrdwhX8GbGc9QrbEhbwvEmjggRBxKeib', folder: '8', label: '4000-4499' },
+            { start: 4500, end: 4999, cid: 'QmTLx6G5hUDCoV8aBbXLuuV1kaUwd6KiSrARUJUHLGhEcP', folder: '9', label: '4500-4999' },
+            { start: 5000, end: 5360, cid: 'QmZodri3bfsGebBBBjeBAJLztq6DmQLDqiXi4LhEeU2QCS', folder: '10', label: '5000-5360' }
+        ];
 
+        // ======================== UTILITIES ========================
+        function getMetadataUrl(range, id) {
+            return `${IPFS_GATEWAY}${range.cid}/${range.folder}/${id}.json`;
+        }
+
+        async function fetchJSON(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch {
+                return null;
+            }
+        }
+
+        function formatJSON(data) {
+            return JSON.stringify(data, null, 2);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                if (m === '"') return '&quot;';
+                return m;
+            });
+        }
+
+        function syntaxHighlight(json) {
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(?:[^"\\]|\\.)*")(?=\s*:)/g, function(match) {
+                return '<span class="json-key">' + match + '</span>';
+            }).replace(/("(?:[^"\\]|\\.)*")(?=\s*[,}\]])/g, function(match) {
+                return '<span class="json-string">' + match + '</span>';
+            }).replace(/\b(\d+)\b/g, function(match) {
+                return '<span class="json-number">' + match + '</span>';
+            }).replace(/\b(true|false)\b/g, function(match) {
+                return '<span class="json-boolean">' + match + '</span>';
+            }).replace(/\b(null)\b/g, function(match) {
+                return '<span class="json-null">' + match + '</span>';
+            });
+        }
+
+        // ======================== CREATE BUTTONS ========================
+        function createButtons() {
+            const container = document.getElementById('button-container');
+            container.innerHTML = '';
+
+            CID_RANGES.forEach((range, index) => {
+                const count = range.end - range.start + 1;
+                const btn = document.createElement('button');
+                btn.className = 'btn-secondary flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold mono transition-all';
+                btn.innerHTML = `
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span>${range.label}</span>
+                    <span class="bg-white/5 px-2 py-0.5 rounded text-[10px]">${count}</span>
+                `;
+                btn.title = `Download ${count} JSON files from ${range.cid}`;
+                btn.addEventListener('click', () => downloadRange(range, index));
+                container.appendChild(btn);
+            });
+
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 50);
+        }
+
+        // ======================== DOWNLOAD ALL AS INDEX.JSON ========================
+        async function downloadAllAsIndex() {
+            const total = TOTAL_NFTS;
+            
+            if (!confirm(`📦 Download all ${total} JSON files as a single index.json file?\n\nThis will take ~20-30 seconds. Continue?`)) return;
+
+            const statusContainer = document.getElementById('status-container');
+            const statusText = document.getElementById('status-text');
+            const statusDetail = document.getElementById('status-detail');
+            const statusCount = document.getElementById('status-count');
+            const progressBar = document.getElementById('progress-bar');
+            const previewContainer = document.getElementById('preview-container');
+            const fileCount = document.getElementById('file-count');
+
+            statusContainer.classList.remove('hidden');
+            statusText.textContent = `⏳ Downloading all ${total} files...`;
+            statusDetail.textContent = 'fetching from IPFS...';
+            statusCount.textContent = `0/${total}`;
+            progressBar.style.width = '0%';
+
+            const allData = {};
+            let completed = 0;
+            let failed = 0;
+            const startTime = Date.now();
+
+            // Get all IDs
+            const ids = [];
+            for (let id = 1; id <= total; id++) {
+                ids.push(id);
+            }
+
+            // Fetch in batches
+            const batchSize = CONCURRENT_LIMIT;
+            for (let i = 0; i < ids.length; i += batchSize) {
+                const batch = ids.slice(i, i + batchSize);
+
+                await Promise.all(batch.map(async (id) => {
+                    const range = getRangeForId(id);
+                    if (!range) {
+                        failed++;
+                        completed++;
+                        updateProgress(completed, total, progressBar, statusCount, startTime, statusDetail);
+                        return;
+                    }
+
+                    const url = getMetadataUrl(range, id);
+                    const data = await fetchJSON(url);
+
+                    if (data) {
+                        allData[id] = data;
+                    } else {
+                        failed++;
+                    }
+
+                    completed++;
+                    updateProgress(completed, total, progressBar, statusCount, startTime, statusDetail);
+                }));
+            }
+
+            // Create index.json
+            const indexData = {
+                total: total,
+                fetched: Object.keys(allData).length,
+                failed: failed,
+                fetchedAt: new Date().toISOString(),
+                metadata: allData
+            };
+
+            const jsonContent = JSON.stringify(indexData, null, 2);
+
+            // Show preview
+            const preview = jsonContent.length > 1500 ? jsonContent.substring(0, 1500) + '...' : jsonContent;
+            previewContainer.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-[#0a0a12] rounded-lg p-3 border border-white/5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-[#ff5a5f] mono">📄 index.json</span>
+                            <span class="text-[10px] text-gray-500">${(jsonContent.length / 1024).toFixed(1)} KB</span>
+                        </div>
+                        <pre class="text-xs text-gray-300 overflow-x-auto">${syntaxHighlight(escapeHtml(preview))}</pre>
+                    </div>
+                    <div class="text-center text-gray-500 text-xs">
+                        ${Object.keys(allData).length} files loaded • ${failed} failed
+                    </div>
+                    <div class="text-center mt-2">
+                        <button onclick="downloadIndexJSON()" class="btn-download flex items-center gap-2 mx-auto px-6 py-2 rounded-xl text-white text-sm font-bold mono transition-all shadow-lg">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            📥 Download index.json
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            fileCount.textContent = `${Object.keys(allData).length} files`;
+
+            // Store for download
+            window._indexJSON = jsonContent;
+            window._indexCount = Object.keys(allData).length;
+            window._indexFailed = failed;
+
+            statusText.textContent = `✅ Complete! ${Object.keys(allData).length} files loaded`;
+            statusDetail.textContent = `${failed} failed • ${(Date.now() - startTime) / 1000}s`;
+
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 50);
+
+            setTimeout(() => {
+                statusContainer.classList.add('hidden');
+            }, 5000);
+        }
+
+        // ======================== DOWNLOAD RANGE ========================
+        async function downloadRange(range, index) {
+            const total = range.end - range.start + 1;
+            const statusContainer = document.getElementById('status-container');
+            const statusText = document.getElementById('status-text');
+            const statusDetail = document.getElementById('status-detail');
+            const statusCount = document.getElementById('status-count');
+            const progressBar = document.getElementById('progress-bar');
+            const previewContainer = document.getElementById('preview-container');
+            const fileCount = document.getElementById('file-count');
+
+            statusContainer.classList.remove('hidden');
+            statusText.textContent = `⏳ Downloading ${range.label}...`;
+            statusDetail.textContent = `from ${range.cid.slice(0, 12)}...`;
+            statusCount.textContent = `0/${total}`;
+            progressBar.style.width = '0%';
+
+            const allData = {};
+            let completed = 0;
+            let failed = 0;
+            const startTime = Date.now();
+
+            const ids = [];
+            for (let id = range.start; id <= range.end; id++) {
+                ids.push(id);
+            }
+
+            const batchSize = CONCURRENT_LIMIT;
+            for (let i = 0; i < ids.length; i += batchSize) {
+                const batch = ids.slice(i, i + batchSize);
+
+                await Promise.all(batch.map(async (id) => {
+                    const url = getMetadataUrl(range, id);
+                    const data = await fetchJSON(url);
+
+                    if (data) {
+                        allData[id] = data;
+                    } else {
+                        failed++;
+                    }
+
+                    completed++;
+                    updateProgress(completed, total, progressBar, statusCount, startTime, statusDetail);
+                }));
+            }
+
+            // Create JSON file
+            const jsonContent = JSON.stringify(allData, null, 2);
+
+            // Show preview
+            const preview = jsonContent.length > 1500 ? jsonContent.substring(0, 1500) + '...' : jsonContent;
+            previewContainer.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-[#0a0a12] rounded-lg p-3 border border-white/5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-[#ff5a5f] mono">📄 ${range.label}.json</span>
+                            <span class="text-[10px] text-gray-500">${(jsonContent.length / 1024).toFixed(1)} KB</span>
+                        </div>
+                        <pre class="text-xs text-gray-300 overflow-x-auto">${syntaxHighlight(escapeHtml(preview))}</pre>
+                    </div>
+                    <div class="text-center text-gray-500 text-xs">
+                        ${Object.keys(allData).length} files loaded • ${failed} failed
+                    </div>
+                    <div class="text-center mt-2">
+                        <button onclick="downloadRangeJSON('${range.label}', ${JSON.stringify(allData)})" class="btn-download flex items-center gap-2 mx-auto px-6 py-2 rounded-xl text-white text-sm font-bold mono transition-all shadow-lg">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            📥 Download ${range.label}.json
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            fileCount.textContent = `${Object.keys(allData).length} files`;
+
+            // Store for download
+            window._rangeData = allData;
+            window._rangeLabel = range.label;
+
+            statusText.textContent = `✅ Complete! ${Object.keys(allData).length} files loaded`;
+            statusDetail.textContent = `${failed} failed • ${(Date.now() - startTime) / 1000}s`;
+
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 50);
+
+            setTimeout(() => {
+                statusContainer.classList.add('hidden');
+            }, 5000);
+        }
+
+        // ======================== DOWNLOAD FUNCTIONS ========================
+        window.downloadIndexJSON = function() {
+            const json = window._indexJSON;
+            if (!json) return;
+
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `index_${window._indexCount || 5360}_files.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        };
+
+        window.downloadRangeJSON = function(label, data) {
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${label}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        };
+
+        // ======================== UTILITY FUNCTIONS ========================
+        function getRangeForId(id) {
+            for (const range of CID_RANGES) {
+                if (id >= range.start && id <= range.end) {
+                    return range;
+                }
+            }
+            return null;
+        }
+
+        function updateProgress(completed, total, progressBar, statusCount, startTime, statusDetail) {
+            const progress = (completed / total) * 100;
+            progressBar.style.width = `${progress}%`;
+            statusCount.textContent = `${completed}/${total}`;
+
+            const elapsed = (Date.now() - startTime) / 1000;
+            if (elapsed > 0) {
+                const speed = (completed / elapsed).toFixed(1);
+                statusDetail.textContent = `${speed} files/sec`;
+            }
+        }
+
+        // ======================== EVENT LISTENERS ========================
+        document.getElementById('download-all-btn')?.addEventListener('click', downloadAllAsIndex);
+
+        document.getElementById('clear-preview')?.addEventListener('click', () => {
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.innerHTML = `
+                <div class="text-center text-gray-500 py-8">
+                    <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-3 text-gray-600"></i>
+                    <p class="text-sm">No JSON loaded yet</p>
+                    <p class="text-xs text-gray-600 mt-1">Click a download button above to fetch and preview files</p>
+                </div>
+            `;
+            document.getElementById('file-count').textContent = '0 files';
+            document.getElementById('status-container').classList.add('hidden');
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 50);
+        });
+
+        // ======================== INIT ========================
+        createButtons();
+
+        setTimeout(() => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }, 100);
+    </script>
 </body>
 </html>
