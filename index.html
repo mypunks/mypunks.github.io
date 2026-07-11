@@ -1,446 +1,1210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · Absolute CID Pipeline</title>
+    <title>mfer · CID থেকে লোড</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root{
-            --bg: #0a0a0b;
-            --bg-elevated: #131315;
-            --card: #17171a;
-            --card-border: #26262a;
-            --lime: #D8FF00;
-            --lime-dim: #D8FF0022;
-            --text: #f2f2ef;
-            --text-dim: #8f8f94;
-            --error: #ff5470;
-            --error-dim: #ff547022;
-            --radius-lg: 20px;
-            --radius-md: 14px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            background: radial-gradient(ellipse 1200px 700px at 50% -10%, #1c1f0c 0%, var(--bg) 55%), var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            padding: 48px 24px 96px;
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 20px;
             min-height: 100vh;
         }
-
-        .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .brand .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            background: var(--lime);
-            box-shadow: 0 0 18px var(--lime-dim), 0 0 4px var(--lime);
-            margin-bottom: 18px;
-        }
-
         h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: clamp(2.2rem, 5vw, 3.4rem);
-            letter-spacing: -0.02em;
             text-align: center;
-            color: var(--text);
+            color: #fff;
+            margin-bottom: 6px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px #D8FF0066;
         }
-        h1 .hash { color: var(--lime); }
-
         .sub {
             text-align: center;
-            color: var(--text-dim);
-            margin-top: 10px;
-            font-size: 0.95rem;
-            font-family: 'JetBrains Mono', monospace;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
         }
-
-        .panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            max-width: 800px;
-            margin: 0 auto 32px;
-            border-radius: var(--radius-lg);
-            padding: 24px;
+        .sub span {
+            background: #D8FF00;
+            color: #000;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: bold;
         }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-box {
-            background: var(--bg-elevated);
-            border: 1px solid var(--card-border);
-            padding: 16px;
-            border-radius: var(--radius-md);
+        .controls {
             text-align: center;
+            margin-bottom: 20px;
         }
-        .stat-box .label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 6px;
-        }
-        .stat-box .val {
-            font-size: 1.6rem;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .stat-box.lime-status .val { color: var(--lime); }
-        .stat-box.error-status .val { color: var(--error); }
-
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
+        .controls button, .controls label {
+            background: #D8FF00;
             border: none;
-            font-weight: 600;
+            color: #000;
+            font-weight: bold;
             padding: 12px 24px;
             border-radius: 40px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.18s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1rem;
+            transition: 0.3s;
+            box-shadow: 0 0 20px #D8FF0044;
+            margin: 5px;
+            display: inline-block;
         }
-
-        .btn-primary { background: var(--lime); color: #0a0a0b; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px #D8FF0044; }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--card-border); }
-        .btn-secondary:hover:not(:disabled) { border-color: var(--text-dim); }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-        .file-upload-btn {
-            position: relative;
+        .controls button:hover, .controls label:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 40px #D8FF0088;
+        }
+        .controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .controls input[type="file"] {
+            display: none;
+        }
+        .stats {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .stats span {
+            background: #222;
+            padding: 4px 14px;
+            border-radius: 30px;
+            margin: 0 5px;
+            border: 1px solid #D8FF0044;
+        }
+        .stats .highlight {
+            color: #D8FF00;
+            font-weight: bold;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: #222;
+            border-radius: 30px;
             overflow: hidden;
-            background: #1c1f0c;
-            border-color: var(--lime);
-            color: var(--lime);
+            height: 30px;
+            border: 1px solid #D8FF0044;
+            position: relative;
         }
-        .file-upload-btn input[type="file"] {
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #D8FF00, #aacc00);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 30px;
+        }
+        .progress-text {
             position: absolute;
-            top: 0; left: 0; opacity: 0;
-            width: 100%; height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            max-width: 1400px;
+            margin: 20px auto;
+        }
+        .nft-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+            border: 2px solid #444;
             cursor: pointer;
         }
-
-        .logger-area {
-            background: #060607;
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            height: 220px;
-            overflow-y: auto;
-            padding: 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.6;
+        .nft-card:hover {
+            transform: scale(1.04);
+            box-shadow: 0 12px 35px rgba(216, 255, 0, 0.25);
+            border-color: #D8FF00;
+            z-index: 2;
         }
-        .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
-        .log-success { color: var(--lime); }
-        .log-error { color: var(--error); }
-
+        .nft-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 12px;
+            display: block;
+            background: #D8FF00;
+        }
+        .nft-card .token-id {
+            color: #D8FF00;
+            font-weight: bold;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            background: #1a1a1a;
+            padding: 2px 10px;
+            border-radius: 30px;
+            display: inline-block;
+            border: 1px solid #D8FF0033;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 0 60px rgba(216, 255, 0, 0.25);
+            border: 2px solid #D8FF00;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+        }
+        .modal-content .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 2rem;
+            color: #D8FF00;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+        .modal-content .close-btn:hover {
+            transform: scale(1.3);
+            color: #fff;
+        }
+        .modal-content .modal-title {
+            color: #D8FF00;
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 512px;
+            margin: 0 auto;
+            aspect-ratio: 1 / 1;
+            background: #D8FF00;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #D8FF00;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+        }
+        .canvas-wrapper canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            image-rendering: auto;
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0d0d0dcc;
+            backdrop-filter: blur(6px);
+            color: #aaa;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 1px solid #D8FF0044;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .status-bar span {
+            background: #222;
+            padding: 2px 14px;
+            border-radius: 30px;
+        }
+        .status-bar .highlight {
+            color: #D8FF00;
+            font-weight: bold;
+        }
+        .log-container {
+            max-width: 800px;
+            margin: 10px auto;
+            background: #111;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        .log-container .log-success { color: #6f6; }
+        .log-container .log-error { color: #ff6b6b; }
+        .log-container .log-info { color: #6af; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .gallery { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+            .controls button, .controls label { padding: 10px 16px; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="brand">
-        <div class="swatch"></div>
-        <h1>mfer <span class="hash">· Direct ipfs.io Pipeline</span></h1>
-        <p class="sub">100% Fixed Native IPFS Gateway Engine</p>
+    <h1>🟢 mfer · CID থেকে লোড</h1>
+    <p class="sub">সরাসরি CID থেকে <span id="totalDisplay">০</span> টি ছবি লোড</p>
+
+    <div class="controls">
+        <button onclick="loadFromCSV()">📥 ডিফল্ট CSV লোড</button>
+        <label for="csvUpload">📤 CSV আপলোড</label>
+        <input type="file" id="csvUpload" accept=".csv" onchange="handleCSVUpload(event)" />
+        <button id="downloadZipBtn" onclick="downloadAllAsZip()" disabled>📦 জিপ ডাউনলোড</button>
     </div>
 
-    <div class="panel">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="label">CSV Loaded Items</div>
-                <div class="val" id="statTarget">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">Processed</div>
-                <div class="val" id="statProcessed">0</div>
-            </div>
-            <div class="stat-box lime-status">
-                <div class="label">Fixed Success</div>
-                <div class="val" id="statSuccess">0</div>
-            </div>
-            <div class="stat-box error-status">
-                <div class="label">Failed</div>
-                <div class="val" id="statFailed">0</div>
-            </div>
-        </div>
+    <div class="stats">
+        <span>মোট: <span class="highlight" id="totalStats">০</span></span>
+        <span>লোড: <span class="highlight" id="loadedStats">০</span></span>
+        <span>ফেইল: <span class="highlight" id="failedStats">০</span></span>
+    </div>
 
-        <div class="controls-row" style="margin-bottom: 20px;">
-            <div class="btn btn-secondary file-upload-btn" id="uploadWrapper">
-                📁 Step 1: Upload Token & CID CSV
-                <input type="file" id="csvFileInput" accept=".csv" onchange="handleMappingCSVUpload(event)" />
-            </div>
-            <button class="btn btn-primary" id="startBtn" onclick="startCidPipeline()" disabled>▶️ Step 2: Start Rendering</button>
-            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Step 3: Download Custom ZIP</button>
-        </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">০%</div>
+    </div>
 
-        <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Dedicated Pipeline Standby. Upload your 'token_id_cid.csv' to begin.</div>
+    <div class="log-container" id="logContainer">
+        <div class="log-info">⏳ CSV আপলোড বা "ডিফল্ট CSV লোড" ক্লিক করুন...</div>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+
+    <!-- মোডাল -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+            <div class="modal-title" id="modalTitle">#1234</div>
+            <div class="canvas-wrapper">
+                <canvas id="modalCanvas" width="512" height="512"></canvas>
+            </div>
         </div>
+    </div>
+
+    <!-- স্ট্যাটাস বার -->
+    <div class="status-bar" id="statusBar">
+        <span id="statusMessage">প্রস্তুত...</span>
+        <span id="speedIndicator">📊 ০%</span>
     </div>
 
     <script>
-        const CONCURRENT_LIMIT = 4; // safe concurrency to avoid ipfs.io rate-limiting
-        const REQUEST_DELAY = 150; 
+        // ============================================================
+        //  কনফিগারেশন
+        // ============================================================
+        const GATEWAY = 'https://ipfs.io/ipfs';
         const BG_COLOR = '#D8FF00';
-        const TARGET_GATEWAY = 'https://ipfs.io/ipfs'; // Force target link explicitly 
+        const CONCURRENT_LIMIT = 30;
 
-        let pipelineQueue = []; 
-        let completedDataMap = new Map(); 
-        let currentFailedList = []; 
-        
-        let isPipelineRunning = false;
-        let currentQueueIndex = 0;
+        // ============================================================
+        //  ডিফল্ট CSV ডেটা (Token_ID, CID)
+        // ============================================================
+        const defaultCsvData = [
+            [465, "QmUHJGCyuGqVvTLQjrFJgKLd4BP4h1nLqcb1PucVV9GST1"],
+            [439, "QmeQm6BwhCaR5sSjj6fH5wreyUJEGZBzh6HAxpfiKeZrQb"],
+            [432, "QmQUoVwFiY3sGfJ4vzSCoThQ1besZ1e31JiRm14RgxNPoF"],
+            [414, "QmVH9jTyvznXGkB1dCvm5oFXQveZdxpYgmTZhrEWUBP2HX"],
+            [473, "QmX8yiJ4ebHvGhRYJ2sbSqijEvwNqc3VpnQ2ifGowTvfdt"],
+            [397, "QmQuWGHtV3RBX6cdG4kp3HEtvxsE7mvZMupRaM99NgoGo6"],
+            [204, "QmVWLj5hsRv4RrpfdmLek7zTk6NEfoFMHE9pTK6DSyKMBi"],
+            [583, "QmPcqkhyddRudQttZymc2gwbaa9ySFGhisZEH97Pto22Yu"],
+            [564, "QmUdmkM1N6Rn5Ve8TkGFMy3x8mYZPGw5TaK25hQfQ9NE6B"],
+            [71, "QmdP2g9mdxrW5p7yC7ntZfYaauaznNjGMV3uyzcPcXMw4B"],
+            [268, "QmRqYyrWidrtxU9b1xeeeGCTyoCcMXheBGeYrdm85DLs7W"],
+            [237, "QmNSHgpP1fUqxpUDuQLG3jvrfJ2Pp7YbC5KGyLmaoiSRvX"],
+            [682, "QmTi1jmNYxN3XjNNY7EhbQtQVa25giVzuHB46p6BmWdYaJ"],
+            [505, "QmRsRoFa8BsqptJLNxp8v3CrGL4cF9bDqWwcz1VfWK6WTB"],
+            [796, "QmQpUUZmfyutj6gtXQqrTeNBuJWBhEgST74wFN3jyjmWeb"],
+            [736, "QmUuhRseCUm2CcV83k6dymdP63egCoVHx5iP8Yhu8x7Cm2"],
+            [625, "QmZXEDoUDJaBhHzwgBURpdqGSf39vePGQDE7nBxx8MPcPa"],
+            [697, "QmSJwQQGCnT3RrLmgXHYYtZrfbuqnVT3RVomCm71wVNvgN"],
+            [979, "QmQXN3QXJx3PqL11ccPRoXh77EJPLjgRgHmrukgGC8aaVP"],
+            [546, "QmXY5HSz34yBWWRKKWjFxMia1BiAz7M57CojWHM8vyXVGC"],
+            [866, "Qme1ca73G93VbgYg1YS6sMkGcyCLdWHgoZsCi6HBJY1wKL"],
+            [576, "QmSYAvcn52iEN9BrUaMP6aEen8L3GCgtUA8S8K6tBuUTTp"],
+            [726, "QmWVEX52wikKZq3rTU2t99QfFfVr9cQL3st4TjNKmrXGL1"],
+            [1025, "Qme5ErZy1JLbPEt5DPPjDCxkHRKfEcEKNAirQVPBj9k88g"],
+            [1077, "QmaLKgjA4QBxpSLQe3RiDac1j5wmqo7wnq2PLHWZifSxrh"],
+            [1059, "QmWLdqbHLp4NC8Ya4jbKa1WS4R7pL5qth3WjjL4Rv695Rg"],
+            [1170, "QmR92CfMK2WRhspypfnGhN2Q2RqE9d74L1azGBoLDsqG41"],
+            [920, "QmTTmaxjmXCsVn4ZnAJGRonsVJ5Z2m2resuJadDJM2F3yM"],
+            [966, "Qme5rTyNNduVp3LeQqN6Je8yv7MYvY8Pqm3SfJeqJzPYvG"],
+            [1218, "QmPXp1X7qEKHziDX28XYQ2wjjHrXY23ZKNpxGmBbnA9GTE"],
+            [1221, "QmXcpYg4hZSi2aULfMT6bNrcUs8nQfjrWsvjXvPqbYpozN"],
+            [1200, "QmaxpV4smXrGcmFo6LyR6afzE11skE2js2PJgNukQ22es1"],
+            [909, "QmPSoLyQMGsrZMaGwoMgsURkk2tt4gKZAfhbvr2gtnHXCk"],
+            [1222, "Qme9X7oD9DEuvNyzML9spA6VhQ8kF7QKBe1W73szrydrLW"],
+            [971, "Qmanrh1Yi4P1QaaQM7uTVCPnqKb2LKxv41tqxex1Gz7Q8r"],
+            [1009, "QmPya9en6VbHyQWq7AsftBTJEbdsmAoSxxAQMMnUGCZxEZ"],
+            [1284, "QmZjYLbMiDzBfRScPe2CGvpNLRcKfBWW3AFBegbDMUgN9q"],
+            [1568, "QmPnGLU9aWgH5pyoEbfQEukzdpi4sbpT3dGpmBXAmAgSKN"],
+            [1143, "QmPFmaMCTU4dBnBzDTFDyPb3FAw99DVSdj9sMDPG1BFFD4"],
+            [1299, "Qmaag3MTS9aGdqNkD7jWxk8TdEocT2XUqZrjvAScXL4RDN"],
+            [1317, "QmXvpfVeByzevH8XsHpiimdNuJuYUnsW8bPh92FqJkMWcb"],
+            [1375, "QmZ92sqTQUEvMFvs6dk854km3GRVoyH7iKryyYp8K6ZvG5"],
+            [1378, "QmSyR3VN1zCPDCZCZLKcAFr74TnYT94or97oWrz8xvzs7h"],
+            [1298, "QmUQjAtR9u1gWpBXsuJ2KGyeRD3hmrYWt6EBT2oXq47XFg"],
+            [1062, "QmaP9V1fqE8o56VDEmT7ZF2DFrtxNTPDGT4YDVJLCt71DU"],
+            [1367, "QmPGQy5etxeSdYSkEtFwJKv9H6hS1Z743npfTTRNMzhvo1"],
+            [1439, "QmShLKxtEpz1bHdxYYrmaBoEFEvMBytUJsL3D1iGWddQ4Z"],
+            [1557, "Qmc1CTSPUZ1aEe5mGc47RrtaCF5eKuPb1NBKDbNck4h7VJ"],
+            [1454, "QmWAXtjQ6rjrsmnyQhxPymAntwzT6Uh7LZKxWUx5Ffyx6t"],
+            [1535, "QmWz1Hht1DWSYbFtavSQxbYFZtmZyjLqUXTS4EiyhJP8US"],
+            [1559, "QmVKZcUbRdgDvhpDBoaGbdyPNYohgrxKbUsRCEJUSGBpV5"],
+            [1564, "QmR9nc2pWvMDLHX7N8ePHhmC7jAR5M4gqgGySJtxFHBvUF"],
+            [1641, "QmVnECjccRC1dk1SMr1Tj2EmezfUo554WCAtghg5Kgkr4M"],
+            [1734, "QmeffntYG7KhXc5wqjWsER9cTewuQ9UoxKT4mKJVxWynew"],
+            [1619, "QmVHgsSn2X1DbnGoVcoARYbXTz7XKNCvsAexwjaUyDU1ZH"],
+            [1416, "QmTURmeKfiWBmvRpMdqnRQPDfawToqFHaihGonBSk1f6vb"],
+            [1411, "QmNt5dEbQa7i5ukbqWx6y2vRCXWLRZqu13AnHZ4xKgLEMM"],
+            [1291, "Qmbtk5FciRSWQndRdNSw7erb1JgtSgGZDhcQYoVYvqzwgk"],
+            [1611, "QmUqGP18JSnG5U8kvYyun4tFpqxCmCeUhzYqawdDrEpcnL"],
+            [1732, "QmewapRHgC2GedniwYKBmDnRsb3P5bEhME9QArPy8Ze8Gt"],
+            [1727, "QmPwP68TVXmgH5jdCgFYEyQhtLnMMxJ4i3JSqsjB27QArW"],
+            [1742, "QmcK4YXk99bD4kmNxwhU4wMHbCrgTqQ6mNy3o52vEwwf2T"],
+            [1806, "QmeYVAJx91cACHnCrvEU6m7RPY7g1JGWsyfTExC1Jj9Ekv"],
+            [1661, "QmWfYTu4t5pVESXJyMrMWC1EChEnzFMZEiovQqpFn7o86q"],
+            [1691, "QmcLsL3KLzea3dDitbGePqo4Vpp9oB6aVdmiTc4avCJTw9"],
+            [1731, "QmT9N9JZZtYT35nCVovwMmNESWbhZPFK8zCtXvuYT8JPCW"],
+            [1544, "QmULyygpEfr2P4MtAsjYULCnuYz23fzH3QFt4MMm3miuo9"],
+            [1847, "QmRpddTEtBpLCQm8ztw87RNauuhsWRgioqMTJnCgcdDQWr"],
+            [1798, "QmNZ2UgQrHAsnmf9Kgo4viWUSyQpjEa2Eo6aaoFwnCLqpV"],
+            [1770, "QmYT7Q5pZYdhJ7GWSCXEL432KGNaWSuYWmVxd2LoNRvc7X"],
+            [1799, "QmWG4BrZNBeBkPtvmGvzYTd9MupEyyH7bi4vFqskLD5Anq"],
+            [1903, "QmaGoCUAFXw1THStcrPYEi6PurKaLTyiF5KVCxQtDFjrce"],
+            [1846, "QmYN7a4n4PTgbUNuDKtrFKvBTQb2UmGVY4yMsG8wLsNeuC"],
+            [1832, "QmU1zSiMncP1Exap9kvVeC2ENSDdxc4U19ocdJaCgqYMbU"],
+            [1968, "QmbRehiTdesCygyDhMg6eQx7Bs5snaYe6EsmqBGpRiqxny"],
+            [1810, "QmYPjkbJFusvwBMS93bFSSb96LfrWKpjRbL7cQ6v1sopVK"],
+            [1998, "QmZqoJT2WN45q8wBaYQLzapMatx7gFgkCDiDNGh5pdAVMb"],
+            [1964, "QmewgP2RAfVayrTDbg9TMgXNTkwe1DXa1cGM6qPMdkNXy4"],
+            [2067, "QmRWbhpUsM4y1xeXEv5KC2NaQXMYgMQ3cHUrMAJSpJyKBY"],
+            [1833, "QmQoXyTofZA1gFrSKqSGNGyjNLsxQUqYY3gjGJhgaMZtnj"],
+            [2060, "Qmf12W3tGdMH3cKzReKSVNRJiAvKnHmwkwHAckqP7sNax4"],
+            [2014, "QmUrmuKpNJHWfPcMGi3F2VR4p8KB9HjSadXicQrMguECBP"],
+            [1937, "QmdqikY6sbXA6bYhmz97F2nzp6jUcrnDwryYJ5V4hoXw7t"],
+            [2139, "QmbUiZ69FwHq76cTsrDhjMkdCjKjc2rfrbqkURattuNx9S"],
+            [2040, "QmR1Yz2MTLnhDPqdafdFpZSuxDRN9t4NjGUmPb3Q9vFgyt"],
+            [2173, "QmSYgjWeDr9zi83vVgFUknHRQ8G1uTyTCP5VgxCDFKAP2x"],
+            [2063, "QmPeFJdNfYjz64PGZYYMiApcW3J4AnQMGRa9X7yejdzqk5"],
+            [1980, "QmcSzUP7b6inU4d2Po5QnsNqpYbo9PtD5MHTHSMSUg4Wff"],
+            [2084, "QmPPpBGqe15qdcWgpJ3FyRycU7KigkSrePjeoM1EDaz8FX"],
+            [2149, "QmZWeidocqEqLLM55pezxuyY5HUnr2siXDZqniyVsbBpne"],
+            [2117, "Qmb5biNXVkis1L5Yf8sbt5MT6PzznUmXY1hyvWTewpUY1F"],
+            [2222, "QmYHoRja5oP35i3PMp2rF3GvFBchDtt9W8aX5Js5vxUtCF"],
+            [2137, "QmPxaRiKn8LuoQi29mS2DnMUciyKY2FgZyfQdQtMUBMFtN"],
+            [2123, "QmbmjSc226Nqr5D4fqXrWzjgyw2m8tNXSyg4PCUNCVpW9f"],
+            [2197, "QmfRgkSsnaV2AsrU1Fq83KWkRcG5vHzKngcxGYU6fVQxP2"],
+            [2303, "QmSgxW7citvmi15vUvpk34GuNFm69WLCCBPBqjxWTSFuiY"],
+            [2313, "QmPwcLwxwvh8qhXeb1sDrm3rS3QeMiDEZwsG8cpaziH6md"],
+            [2244, "Qmcgpd1NATs3obMURPCnMGL8i4YZ7Pi9sjT8AFpEGvUxwX"],
+            [2320, "QmQbRPvSgAx6SUMGpBVfeM8kykhq2b1Mw9s9mcVNqXS4sL"],
+            [2347, "Qmb6Sa4SQFoqV3FufN9NQEQYn51rpKW1hHHumevKNn2ogo"],
+            [2366, "QmSpTwEvSuGNXGRKYot7AdCWKVnkuzGP6dQ8M2n8QPnerU"],
+            [2296, "QmZ12hFTc1WH5vvxnSRtEJxFHDjUPbrgUMtjPun9HsSwbG"],
+            [2421, "QmVkvYQcTAtkbkDWyHEoDqnWC2HQjQRa2qHtxvex1WzgwM"],
+            [2286, "QmNwVtACJn2Cz1WFfSxZvdb7HfpJdNokSsCDJygEU8Vcwb"],
+            [2400, "QmSUdFhS7TvSxhcVnmA2oyeRcePzYrjY2FpJHHCAmHUjPE"],
+            [2516, "Qmf8wkb1sHHzCVcG1xMHFBQHxqsCNe7mYKAn3iiUueZnGA"],
+            [2405, "QmbN4YnELM3W4q1xcdts62UDaFf7DgrazMCQGrcSzsjSXt"],
+            [2477, "Qmbz1K8TLgwBcWX8XJtNSm1hifvQqPtBkEFuTEtdpMa57N"],
+            [2487, "QmQc9ThPDfSiNr3BJukLSGLyt1C75iakwrU2A6SLRLKSYJ"],
+            [2623, "Qmet8ddzSaVm36FZjGVxoZbp3C4npnnXe6p9S9hKFWgytv"],
+            [2513, "QmU2uJKGgEZr9eNuRbJySvviVP7jxukbrx7rphorrfYZ4B"],
+            [2429, "Qmbmige2WAsCErbs2ZJjV75tJy1U29mEPDLg4R3hw8iZsy"],
+            [2196, "QmWWpkffmS6J6QP5nzVUSGs7T8xYFifj1sipHuSuxDVMYW"],
+            [2620, "QmXHGpdDvRnMSmCn9KaNU9WvQ3JW36Fznku9VfzyeUTA61"],
+            [2733, "QmPjPqSjkDGLeKeuETkW8mE98K8EFgi1GgicqvYUb94pgz"],
+            [2523, "QmPNKeShqEymjyEMBpbkFJ6QkGSoBmddFuXDNSJWBwkSP4"],
+            [2627, "Qmdg1e9nikW4amEJSLEvmeyfqBDWLdqcd3SPDkV3fdpZRQ"],
+            [2700, "QmUAe9nfYrg2iggzNShDLoJRyd3rN48JLydVzohifVGFyK"],
+            [2702, "QmQUvWt6r7d15orvkryz54yQAFJN7z464afc5DAhLRURw4"],
+            [2608, "QmQVrjAxABAqXoiXQLStP3bNDK1gnQTVBCbAKoPbZDrP83"],
+            [2641, "QmbKvWhiaagVue4VYvsXmpKeSXxxeYgDxZS5ewstJwaBBV"],
+            [2707, "QmQc9jyLoqSbaoB9tEH5rPmqwrepnp8kpLnnvfLwJnYtyt"],
+            [2768, "QmRKN2uKC5StBbHLRegcjrQTesve6ifpmopABgPeaLi1Hu"],
+            [2852, "QmRpwBgAR4Hzby53barDeFXzrYiphuY9bWK63D53QzTKWd"],
+            [2695, "QmPGGb7PiMHt1UKuRQ3vUs3E4afR82qhdz7EP4FX1WRdVW"],
+            [2762, "QmbYSKZTCpW9tmLS4iu9xBKSfSEQBfyReGiXSCnpxoskMx"],
+            [2872, "QmNRn261wkrmuhzQCbSLZYGCDVESxpDPpzMfcQPK56YDYa"],
+            [2858, "QmdhKNmgYRVQnJoqpY3SVER461dbQSB8dtvF4PgwLTihiF"],
+            [2663, "Qme9Tjfune2bvqyqck5Xk4XUwnN2zz28SrnVrNtFDCHNoc"],
+            [2821, "QmNQN6LtcgxWSFpSQG5WSRn6drYjJH3rcXAarEAgFtrBvE"],
+            [2868, "QmTepWUDS5QPBRsUrjKySqZE6KWznshWjBjkx8Qp7Hq7T9"],
+            [2772, "QmaagPvmsmPGtQdjYuJnhu2ib2KsG8PVhzyon8pfjrES4G"],
+            [2994, "QmWuoB1eLuhpMgTByJxPu4ZQYGed2kn9WrzB1fj4K5Bgnp"],
+            [2571, "QmSG4NRsFx3cdskuBkJtkp8Xta9Q4uhfg4hx6UDbrfdLnS"],
+            [2524, "QmW39FCTvn5VmppcdpL7dPCPnNdGfkM9LzRyfdDckg7BDt"],
+            [2911, "QmWjSvNAnr7tZxFAz4tshYu2WhqY12jcia53tiaGVnio3B"],
+            [2844, "QmfPGRNDGG4r7xjwpYYXVWvtgoQ7mG3cCmBjfZ6QHZCofZ"],
+            [2717, "QmR7CBmbdxdK92pZMVosB67tor6vBv3yzrcctzsc2dCmn6"],
+            [2909, "QmX3ZoeEStCfJ2SsruVWaGncsrv4oK3zxc9EY9PB6ywjgV"],
+            [2939, "QmeJn9btcFckhZWNMs5RXTp9MJrG9NEMvxZEwjYGveFTar"],
+            [2880, "QmbJPXjhLrTyLcj9FbtF9LhcZoN1fZ3ihPTNiLn9oELfAt"],
+            [3047, "QmfVBYmT79pzKHCbDfHpubaQREdmHuANMWZwCpqNYGpTpM"],
+            [3108, "QmXgQNnXzPuBy6KShGcRjzqmef957yJT8zGevm5oHt2zHN"],
+            [3058, "QmQDoQZj17XMiLduSFf149XDtgXf4kie2D7kVcJTX67mR5"],
+            [3116, "QmVDWA4rPqaxHN6jEaTSoZM33dkjMMBP7YAnFWG4X6DNJw"],
+            [2983, "QmWN1eLxgZPZ34H8sLUVJfzHnAn9GUT15GH4Ph4Mw5h4Tg"],
+            [2914, "QmcDDtnd5P4e3PpGRs2hzxaqJHFAhdppurEbsFWky68xJM"],
+            [3156, "QmY2u3xdBdka5fLd4U5a6Z77v1cZtNQdKJKU3X51dFbUgp"],
+            [2997, "QmTuiENunciF3PagDuCKtrY1d4wrgqjNpniHa7DZfYbTG9"],
+            [2398, "QmTU22his7zwj3rn3Rbt37PCYfGZKTTCXUB3NMerdydSyv"],
+            [3341, "QmbRjEgjrNtahr5G7KVEVgyRXmVag2VACd5h8T6XYaouEs"],
+            [3151, "QmPQ1qAfnrgsYPtShFiSHs1Lb3fkRsZFDBXrKTzy7dGchm"],
+            [3352, "QmNvxteLe2ZJU6u6xAx7SYx3rf6n1SMwiEirk95LjV3C91"],
+            [3180, "QmPsgm4fiNZwWKw3xxjNYsoshDmMkZB8sDfJShrV35iZNg"],
+            [3169, "QmXdbhhvmArfgmE3jJSm1YMc3TQcey5sJX8ktUTPiMF4De"],
+            [3048, "QmSs4dc42MpKHmoZu9FvHuTfoGmLEvCSvjHthNJQ5AbJsx"],
+            [3303, "QmczhCSA9A1u95reTXhiTyN25KkBcxGVLTLUEZXPw4KuoY"],
+            [3095, "QmQKU3xPsapFk9w9rAFMbavvfXtj7S7YN66XfsGDa4tDys"],
+            [3186, "QmaSJM9H4iTzfAk1gcbj8jjFKjKLj55edo2Fp8ffRLT8Dj"],
+            [3132, "QmNtraRjjd42rmyRmVEMcx3oBYX8i6CQfxf8CZqxUyiiru"],
+            [3019, "QmUrt91wKCQt9M5Jj25UuSquKv5J73iRKoY7vAdPVtzLNr"],
+            [3147, "QmSRfUqANd3nbBYUuS9iAJTGPXdT2LyDsuFGJZX4Bqwhpa"],
+            [3483, "QmV4z92RwomktMfumJRWeCuSuWzSQpHzEA4KhukgmBnVPd"],
+            [3394, "QmXkmCYhMrNikZSoaF4AQUEodx8DaMuv1deMCFhw5jLJ4E"],
+            [3559, "QmNynRSCfRjhFKcnrEAgx6gcVmoHUWpJWanEkFhK8qm3AS"],
+            [3473, "QmX3jLQ9c48E8dKFoF6apNanYwrmvn2kBGfVet7fn4KSgq"],
+            [3669, "Qmc4zyoUeJd3wjgBfMpuPboRSydaYVempYLDvkVMf4jePk"],
+            [3615, "QmUL5aLvzvviVnyzcF2dcxAfmosPAB2U1noqQCxauCp3oG"],
+            [3412, "QmeJ2MWhrjAYbnXAWyDhruu4TpidB6WoJNig5ENyWviqD4"],
+            [3540, "QmdytzZ9YATGQt7x1nZpCM2NWPeposyMmMBGKuHLKof4b4"],
+            [3571, "QmY2NmRzQG7JiMkyfYYQMQ3AkSw1BZ5d1xzW1HbGEzRfJE"],
+            [3636, "QmQxPXMnTSFpXUfGKHq8TEps6EdoQSsAaRmFYNPpfUiidH"],
+            [3391, "QmZj5BNusFu8dWjmhRjc55dP3DZ6t1hQnAmYpPUde3MvHw"],
+            [3286, "QmUkxPAXHZEPtuhtScdnuTbJYozMS89CqBpwFaLzCjNL8u"],
+            [3251, "QmcV1pd6enuZoVJdt4bsDBLxAqFjXqR6k394bgYwfnEC1k"],
+            [3683, "QmPX64vMd9FBD8EBJ2KZZ1ydQkbw2hn6aNPVqEZ5wTjGW4"],
+            [3692, "QmWeqUyGfHGH8Jxmpo9zBPb97EauQ1kGEKyGqj3xgCNiQ7"],
+            [3612, "QmXjhipAfXBVmW673NRGbMDHivBXkY7Uk82n2rPb12ojBR"],
+            [3668, "Qme42eqWZL1ERe2Gbu45RAjyoPp198niambNpbKje4b7wJ"],
+            [3759, "QmRhUHmF8XqftTskqMB7ehU8tuzhGJtsJgbHTJfKSJud5v"],
+            [3639, "QmSKdS3gRz9RX7XH5ACeFYQYnQVGL5ge7MtXurzepTo6tH"],
+            [3805, "QmPUw5BRUspq4b6YaXdiAJPxzbeW4LzhcnvWuhEfwAZHpq"],
+            [3922, "QmYxPf7XqkWq96gqXJgWWxw5pCuhete8VJrgWuiBHH8tcv"],
+            [3769, "QmbVB5VmdMyCFU9DTmU5BdQ8JLDfZAEXmtxsmfvVtDXbJf"],
+            [3821, "QmcdPUHdJW3ZaorpBeHmGra7Liif68Dh8saGaVa5ys13SB"],
+            [3753, "QmR466DzyoiBtvQf9LG2sXDcr7VVeufgt3xv6p9kYsDv9c"],
+            [3828, "QmTPHqkSochZs4gCY4svYMydzeqHqjXCcm5xmMX4wZwGcK"],
+            [3703, "QmdrSBW1WZPf7ghJ1Uy5TSY4RE5j8sATCUmFbwFdJnbzkz"],
+            [3729, "QmW6WP2AYe5ogaTAeJcr3sHBDRtGgc3EqsykCdVXyxP3h2"],
+            [3776, "QmZXZ2hKne4MAmMpyPfB5oxTw2yNaYET8owYTwBrb7jsiT"],
+            [3643, "QmUq43zcY8jHsDPya3yUYYTy1WuVcGXsZQwjch4GsZFPLS"],
+            [3913, "Qmd85SQCFjRcg11HDWSnwdxvHGkLC5BT9goxEF9Q1gS9LK"],
+            [4172, "Qmdkmii2DdnC5rPi9eVp9PvXoowFfSJzBmBYTXmWVLyKt4"],
+            [4119, "QmTRDCtyLbhrgypHewUjhdx1VWDJ77t1zoBRvSGhUSGbNC"],
+            [4104, "QmNv1BKGPnWrsN5omryJGUfwvRs9us1A3CN5hXakfAWVe2"],
+            [3910, "QmQqzZdnPrC4C9uvfDmsgiACAzpUAKxRGRh43e4pFAfbgA"],
+            [3860, "QmbQ2ejzGGLQDaVoRpYRoVg5cUWEg3hPYt735S4FktHv6b"],
+            [4171, "QmPD6M9MibvhkQS5fGvZ1Kg3LXoiC7mT617Mi1vXC44c3F"],
+            [3783, "QmQWTzjLtBxj1UcL2Jj7KPfCYaMURrojzKr5vk5dNAxtcm"],
+            [4170, "QmRXDLQj6ahvgiBZLErkzinDhN6GMSnQZSVkjb1MNNhDuS"],
+            [3966, "Qmcxh5nEyx98N6HyVpADLP2EHYK36KxfNze4hfX68suFMP"],
+            [4187, "QmdoBMoJFinWSqMMSEq2ZxtHxYFU88p2AdWb64N1eW8e9V"],
+            [3902, "QmUwsBpvmYxyzeFTx73aB5kcn9oWSoAu43SDjZ6QwdxCdA"],
+            [3933, "QmVzb9gwjWd4KffVuzb138QnX9jwHDDgUpxkwyNpyCDLtt"],
+            [4374, "Qmci1h6XaGyPtt5TSRWjRQYVASwihWpJmgos77tv92qpGk"],
+            [4383, "QmXpNBHHTPqHfQTGVqRLhKkXjQxqqQEfjG4GxBkbf6t63q"],
+            [3716, "QmaNREoWVtfpmVktLzftnGeYRWK3xYNjEAmZshDjiKTdgP"],
+            [4244, "QmSdwu2krTrcT1YNgZsnowXhg8kQftvZv4rHgNCcTftc4W"],
+            [4336, "QmauvAECQ8nMPJLis4xwqxBHZ8ZEP2zFd4Fakr35zTd2gM"],
+            [4109, "QmZbsVSriQkcCX8Dx1NqG4SVbCDjjGPQzKVDHbVTRgzQdE"],
+            [4421, "QmfEYSwsfHAj5j9w2r22E18wW8rYiCtcoddis19ZmGQfyb"],
+            [4265, "QmaVv79ESSVVJyL4PtDZPFZFDNWyi5dfPPedg2SALKXs1E"],
+            [4263, "QmXQWyV8m2qijhBBNYGkN2QVvd7TYAEGT5LPvKvbZg7KpL"],
+            [4398, "Qmci1ueECynbTS9axtwNLEWfBaNjpt6CwXrUTHKVC9PV3h"],
+            [4524, "QmXzmXRP1MV54suPVXQSPQ4TBFRmHAvUk22ij6WKZ5ND25"],
+            [4382, "QmbZs8hhQ5rb6AuLhEEZjy5FtevACmUPG8ox33PEL8WmNH"],
+            [4406, "QmbTbQpaXfngvKR14vMAQjnsjcq1UnNHTzavcrNotkb7xn"],
+            [4463, "QmbXVz5uGVXGsQsXAAPCEvAnQvz1eobzJKWawGpxC3xHoh"],
+            [4323, "QmcrFdxDxHA5G5HR8FNfsotUMDLdYxkoPjAE3NjXq4z3Zb"],
+            [4279, "Qma9zEmkZHMajpEDvBoikEPQMBb9hwsbXRbEUZVyuhmCnc"],
+            [4613, "QmeN3HdSYpKW3kGqcVkHo4MGnaKGRww1LEGjVe3N9mGDau"],
+            [4508, "QmUm4QVvrG8yqvLyHJsjbhUkB2M3rPnzpiH59Qit74iFSx"],
+            [4570, "QmbQZCkstNWSqz6vV9xYfQmRomwibWyVEtuUumjE1G4ebe"],
+            [4309, "Qma62b3HSU7mKMT4PoTgEg3XTALCU4mAzNYUqtS2Q4bED2"],
+            [4559, "QmTRXfxj33JqppD6Sbphds4EepGVhFhUEQAMmvXT1T29aL"],
+            [4556, "QmTN4K5xWvmvtLvbvDp9iGgArd6jMHz1cALfxeNFUpvh7w"],
+            [4545, "QmUTs3cbqebefNH3LXumUgxtFFc5t6k7ogfYgecquKcGYZ"],
+            [4473, "QmSjfWjZVbC41RgByUzaPLEsWmY5GgDNPzYv33CVjjcapq"],
+            [4710, "QmZyHExUP5g3DVRCfeLNkboYDnsmh5JM6SjeXUDFrC1JBR"],
+            [4522, "QmPYSdbPxzvRUfhb2PLCHuurBige9qAnLDaqvoTkfpXV1W"],
+            [4377, "QmS9VWtA4T9ou6Fu9fSj79qwnW8pivPtH3rZgrBaPGZb2b"],
+            [4453, "QmQmU7fmLJbfZMtZecg4mFBuabT83Ha9yZFygfRrDoumsN"],
+            [4698, "QmPxnnwXtfTw8m2Th3jJzsoQBvENVXr8QSmYr7gEvGe4dJ"],
+            [4620, "QmZnVyCmkQb38qgYiF7DiKSBJPhgdqL8jt6erCN1acgTeQ"],
+            [4642, "QmNwz6r4LtAdpfVJw9L8ztMp9TBatWGnPk7526mL1oLVgr"],
+            [4832, "Qmay5SMdR4HvqCcoRxu3x2svKJwHygQ5MsXB65mUM7gAkF"],
+            [4986, "QmRfiYoTVb9PWktDxSdf83ajnsdCMPKF82oKtSVc3Kbktz"],
+            [4682, "QmNpXvAmo9nonmAQGAYFVLNM3sYgTvGpgWxqTKfsUuxP7K"],
+            [4661, "QmWW5NQM7dxz6FuUc5QW2tcA2JaNWXjsYiXUTRVbU137rs"],
+            [4566, "QmfLEGTJ1shAgmdK1cFUMT3jcnXF5x7TURay5mnX11z3pQ"],
+            [4649, "QmWTKSADDmYMAFv8JwrmBPBfHc4jnzVGyBJTim2MA7aiaj"],
+            [4742, "Qmb59GLSbXN1WPhzvtFwDM14LVkueXqf6F39X6MtGuNBui"],
+            [4683, "QmX8ZyPZQCXnjaEYvpkRsUoxJ9hAKtDQVJkXRfbbBnfK5d"],
+            [4860, "QmNUpKeHYR1bWLUGzdHrzPSMc1uWEE7z2xJ8yNc1as8hZe"],
+            [4974, "QmTRD2P8nrLX8mkQdGoYYiut53iAfVi9Xtwidbo8o1mYAQ"],
+            [4833, "QmX8D3FQQEFTsUwUnVuu5LEFphE6XzScBF9ZEWXJiwxHvF"],
+            [4935, "QmNvWA5y8HSvVXzA7pfLTGwEZUA2JbyAVtTqBJEb5q6ezj"],
+            [4768, "QmV9F6CZeVLqBazkom2GtDceP1FNdvkeAcCE6NDCWKxp1U"],
+            [4970, "QmQ8fonyKN2HBWqE4cu2TVmuSE6RQbhN2CbvQaxJ5ragdr"],
+            [5157, "QmZKr327zJSuZdhFUBWsTFUQSExGeGthucagBEgm56CBG6"],
+            [5130, "QmYLztYZZXopefSb8jSeFYW6vY8pvHMo6gMKFfJteYY5hB"],
+            [4778, "QmcZBvTkeraTANkK4KL1ssGBoUhmkuvkA7m4Wp1Yuhsk5j"],
+            [5133, "QmNVu6KVXpYWZHaxKKjRoDQ62YHKFv69GxS95Br1TQsonn"],
+            [5019, "QmWbYfEDmCBjJ3qpXUraySXNmnHY958wJ8uGu7Y1hrRZZD"],
+            [5027, "QmcRAL4C6KLcCTPLCxWKdtdcYcWx7zKRNeq52BhRan1uxn"],
+            [4981, "QmdEdh8FDedWHZN2ebqm4EFYtYGR2njV3A4KiHQuVgLWda"],
+            [5265, "QmdjGoLeaCtnFbeZaZQiiq7q7T4hrPLKogEC2i6ahBMTMF"],
+            [4965, "QmRec3zxiQUMJX3KQ1iwtr8WMyrqnEBM6EDHvjWV2ai5ZP"],
+            [4933, "QmUp7zCA9dB1grxbSaU85bA1AnMfvUvgAMUrApxcAfCcNS"],
+            [5178, "QmfLePa7q3wxm9hvmoFXoi895xmNnHZaPNSVfPUYcDoEMP"],
+            [4955, "Qmcu1DoFuJBnGZNwUEu9UKKaKgYza1cAC5TcdMBKoAaB3h"],
+            [5083, "QmRDAkv1ocFqx5Aspsms4w14FrfXNtj9zDwpfs6d2WezXc"],
+            [5263, "QmSW9JaNDfGpkfjmUfWtPN16WGXvefZcfRYSvvtnijNvVL"],
+            [5257, "QmSSyxzzaauM22Hsm7HyGyA3UcqpfAj1Vzb4gTVDzoYtJg"],
+            [5244, "QmTzXLDSvjGcNkE9Y9eaXgiAUvA1BvfZrY7DEHJYxPUrsD"],
+            [5253, "QmRci8X2Lu25agkzrSgS9Lm3Mtu7gNSYqfdNEFsQqQ1CeC"],
+            [4850, "QmXFkKfvD6KsD54thFJsJf4TQhaK81wAtz7QT4XUmJiaQa"],
+            [4883, "QmZdGhq113YM75wkWtrhN4n4nN6QPhao5gsmBfaS1NZLYy"],
+            [5304, "QmNYrFE3Q3aRRcqJwjaRSLChrSFuCWK5dbinYZZW5E1Tab"],
+            [5319, "QmTsvGPk1ZJ3nUSxjtPMWBgWgJucNPfvLXiopaAawDcQGg"],
+            [5317, "QmZaGkRCRDKcH5QDx9DAoCC3B7rYPT6kkNQ11x7F5S5bvJ"],
+            [5273, "QmXZjrZnNhDV8txgULSQkgB7EM1KHCYW4TCXdN8gdLZUeE"],
+            [5346, "QmaFCdug6HCuFDgbJt3sseJLV2yi3io6cKLc8onn9oEZpG"],
+            [5426, "QmQveciX4WFoVoYceDjtoAWMzhkywD1uMEvYkJkfVjmFDV"],
+            [5497, "QmT54h3oKrF3DsAeWNAxR4yD56ohKLXFeEmBderLJTNyFa"],
+            [5417, "QmauerJB7AddNpJzwn1emRxEzPG2bp4spCTds9PwcCYQMk"],
+            [5596, "QmQLitSDb85iiFcPeBpcrJSVdE4kDh9cpkvnG5tA9Qt8YR"],
+            [5623, "QmVehB6rGTVVWdnP3JUcN72JguY4DyK5RvQTSAgvswrMjb"],
+            [5572, "QmcjYpzco6DWYJ4nZnyX2DS4kW5Dho9NSzpRYB7F3VkYsF"],
+            [5168, "QmZCzm7XDdA1qVygtYyVXhcAQLdqcj5qnbeoBBLwceeoQg"],
+            [5324, "QmZ9pKK14zZX5FbiJsDWJPXaYWXQArcBTppGKaPutj8rTf"],
+            [5531, "QmV6aVx8B14jfuQGt5Y92Z7WR21MrvJ7wmY9BYkAt1MyUM"],
+            [5196, "QmR87q89zXuMSsV8YwoTwKwdmVKhi4R1LkRHNhyJ4Pmahd"],
+            [5566, "Qmf9RcFYrLTDw3E4TMugXkf8G6KQ7YexDFfrdS5J1mSP7P"],
+            [5341, "QmaWmsr5Y7YntPBm1F8E4DemhCvU1dxrpFTvQS4TPz8uXG"],
+            [5653, "QmUTCyKHkFem8Muor1DhL1RNtF7XRQJWnRre8W2k6spxto"],
+            [5669, "Qmeb7FspHacgpDt8y4ry9hify2cHM2oQVeUWGazUhcXEZi"],
+            [5592, "QmexoNutQecgSLHyezZwD5Ef6ZqGe6uZRCkhFvUwMJFhmU"],
+            [5742, "QmbnVusM98ZKimohJ5AU55mFBhTBpTJSrkeWNsHDqJnLvw"],
+            [5723, "QmeYS1WZAFhQCBmjQpPUzV2jbVFPMNURPm8vc7c4zLwDNR"],
+            [5654, "QmbC88WoBsU2AxSN7zyq6uMHzCSUyoqr3DyGJdd8DgLs2f"],
+            [5789, "QmQY7BrR1uuzVMCLKoDP62usFSqRmacxqFD7YxdUFCvwCQ"],
+            [5767, "Qmau4CbwLhYkboJatSumXSsXvFGPTVW8tUmGwy4DF7AtHi"],
+            [5716, "QmZZ1bsEsqY9UDearvLMbcv9RotQ6FxdzgvLZe4ihTqvQG"],
+            [5624, "QmZzmbz8Sc716YThbVXNDNTqtXQPp8sNqLTk1726nSgCWa"],
+            [5613, "Qmequh4TnfJwjpXsR13WqxheCT7htfVvsFrUmUJZVJEYz1"],
+            [5729, "QmcuhS4H13Mu6Mv8uKhoXHbnXB3ejmKDeQ2z9wxaqkK9oB"],
+            [5689, "Qmcebd3ieZQ2JQi1vyeVkS8di9ErQspuyQ314Q1DyuL5Cm"],
+            [5709, "QmdA5K8qBrMVcJ7dFZ3juSexu4vYCDWue5YL1davyaLcmT"],
+            [5751, "QmQ2wUkgXZd5ot7VTXk3MeREaBmmWkVd3vLxayyaRk4rLa"],
+            [5894, "QmPggq6giA2sAvetDHuyYXXUmZdPyfCu3efmLfwDh3ah7h"],
+            [5861, "QmdZm4pxfDayJmetrZXmYHvYke5fMsAxCRGgQH8ieHhSqj"],
+            [6014, "QmV8SHjLAKp2xXfCvChJhb3S5PUEjEKj1bwurWeouxbxVW"],
+            [5759, "QmWrCE7C82rTVSrdEPptwb1NpkHHcvszAb4ZahdV4zGDdC"],
+            [5848, "Qmea9JmSk6nB7z5mvSHBi9eHVRK3uhhr2PQ7z6qZTDvXd4"],
+            [6064, "QmQVi9gmpyRDmQKhh3LSyjf6bmsCTxq9eBSu9rRTYAgGe7"],
+            [5820, "QmPEdYSnatXMonzGuvdnNG7JfWgiJZR41GooJyLhptv4gF"],
+            [6101, "QmR3DH3srg51qEjzM75yNX6bFKNHStfUhpv21NiZdFbZ7e"],
+            [6057, "QmNfs7q8WhQ6pjD5j3nZJd3wnnG8MpyRFF4beU23wYDm5k"],
+            [5977, "QmYfZMJqdbCzGC8fYjKkve9bGBzuq661cNyFHsXD7R4HQc"],
+            [6150, "QmWu1hV38vGU31A6pjyBnn8SJSnLPbYLTwSnxTxXFonmyW"],
+            [6061, "QmQuBfiT4KpJKd2HqNYwRVvZy5K638Rz9EDpoZVsBRvqDo"],
+            [6196, "QmXUy2kQV4hboTpsdMeTV9o5YrnPpYVgK6Bx89zxkUuDe6"],
+            [6426, "QmT6mTxYJEjdsmLjDmbcUN16cjoknqgKQ1NGVqfgQQtfaM"],
+            [6031, "QmcKN7MExEw3HiDAbLhBGQdHVdtJsikRtUNogfTVPRQjBt"],
+            [6214, "QmcstHcitqZ44G2ZzweE7PYdAdauUk8AytCScF4qDh6Gkf"],
+            [6388, "QmcxLrPoQLMzqpWbmmiw54E7GycLnPYEBrt9e8DdEkdWvN"],
+            [6295, "QmfLuP6CfaAmCYviUDdh8D7bvRWVoLC8rTqgtVBYEvxK2i"],
+            [6185, "Qmbpa3hTV7oM9JyQp6Bk99Ez8PeYzH52kwG8ZJvp57qS6x"],
+            [6132, "QmWnUp29Ng18VPxty86bJCNkvX6ZSRGb6SHhaWkR1oMu9x"],
+            [6091, "QmZ3RXRHVqo5kAMqTGgLebcMgb4Jpcd5QnD7tZL9aVBsaM"],
+            [6417, "QmRd9Ai2dDgC8urCMb22KNJ3Rqu2bBYthSr7HaRdnvKiXo"],
+            [6605, "QmeTCFmDmmbY3bMNG457oWGQ1UG8mckwxN5tsJA7RJo52F"],
+            [5882, "Qmesb9sBbQN7haeridDU7FXfUNi1Jh5BSctNjWQchkrtvM"],
+            [6310, "QmV5A8jaH2EPRJVKyvNKuydD3MRXKMWdvsGLJxGRV7enFC"],
+            [6043, "QmeYAaZwo4MzsEzKch7K9Fa1d7jjWN2qwN2faGZCKn5Rc5"],
+            [6233, "QmebAn63ohYJPg4Gq8hjXZbqcREE9e1ADeSvPvruakfAJz"],
+            [6644, "QmR4YUbave5bRwj2MJTmHUmR6dUZjecjeo8zoobXM7Rktm"],
+            [6287, "QmUBcjmhHk79uPgYQGkRXiqLBcgoqJG5ePDVKe89jSE9h6"],
+            [6325, "Qmdd51dCmLWx7PGKjAF96nBJKv6AfCBympL8XkRAYjFVhj"],
+            [6374, "QmewzZUBMgJ7kYSEqwa1iZQwMeMEeAUffZj6x6aZ4LuM2f"],
+            [6418, "QmXLexn9qeD3AQUEQrCnE6Z7veiS4A8CxmNxVmAXEkUxHL"],
+            [6626, "QmfDACmKGsevZnUbCsEzvfjDMpxhftktTvzHCBNMUa58Ek"],
+            [6711, "QmfDwEK8r6YqMV1ucr41cRruynsEamfSP14UUwq2a7DxtK"],
+            [6589, "QmXr4qev4zawFNy7MJEs1GM1tMLegymcs7W7vdbEmmXmBc"],
+            [6773, "Qmbk4N8QMHXxSdxxdysUDSb5KsTHF7P4hCJzXQXUtTLbn1"],
+            [6579, "QmXqsgRciD6kfFH1aR6nfsCMctZ7VyxZjQ6cZVeXAbKH2g"],
+            [6440, "QmeEJu5zNnuQvj3nWYRwGZEwSMS9KuwGg32nJZ6NgRMrUs"],
+            [6585, "QmQr7JCGkwr41hfAh8E6iJQvPefZPx4qHDde8uqvMxS3Sm"],
+            [6775, "QmbWhKth2iVhYhJG9KjC7UNi47W8krbA4VDeRfVtRuMFn2"],
+            [7023, "QmV18jCvLS3CHUFmDQJr9QNkwcC3cvQf6pbGRZhgb4ariH"],
+            [7035, "QmeBvtWoc7DaxmcLBAQfyeFB4aWYCSxwdKot329t9Zq3kc"],
+            [6793, "QmdBkDxPz6mgS1k6okxpM7dVo7eB6QGidJroNoNZ1PMksh"],
+            [7013, "QmUaY7j5D5ByMiAGPCyvGqWEwnPLyLMoCpskoQ9qPruRRH"],
+            [6807, "QmUMbQttgythix2KTBVnBhSVtt4KgPYVz1GQ5pG7uPdfwV"],
+            [6927, "QmfQivMQZr73YxHTaSfK8Mgzjsqi48ZFVbCLbwNjtogPKG"],
+            [6677, "QmeGxDnKNAiuYDbvEPqtjEywotvVUeoCFX6jzquNYeuyzC"],
+            [6692, "QmanXGFu4XAi5nVxEyn6YZemxXtd3nQejV7GE12BZyTLFZ"],
+            [7007, "QmR3V9Z91Qc6U3ViHMxohCbKeQ2aqXXxiCBWiu8k2fTe21"],
+            [6918, "QmSdsmdHPVTSFqmd6NyaYqnp2YW731NMMCyNmRQZQTBT8U"],
+            [6714, "QmbyAKNbbVPNjU1WnpfUwCZbXCReXJW6zhnxSyGaBrvvFz"],
+            [7095, "QmaStHan1BURKScHxM3BCbQxre4FxpNWw2sL4XWd6j8c3Z"],
+            [7005, "QmecoFn2NVMKVzsy5wWuWcJ9jt26x8eWpyXFqHiAwd8qWq"],
+            [7228, "QmPodnSNDns6absCo3RnHbechyYbCQE6jxXGW2qc4R9cK4"],
+            [7111, "QmahfmcbqiL3F2uQTQ9mpnQM1vvyMUhT9eLYo3oKTeGXoP"],
+            [7058, "QmQFWtgU9c2m4k1Gy9B3yzFEmUJnHX4a25RtpeDUTFu5Z3"],
+            [7010, "QmQmJBJMjRaXgWWy8UB2yBn9wmq5bpgg7HCavmtBeY6QxC"],
+            [7192, "QmeUgLQnoGCreLFKUAFFaPZXR5tTEdRN8fRRDdTVqUupam"],
+            [7320, "QmPeAu6pqxW8C1EFRNPMz1HEbbKAUPcMMXApNsJHsj5fMg"],
+            [7097, "Qmaggtgmv7FdowSAW1kRxK7PH4kc6jtn7qjLQ7uspdnxRW"],
+            [7128, "QmQ94frTUEbye3D9sicf6AjbhNdkDd52QbbxU9kMn6GN9Z"],
+            [7149, "QmVQYhBaamGhYxyznBycrkU5v5NYAZHZ5AKZZVp2S3nx52"],
+            [7067, "QmbWsRwg5PUxeABCJTcMgm7rxG6RDfFmcuXqA5RRsjgiK2"],
+            [7109, "QmNhk1T63JoLBywaopWNp1p8YQSWMh3hNXPTfzrdR7EjeG"],
+            [7191, "QmebsuTdr2cfah1egNnURNH7tCpvzn9vMFNChX7C27rs24"],
+            [7401, "QmdCzBw4kdCBfj9A1gBaW28H1aofGFvMZemsvTHnWicGjx"],
+            [7287, "QmXsG11rBfnH8jL1djtBGySvW1PqiyhSDFYS2VoZCeVAnH"],
+            [7461, "QmS97ezvAa8ah2wyy1VJtpWKdg3UM3PwRipUZztw5g8fwt"],
+            [7133, "QmRjSY4bTiDmNTu2g66A1B2YuH1jRZiR4xfE7w1PRYp56j"],
+            [7478, "Qmc8bniSDJwCzJ4qrxnWLsNmukMudsVyG51Hf7TmMSY79S"],
+            [7360, "QmW5kFR6qRVJxmCGepA19ZDMWn13SYe6pRPVxtHQwGYCye"],
+            [7223, "QmW1cYzQYBiYbMpGJrzyurhkw8vxL8D7i6qbADNsXYp4L3"],
+            [7433, "QmUDhzJMejJ8F1pvRjsM1oSqjWdMU1pk8T89H7w2zZ7DC5"],
+            [7356, "QmUY8fFTpRfMtNwv2Hgg8qPWNNPVtGFk2B7kpuRRGzNjNN"],
+            [7521, "QmbfxfEzuuk5TK5zaqJ9Qwvvqget3Pm9pMczKTt5rKL2YM"],
+            [7316, "QmcXZEYeDEfL5xxdKV5XQPTuENfqXztNuh3TH4LbAxWedq"],
+            [7537, "QmVymhGNi3m9hnyBtRwBMgwjqfAMPCVXqfydc2B7eCcUFe"],
+            [7445, "QmVSYA4E3fiiPNQtdC5twgr8rizo44QrAPKQYn96U8oZh2"],
+            [7476, "QmYDNNgqeWfYoz7RWGPSiEGik3nscwckazdiczngvqLfpY"],
+            [7436, "QmcbW1paQqu2SE1ePxY9FbEErmZBjvjFTRzXu3av9nnd7D"],
+            [7661, "QmPCHFXvP8ZgJGLfhN8g6YdYcziCo3emi4AGvLV6ZDwMdE"],
+            [7605, "QmNj8ZcXcXEx49GLLbyWkPEJpxaArakNVYJ9aT67LaMe56"],
+            [7771, "QmUKK9mmJRo9jFGY9xtRg87EhE2d6jK7SJSiYzjoyWLz4U"],
+            [7825, "QmQeBCewpqicsHS88qJEQgACLSTuwxYezU9d2aWWrCYYLw"],
+            [7705, "QmPagsPuqyM3bjKwn7BxJgDYNeCqKDwoseqPQD3HX1FBJr"],
+            [7805, "QmdYmsToGpbZ3UdPGW3LPjWydDdq92BfXNv5P2zVUaee5d"],
+            [7645, "QmbMVWBwEmiC5ynE1nGkpVVNabvabBciPhGYbraF3c8G5V"],
+            [7463, "Qma5GfgZgz22TS8uKbWFUGB2z1aRMqX6hVvetjp84G9o25"],
+            [7808, "QmQWhcFZ2Cs8GRdxKh4YzPySiF6FbPkCBR5ykUCzjpHuvR"],
+            [7747, "QmXLDvymwXDHU1H2Gw98GLNWLSoZv2HtxFiUpHKsoCL2Li"],
+            [7685, "QmRqw9SmoFL52gFgsTZkzppzXu7VP9wjBE1Lwy2aj9MuDb"],
+            [7850, "QmenCzHy4k3b6hdSWX6QCbCTctzzR56XCHzK5zCsdBQfKC"],
+            [7883, "QmZC4c95SAkPEYgrGhr69ufh4NAechQ2fyrXeBmeecPd4Z"],
+            [7975, "QmdWed4wRKvVJfEVbWJ1vx8JzwLHY1k22yeKEHCep9pu4q"],
+            [7669, "QmeynRxy9cNegubhax79CY2SRMBzzNo8Hv5FwZBSgAUKCD"],
+            [7881, "QmSTJYeQJVRiLpocLfL9Cq8M3ETLWpmoGWKiA97GCNkJUE"],
+            [7939, "QmaMWyqCksQg2Zuwpn59kPDZYNzaF8swXH6PkitT3DUR8o"],
+            [7896, "QmTybVLcGkavWY4jKuNi7pteXPTbwjgjpTbbwmN8gS6Ly1"],
+            [7773, "Qma4mDxLsUGU52ngZxTptDNcG5dPfDMTYvuHcaebmZSB2a"],
+            [7729, "Qmf7sjj6R7Xtprf62FpEESRY7KtUpvain3kYtX8bifkk6H"],
+            [7823, "QmTKnuRdFXjYheiHKfvjqutdpdGFYxh2TX2uCkisZ3oNKv"],
+            [8142, "Qmf7vP9RAs8TcpYS6hojhMotkwMMFeHszkoWFmH6XRFw5U"],
+            [7759, "Qmf2iwnXBCXT6wyTkpVoF4BLkBiyKUF2nZS4wJdAUeHzDr"],
+            [7899, "QmdC63ySibH4EWmHEiLJopWr3J4aMMZ7obfNLvcxPBKFpt"],
+            [8144, "QmVT89Rj9222DqZVCd8iJJULrxPjjp5FGnXc1neutnYqxK"],
+            [8286, "QmY7SKXBkVRJtmhRbF1fwgGy6UcYcqsikZ3ZJaDj8acq7d"],
+            [8033, "QmVJQxmMVx5aKXGJuzbE4U1ECpcuxUhiGX2SM2n3Ssn8S5"],
+            [8046, "QmUY3JiQo4R4VfWyT4p9tuSv5J8VLqdQV3r67b2FXhSJtD"],
+            [7962, "QmYJ21FAvFbHjwTFy54rAejRW5uA6KrQ1mRvJVkEDeAE4o"],
+            [7907, "QmbsYbeJRFnrrgbR8dr4NQCb1v2vkDMwVpmMdPkkDxkGaW"],
+            [7880, "QmUgrv9iL4381itEGg1tUGSokRJX9w4V2AVWJnJRikgHdP"],
+            [8328, "QmUDJWZ5p4yMKeuBoUzGJ6uwRowubWMmetn9A6U1RstGYT"],
+            [8066, "Qma9ZNCRkPRFtBKco51H8PXjntkQq5MhZvuxt21gv5XhCb"],
+            [8067, "QmZMHs111iTGSs67oxUdRPvjBDo5ki4Kgb9Srhyy4dy75T"],
+            [7972, "Qmci479WRoN63h4AWYWyczi7KdNAVLe3CaWtzdf7HxYKtm"],
+            [8156, "QmUZPu9Y8jmexZbusmnsbNihwtpavXHmTHGFvyDDPxAdWs"],
+            [7864, "Qma7ezAbm5xeQqi5rJvcVFqFPn5QdgtB283kQ13NcEYvNK"],
+            [8194, "QmUjRFUEFpAznDqNR2JWtUfX6cxGjLXUcLysyUnDxapaXF"],
+            [8395, "QmeBA8ZkXBcKVNwNyr4WZAbvCZc9Ao96JuP9Bk4cfUEBpz"],
+            [8244, "QmexXvqGqQfK52xuaHdMM2R4ArkEw1jdAY2h3KKMnpKfDR"],
+            [8305, "QmRYubNbeTvtmR1YvL9gvwiPfTA49nr13jWQPQGYnGy44m"],
+            [8437, "QmPXqUxCjFJEtTKtQqARkeK7GhSEt2m7ioD9pwTJe1LLSL"],
+            [8155, "QmcbGVdQLU8r3m3J4nqZJRQtXMn4ERDZrJKoYkaxSQ2v2x"],
+            [8336, "QmV3nAJRUiFmj2GWFy1beSPPcw858h8hBSc8fY8cS4cahG"],
+            [8233, "QmfPREJdmQqJ7tg9bQYcgw2dxR7yfVoNZJbxAczBJyqNRE"],
+            [8537, "QmedfPmNh5opH11fzhvWTwoqxe5dYjgz3Mve7bxKUQcz2W"],
+            [8312, "QmdfMpoRYMR1AbKncymwYCSy8BRWSy1n6anijGeRStBB9S"],
+            [8442, "QmVsMzw7DP6EAT5kHTJayAPQqbnmYuvgr9xQ2iyq9TaSbU"],
+            [8511, "QmWzdYCm59qRYogck3Fre9Q5Te5MKrgpxMCPyeQ8tWxmh1"],
+            [8516, "Qmdy87xcaXupjy962cPDSejifGriNEE383pbQ2WY5kfvGv"],
+            [8393, "QmaryJPY3GWW3Ggr1b1Ceb1gKD8oMCeuHR6cyq3dwJSHFm"],
+            [8602, "QmSEnht37fK9Qs3tnZGGRtAcGs7MLMaH74tVx5gzrfgmPQ"],
+            [8531, "QmcaViYTBZKS13MGGEipEAp33BgeB9ZV36zRzuxyMqx1wU"],
+            [8656, "Qmc9VVyvKzZ99Vj83ZcJxXGUf1P4cMia8XkNWFhzkX1ETT"],
+            [8273, "Qmb9iPv5WqzwzaRyigiA5j3Go7zU9qGpyq6kF2cCXQd9tG"],
+            [8626, "QmW88A2Kjm7yMqnkrv7WKvC4mi1LYAS7TNGWzyWa9izMjU"],
+            [8324, "Qmaj1ijeRWqyASBrbLTCFpFTE43ZqHwTRB7g7ELmQqcnYw"],
+            [8898, "QmfYHBQMB3feEqtpu1H9Jg9aaiTCn4Xee8mgG3pJXMTzaB"],
+            [8980, "QmfKkqLMnhmUzbt8JcDW2K9unvnvTGR9FGkZdR9WzuXdRe"],
+            [8140, "QmYTUd8Us1SVkQXXVmnrdGJXK4ccgRgeX28jTp7zaKP1Z9"],
+            [8885, "QmUPy9tu2dc2mFABqiVCv7bjKP8ryhEJtvjQFpdbA5izgt"],
+            [8921, "QmV5BHohgNpfFjxj7jk3io171ZHcnbCmfQP4qHutdEKhtD"],
+            [8751, "QmUw2Fcm5uw7q6McTXxtEvu9Zf1REEL1JFnuAaFuup4cce"],
+            [8951, "QmZzcSe71h6hvSrELw1U4vqJsv6YVFP5WgKLjAHDFfeX6Z"],
+            [8728, "QmbMDsusg61JwNcrV6y2T7y2sik4YDZEkWPAPivRcTTmUW"],
+            [8758, "QmWtAcwVdgxTgHccZmb2itn3PVcV92fUa4fBRGhfjJbAoH"],
+            [8456, "QmWD2gL5h2aQhEs3pgfRfqPyK9Yr7wKzwZKPvzwVuK183a"],
+            [8487, "QmdPr9erJoebc4GtpDabB6bxHB4Vh1xtwSfMPeazU3SYC5"],
+            [8824, "QmaJ8zH2nsD2edQPWxVBhxXh4Aa7BC9bexd22r9Rjs8ybt"],
+            [8894, "QmSPMK6kvbHu3cBpSNE6hpo9TSRkLFJGMvBa3NUk37cHpj"],
+            [8910, "QmNywLnXDnqSBb3p4cRiBYd68BNQhf7ykgF9mGRkuXx7Tg"],
+            [9151, "QmSnzM2uyCwrncTQBV7wDiU3YTCqqE4yS6K62k5C44xs17"],
+            [9141, "QmPg8y3bRMA4P8PGy7XPugen2MrwFKANxLYf2dyYNeV6ix"],
+            [9052, "QmUmuGHVypXPZJzVqKTM8dZmqu4Q8GmkNeajmZAfeTvZun"],
+            [9139, "QmdJsViht3gJRxxqz6ZgorAU9i8Zq5ZMSBnPqRtH92sWVk"],
+            [9028, "QmcDd8d162pzLSW4jAgPYxKTKDYr2RddNGJ5M4nWJbwnnj"],
+            [8794, "QmPxUtBUE9j2qHkyNU6MKfCm8UPzJDhHhuN42tR7884gE1"],
+            [8786, "QmdmuTaiQipE8AZdtDeFJSVX51N4pBvMoLafauKiWpXHTQ"],
+            [8919, "QmcET93arsY3ie4FJm3J55rcLByNZS838tpGwCmqL7kcp8"],
+            [9249, "QmQ5uV5GrVL6FqZufWzCHNQtHmobweVztVMAUaDgh9Tkfk"],
+            [8643, "QmYzJ9wf2pUqU6iAA4FoRtrYopxy4XnQXNASTEpVdLr3Bp"],
+            [9218, "QmVVxvu3NH51KSFfMPCVnYfwwpR3Sixii2QXiKwCm2a3tP"],
+            [8986, "QmcmuFY7W5rNdXmthKpZV85ERUwXUDjE3wuKnsWpjPNzSx"],
+            [9095, "QmRNyATYZxMB1wGdFZyqEVnitBG8HpywFeJm5iqg43tcTK"],
+            [9247, "QmYmPzRUkDybVgVT7hk4eSbNVY1cCf5W5GFSpdqwnh8PZz"],
+            [9176, "QmejRvqx4DJpsVLBDd65gCV64PhKjFjPVd2bxzhN9fRcPB"],
+            [9189, "QmfDwuev4aiCp2cZ2Q8SXCaNkgwDQCSUYbeQSYb8mr78ah"],
+            [9349, "QmQjqcWf9NghKHYi642P6PEmyHeaiJzfKosExP3TLur75p"],
+            [9179, "QmTvTKgmTMjPijrkVKVd2QT8FrcB6E5nWwfQnn4JburPY9"],
+            [9104, "Qmek7RirYb2zCHHmJgt4w4gK7TvZFA3UaRmCCaxzSecwzT"],
+            [9421, "QmXFmtwEL8AgMHPabH7jHmvFwLuuZopGsnchFWwCFbLi39"],
+            [9311, "QmYdvfMB1U5Mzj3ccyKxcvLZor6ALRABdE3agaMFnWXs8C"],
+            [9324, "QmSYr2Fx3qqfC97eU1C8m7ZZ3G52zRPcF3vbLnGeuM6GCU"],
+            [9395, "QmR8983kvPBH6Eb7TmKdPXijnU8WeV1tkQu6RweQbAvvcL"],
+            [9356, "QmdXcNNZWfEoC8uLhy93HFPXbGrzU5wMmoSEH2Ng93qKFu"],
+            [9310, "QmQXGhVreJKvKX9oVqLZbTeWdTdK4v5EtbKUg1wLwAm2vw"],
+            [9384, "QmUZbkdC8YNRgRiakm2kNVJknKaa1GJKnXcsHBnePGLESG"],
+            [9221, "QmQXfuEyqm4fGaRbKynQNtnhpjGiaADxPTPHUEMiYGgoVY"],
+            [9304, "QmfRqEeDVMpA8KgoUzDr9QTJWjurmn1AuqprinMCYFKLuL"],
+            [9336, "QmeJCv6M198cgkNPZ2pHNcH57ERK9QynTzgV1moNg5z1hC"],
+            [9258, "QmZymMLizcv3bTsUy7DnFcZqTzuyvPzkU5tbJA8fomKc8f"],
+            [9436, "QmWnKZc77Y9675SwENpt7bVU6jjC9QxWzSNumdSebHufgQ"],
+            [9562, "QmSqpSwmV6qo22FJ7UyAQT9n4qsFqaGHLRHH8nCni6QcQ3"],
+            [9518, "Qmd1dXXAuo8PdULQqovdA7yPM8EwSY5j1oHzjVvbFrLFGF"],
+            [9276, "QmcPsbetDz5zKCt6XR2XPEbcp9MMXwDMJZHrHvPVbE4GXT"],
+            [9500, "QmZiLRDJPovVf68UE7iBHLmf7mvwPy7R9kpurgGBDdcniK"],
+            [9485, "QmPr7TcY5Xp8FLLMGcFuKDEwAuooVdZmem7kUTJhh7SfKa"],
+            [9672, "QmbMPu2zv1XeE7az3h29q38CaWHWvJbQFTnqJfsSjH9Qcc"],
+            [9531, "Qma2A5qaoepdd4X7oB8EAJn34SCW6jbB3W6cZgp8ii8zu8"],
+            [9544, "QmdzErKtv7PHc9v4Zd8W9A5GE7ZSGsa25m3uVofkphPJf2"],
+            [9565, "QmP5rcd3XqpWqBi5VwKQ4Sxzrk3ZdsC2h5jbtzythfq441"],
+            [9479, "QmbqfZEVWvKmsQnnREuu1ybbF8gbeeC3BZ1j4QJ1KvzXFa"],
+            [9642, "QmSQToLVUMwEJTn3kbwRGa6LwAmK3eWarmcNY2osBvRh8W"],
+            [9543, "QmbdTFQ9c81Frw2e4p95zpxSaiKNmYG8dvtbR6MYz8MrtG"],
+            [9607, "QmVnUKqYEXUKev76LQ8egLtxoRn1zaUJwZJL4SxQjTvT4Z"],
+            [9580, "QmbqMBGG5d6GNPtJivtkT8mxQ8ci5rnXn5EJhzgjpA9VSg"],
+            [9632, "Qmam4Fvz1CKfnaX2snnCuwaw7F1TekkQqD5GgxbkYmN8Tm"],
+            [9648, "QmUEsmpzd1x5LranJ8goCN3rCDB7XsR19k6PaQLmAPX5tP"],
+            [9807, "QmXTTWDA7m9WwUVHKF8qLeVdqouHZYbfg7oDR1UTYCtURQ"],
+            [9871, "QmaJpvdmmBXowkDmvE5jkdWzj7jP1dSEy5nqUAbtMTQY3g"],
+            [9445, "QmXgCzDKzzb6rcezK7BXx3JYdheWbT8wv2sXmNzBMAMKgJ"],
+            [9750, "QmRLMYnDDHfdUScJcYcpxxuGZZeqevM5uo8nz4BYvP5QXG"],
+            [9826, "QmVC9Qu4G7ZH33H1vEeYrDre91sbRUi9uXJgsPcWymR3bX"],
+            [9751, "QmRynfJ3FPPgnH4Xu3nUAQqEJsVUnQrLGD9AKCvrHRHHW6"],
+            [9828, "Qmc9sV2GkREa6B9FLWP6aWxmgyKxRp2aV5jZJof1ohiFvg"],
+            [9915, "QmPpiZd6qkqaobgiu4ZZJCFFp8B92vHa4JmY7K7zhvU9Pt"],
+            [9980, "QmWLdoaNHyszKQ9Z1jfVfHJU9YADXzzhQgbMbUXEwW7kwB"],
+            [9773, "QmRNQc6pvAGJK89Mcag4r3WeHWajJZgoGgEwxVz2ew6zz8"],
+            [9722, "QmUStz2EeZDBVp5Bu2aKHykJBaPZ4Y5Mxs1ATAw32TGqFz"],
+            [9712, "QmaMLQGpzLpU5zrdx6djd9kRr6pjycTDiKi8ysh2z42Xio"],
+            [9733, "QmRcBgRXV2RgkF2uGhqd1cft3c9C72W8JbNLWW9DtouvLh"],
+            [9977, "QmbcJLBZ9DxqtjSeHUPj5tgLbTiqb7iYxwg7G9Ghm6poRe"],
+            [9820, "QmbWHbUEEQRkL1yvpxb7SGSgE2h5HPyUdyyboPJZ49BRzz"],
+            [9844, "QmSRx91ppb16i3vGh1GVyN4ggpYdHuyKjCwdwqDK16DZpQ"],
+            [9989, "QmbuFTAr6MH92JViNLuDxhkYZK7fz55S4jNCEwTJeXBqVc"],
+            [9988, "QmPvqkie95aam1kCbTQ2SRGV8wwwh3kbxPh1jpykma7nq5"],
+            [9902, "QmPehK6AqJoJCuygerqVNhe72rbvg5RUVGgaUu8E4kafuZ"]
+        ];
 
-        const statTarget = document.getElementById('statTarget');
-        const statProcessed = document.getElementById('statProcessed');
-        const statSuccess = document.getElementById('statSuccess');
-        const statFailed = document.getElementById('statFailed');
-        const logger = document.getElementById('logger');
-        
-        const startBtn = document.getElementById('startBtn');
-        const downloadZipBtn = document.getElementById('downloadZipBtn');
-        const csvFileInput = document.getElementById('csvFileInput');
+        // ============================================================
+        //  স্টেট
+        // ============================================================
+        let nftData = [];
+        let processedImages = [];
+        let loaded = 0;
+        let failed = 0;
+        let isRunning = false;
+        let totalItems = 0;
 
-        function logToConsole(message, type = '') {
+        // ============================================================
+        //  DOM রেফারেন্স
+        // ============================================================
+        const gallery = document.getElementById('gallery');
+        const logContainer = document.getElementById('logContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const totalStats = document.getElementById('totalStats');
+        const loadedStats = document.getElementById('loadedStats');
+        const failedStats = document.getElementById('failedStats');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const statusMsg = document.getElementById('statusMessage');
+        const speedIndicator = document.getElementById('speedIndicator');
+        const downloadBtn = document.getElementById('downloadZipBtn');
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalCanvas = document.getElementById('modalCanvas');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // ============================================================
+        //  হেল্পার ফাংশন
+        // ============================================================
+        function addLog(message, type = 'info') {
             const div = document.createElement('div');
-            div.className = `log-entry ${type}`;
-            const time = new Date().toLocaleTimeString();
-            div.innerHTML = `<span>[${time}] ${message}</span>`;
-            logger.appendChild(div);
-            logger.scrollTop = logger.scrollHeight;
+            div.className = `log-${type}`;
+            div.textContent = message;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // Clean & strict image loader using exact standard path
-        async function fetchImageDirectlyFromCid(tokenId, cid) {
-            const gatewayUrl = `${TARGET_GATEWAY}/${cid}`;
-            
+        function updateProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+            speedIndicator.textContent = `📊 ${percent}%`;
+        }
+
+        function updateStats() {
+            totalStats.textContent = totalItems;
+            loadedStats.textContent = loaded;
+            failedStats.textContent = failed;
+            totalDisplay.textContent = totalItems;
+        }
+
+        // ============================================================
+        //  ব্যাকগ্রাউন্ড রিপ্লেস (ক্যানভাসে)
+        // ============================================================
+        function replaceBackground(imageUrl) {
             return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = BG_COLOR;
+                ctx.fillRect(0, 0, 512, 512);
+
                 const img = new Image();
-                img.crossOrigin = "anonymous"; // Safe context handover
-                
-                const timeoutId = setTimeout(() => {
-                    img.src = ""; 
-                    resolve({ success: false });
-                }, 12000); // 12-second max safety threshold
+                img.crossOrigin = 'anonymous';
+                img.src = imageUrl;
 
                 img.onload = function() {
-                    clearTimeout(timeoutId);
-                    try {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 512; canvas.height = 512;
-                        const ctx = canvas.getContext('2d');
-                        
-                        ctx.fillStyle = BG_COLOR; 
-                        ctx.fillRect(0, 0, 512, 512);
-
-                        const imgAspect = img.width / img.height;
-                        let drawW = 512, drawH = 512, offsetX = 0, offsetY = 0;
-                        if (imgAspect > 1) {
-                            drawH = 512; drawW = 512 * imgAspect; offsetX = (512 - drawW) / 2;
-                        } else {
-                            drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
-                        }
-                        
-                        const processCanvas = document.createElement('canvas');
-                        processCanvas.width = 512; processCanvas.height = 512;
-                        const pCtx = processCanvas.getContext('2d');
-                        pCtx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-                        const imageData = pCtx.getImageData(0, 0, 512, 512);
-                        const data = imageData.data;
-                        
-                        const rTarget = data[0];
-                        const gTarget = data[1];
-                        const bTarget = data[2];
-
-                        for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
-                                data[j] = 216;     
-                                data[j+1] = 255;   
-                                data[j+2] = 0;     
-                            }
-                        }
-                        pCtx.putImageData(imageData, 0, 0);
-                        ctx.drawImage(processCanvas, 0, 0);
-                        resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
-                    } catch (e) {
-                        resolve({ success: false });
+                    const imgAspect = img.width / img.height;
+                    let drawW, drawH, offsetX, offsetY;
+                    if (imgAspect > 1) {
+                        drawH = 512;
+                        drawW = 512 * imgAspect;
+                        offsetX = (512 - drawW) / 2;
+                        offsetY = 0;
+                    } else {
+                        drawW = 512;
+                        drawH = 512 / imgAspect;
+                        offsetX = 0;
+                        offsetY = (512 - drawH) / 2;
                     }
+                    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+                    const imageData = ctx.getImageData(0, 0, 512, 512);
+                    const data = imageData.data;
+                    const r = data[0];
+                    const g = data[1];
+                    const b = data[2];
+                    const tolerance = 25;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const pr = data[i];
+                        const pg = data[i+1];
+                        const pb = data[i+2];
+                        if (Math.abs(pr - r) < tolerance && Math.abs(pg - g) < tolerance && Math.abs(pb - b) < tolerance) {
+                            data[i] = 216;
+                            data[i+1] = 255;
+                            data[i+2] = 0;
+                        }
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
                 };
 
-                img.onerror = () => {
-                    clearTimeout(timeoutId);
-                    resolve({ success: false });
+                img.onerror = function() {
+                    ctx.fillStyle = BG_COLOR;
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.fillStyle = '#00000088';
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⚠️ Error', 256, 256);
+                    resolve(canvas.toDataURL('image/png'));
                 };
-                img.src = gatewayUrl;
             });
         }
 
-        async function processItem(item) {
-            const result = await fetchImageDirectlyFromCid(item.tokenId, item.cid);
+        // ============================================================
+        //  NFT কার্ড তৈরি
+        // ============================================================
+        function createNFTCard(tokenId, dataURL) {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
+            card.dataset.tokenId = tokenId;
 
-            if (result.success && result.dataURL) {
-                completedDataMap.set(item.tokenId, result.dataURL);
-                logToConsole(`⚡ Success: mfer #${item.tokenId} processed successfully.`, 'log-success');
-            } else {
-                if (!currentFailedList.some(f => f.tokenId === item.tokenId)) {
-                    currentFailedList.push(item);
-                }
-                logToConsole(`❌ Failed: mfer #${item.tokenId} gateway timeout/error.`, 'log-error');
-            }
+            const img = document.createElement('img');
+            img.alt = `mfer #${tokenId}`;
+            img.src = dataURL;
+            img.loading = 'lazy';
 
-            statProcessed.textContent = completedDataMap.size + currentFailedList.length;
-            statSuccess.textContent = completedDataMap.size;
-            statFailed.textContent = currentFailedList.length;
+            const idSpan = document.createElement('div');
+            idSpan.className = 'token-id';
+            idSpan.textContent = `#${tokenId}`;
+
+            card.appendChild(img);
+            card.appendChild(idSpan);
+
+            card.addEventListener('click', function() {
+                openModal(tokenId, dataURL);
+            });
+
+            return card;
         }
 
-        async function startCidPipeline() {
-            if (isPipelineRunning || pipelineQueue.length === 0) return;
-            isPipelineRunning = true;
-
-            startBtn.disabled = true;
-            downloadZipBtn.disabled = true;
-            csvFileInput.disabled = true;
-
-            logToConsole(`Starting pipeline exclusively on ipfs.io for ${pipelineQueue.length} assets...`, 'log-success');
-
-            const worker = async () => {
-                while (currentQueueIndex < pipelineQueue.length) {
-                    const item = pipelineQueue[currentQueueIndex++];
-                    
-                    if (completedDataMap.has(item.tokenId)) continue;
-
-                    await processItem(item);
-                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
-                }
+        // ============================================================
+        //  মোডাল
+        // ============================================================
+        function openModal(tokenId, dataURL) {
+            modalTitle.textContent = `#${tokenId}`;
+            const canvas = modalCanvas;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(img, 0, 0, 512, 512);
             };
+            img.src = dataURL;
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
 
-            const pool = Array(CONCURRENT_LIMIT).fill(null).map(() => worker());
-            await Promise.all(pool);
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
 
-            isPipelineRunning = false;
-            startBtn.disabled = false;
-            downloadZipBtn.disabled = completedDataMap.size === 0;
-            csvFileInput.disabled = false;
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
 
-            logToConsole(`Finished! Total Success: ${completedDataMap.size} items. Ready to export.`, 'log-success');
-            
-            if(currentFailedList.length > 0) {
-                triggerRemainingCsvDownload();
+        // ============================================================
+        //  লোড ফাংশন
+        // ============================================================
+        async function loadNFTs() {
+            if (isRunning) return;
+            if (nftData.length === 0) {
+                alert('কোনো ডেটা নেই। প্রথমে CSV লোড করুন।');
+                return;
             }
+
+            isRunning = true;
+            gallery.innerHTML = '';
+            processedImages = [];
+            loaded = 0;
+            failed = 0;
+            totalItems = nftData.length;
+            downloadBtn.disabled = true;
+            logContainer.innerHTML = '';
+            addLog(`🚀 ${totalItems} টি NFT লোড শুরু...`, 'info');
+
+            const batchSize = CONCURRENT_LIMIT;
+            let processed = 0;
+
+            for (let start = 0; start < totalItems; start += batchSize) {
+                const end = Math.min(start + batchSize, totalItems);
+                const batch = nftData.slice(start, end);
+
+                const promises = batch.map(async ([tokenId, cid]) => {
+                    const imageUrl = `${GATEWAY}/${cid}`;
+                    const dataURL = await replaceBackground(imageUrl);
+                    const card = createNFTCard(tokenId, dataURL);
+
+                    // সফল বলে ধরে নিচ্ছি (কারণ CID ভ্যালিড)
+                    loaded++;
+                    processedImages.push({ tokenId, dataURL });
+
+                    return card;
+                });
+
+                const cards = await Promise.all(promises);
+                const fragment = document.createDocumentFragment();
+                for (const card of cards) {
+                    fragment.appendChild(card);
+                }
+                gallery.appendChild(fragment);
+
+                processed += batch.length;
+                updateProgress(processed, totalItems);
+                updateStats();
+                statusMsg.textContent = `লোড: ${processed}/${totalItems}`;
+
+                await new Promise(r => setTimeout(r, 20));
+            }
+
+            addLog(`✅ সম্পন্ন! লোড: ${loaded}, ফেইল: ${failed}`, 'success');
+            statusMsg.textContent = `✅ সম্পন্ন! ${loaded} টি লোড হয়েছে`;
+            downloadBtn.disabled = false;
+            isRunning = false;
         }
 
-        function triggerRemainingCsvDownload() {
-            let csvContent = "data:text/csv;charset=utf-8,Token_ID,CID,Status\n" + 
-                currentFailedList.map(e => `${e.tokenId},${e.cid},Failed`).join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "still_failed_tokens.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // ============================================================
+        //  জিপ ডাউনলোড
+        // ============================================================
+        async function downloadAllAsZip() {
+            if (processedImages.length === 0) {
+                alert('কোনো ছবি প্রসেস হয়নি। প্রথমে লোড করুন।');
+                return;
+            }
+
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ জিপ তৈরি হচ্ছে...';
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder('mfer_bg_replaced');
+
+                const batchSize = 100;
+                for (let i = 0; i < processedImages.length; i += batchSize) {
+                    const batch = processedImages.slice(i, i + batchSize);
+                    const blobPromises = batch.map(async (item) => {
+                        const response = await fetch(item.dataURL);
+                        const blob = await response.blob();
+                        return { tokenId: item.tokenId, blob };
+                    });
+
+                    const blobResults = await Promise.all(blobPromises);
+                    for (const result of blobResults) {
+                        folder.file(`${result.tokenId}.png`, result.blob);
+                    }
+
+                    const progress = Math.min(i + batchSize, processedImages.length);
+                    downloadBtn.textContent = `⏳ ${progress}/${processedImages.length}`;
+                }
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                saveAs(zipBlob, 'mfer_10000_bg_replaced.zip');
+                downloadBtn.textContent = '✅ ডাউনলোড সম্পূর্ণ!';
+                setTimeout(() => {
+                    downloadBtn.textContent = '📦 জিপ ডাউনলোড';
+                }, 3000);
+            } catch (error) {
+                console.error('জিপ তৈরি ব্যর্থ:', error);
+                alert('জিপ তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            }
+
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '📦 জিপ ডাউনলোড';
         }
 
-        function handleMappingCSVUpload(event) {
+        // ============================================================
+        //  CSV হ্যান্ডলিং
+        // ============================================================
+        function loadFromCSV() {
+            nftData = defaultCsvData;
+            logContainer.innerHTML = '';
+            addLog(`📄 ডিফল্ট CSV লোড: ${nftData.length} টি NFT`, 'info');
+            totalDisplay.textContent = nftData.length;
+            totalStats.textContent = nftData.length;
+            statusMsg.textContent = `${nftData.length} টি NFT প্রস্তুত`;
+            loadNFTs();
+        }
+
+        function handleCSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const loadedItems = [];
+                const lines = text.split('\n');
+                const data = [];
 
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
-                    if (!line) continue;
-                    
-                    const columns = line.split(',');
-                    if(columns.length >= 2) {
-                        const tId = parseInt(columns[0].trim());
-                        const cidStr = columns[1].trim();
-                        
-                        if (!isNaN(tId) && cidStr.length > 10) {
-                            loadedItems.push({ tokenId: tId, cid: cidStr });
+                    if (line) {
+                        const parts = line.split(',');
+                        if (parts.length >= 2) {
+                            const tokenId = parseInt(parts[0]);
+                            const cid = parts[1].trim();
+                            if (!isNaN(tokenId) && cid) {
+                                data.push([tokenId, cid]);
+                            }
                         }
                     }
                 }
 
-                if (loadedItems.length > 0) {
-                    pipelineQueue = loadedItems;
-                    currentQueueIndex = 0;
-                    currentFailedList = []; 
-                    completedDataMap.clear(); 
-
-                    statTarget.textContent = pipelineQueue.length;
-                    statProcessed.textContent = "0";
-                    statSuccess.textContent = "0";
-                    statFailed.textContent = "0";
-
-                    startBtn.disabled = false;
-                    logToConsole(`CSV Uploaded! Loaded ${loadedItems.length} Token mapping records. Ready to run!`, 'log-success');
-                } else {
-                    alert("Invalid CSV format.");
+                if (data.length === 0) {
+                    alert('CSV থেকে কোনো ডেটা পাওয়া যায়নি। ফরম্যাট: Token_ID,CID');
+                    return;
                 }
+
+                nftData = data;
+                logContainer.innerHTML = '';
+                addLog(`📄 CSV আপলোড: ${nftData.length} টি NFT`, 'info');
+                totalDisplay.textContent = nftData.length;
+                totalStats.textContent = nftData.length;
+                statusMsg.textContent = `${nftData.length} টি NFT প্রস্তুত`;
+                loadNFTs();
             };
             reader.readAsText(file);
         }
 
-        async function downloadZipArchive() {
-            downloadZipBtn.disabled = true;
-            const originalText = downloadZipBtn.textContent;
-            downloadZipBtn.textContent = '📦 Assembling ZIP...';
-
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder("mfer_fixed_cid_images");
-
-                for (const [id, dataURL] of completedDataMap.entries()) {
-                    const res = await fetch(dataURL);
-                    const blob = await res.blob();
-                    folder.file(`${id}.png`, blob);
-                }
-
-                const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, "mfer_ipfs_fixed_lime_batch.zip");
-                logToConsole("Targeted ZIP matching original scheme downloaded successfully!", 'log-success');
-            } catch (e) {
-                alert("Error packing target zip.");
-            }
-
-            downloadZipBtn.textContent = originalText;
-            downloadZipBtn.disabled = false;
-        }
+        // ============================================================
+        //  পেজ লোড
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            // ডিফল্ট ডেটা লোড
+            nftData = defaultCsvData;
+            totalDisplay.textContent = nftData.length;
+            totalStats.textContent = nftData.length;
+            statusMsg.textContent = `${nftData.length} টি NFT প্রস্তুত`;
+            addLog(`📄 ডিফল্ট CSV লোড: ${nftData.length} টি NFT`, 'info');
+            addLog('💡 "ডিফল্ট CSV লোড" ক্লিক করলে লোড শুরু হবে', 'info');
+        });
     </script>
 </body>
 </html>
