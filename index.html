@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · 10K Ultimate Global Pipeline</title>
+    <title>mfer · 10K Advanced Retry Pipeline</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -138,6 +138,9 @@
         .file-upload-btn {
             position: relative;
             overflow: hidden;
+            background: #1c1f0c;
+            border-color: var(--lime);
+            color: var(--lime);
         }
         .file-upload-btn input[type="file"] {
             position: absolute;
@@ -150,7 +153,7 @@
             background: #060607;
             border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
-            height: 180px;
+            height: 220px;
             overflow-y: auto;
             padding: 14px;
             font-family: 'JetBrains Mono', monospace;
@@ -161,6 +164,7 @@
         .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
         .log-success { color: var(--lime); }
         .log-error { color: var(--error); }
+        .log-info { color: #54b2ff; }
 
     </style>
 </head>
@@ -168,69 +172,75 @@
 
     <div class="brand">
         <div class="swatch"></div>
-        <h1>mfer <span class="hash">· 10K Pipeline</span></h1>
-        <p class="sub">Ultimate Background Replacing Engine</p>
+        <h1>mfer <span class="hash">· Smart Retry Pipeline</span></h1>
+        <p class="sub">Upload CSV to salvage failed IPFS items</p>
     </div>
 
     <div class="panel">
         <div class="stats-grid">
             <div class="stat-box">
-                <div class="label">Target Items</div>
-                <div class="val" id="statTarget">10000</div>
+                <div class="label">CSV Target Items</div>
+                <div class="val" id="statTarget">0</div>
             </div>
             <div class="stat-box">
                 <div class="label">Processed</div>
                 <div class="val" id="statProcessed">0</div>
             </div>
             <div class="stat-box lime-status">
-                <div class="label">Success</div>
+                <div class="label">Fixed Success</div>
                 <div class="val" id="statSuccess">0</div>
             </div>
             <div class="stat-box error-status">
-                <div class="label">Failed</div>
+                <div class="label">Still Failed</div>
                 <div class="val" id="statFailed">0</div>
             </div>
         </div>
 
         <div class="controls-row" style="margin-bottom: 20px;">
-            <button class="btn btn-primary" id="startBtn" onclick="startGlobalPipeline()">▶️ Start Pipeline</button>
-            <button class="btn btn-danger" id="stopBtn" onclick="stopPipeline()" disabled>⏸️ Stop & Export CSV</button>
-            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Download ZIP Package</button>
-            
             <div class="btn btn-secondary file-upload-btn" id="uploadWrapper">
-                📁 Upload Failed CSV
+                📁 Step 1: Upload Failed CSV
                 <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)" />
             </div>
+            <button class="btn btn-primary" id="startBtn" onclick="startRetryPipeline()" disabled>▶️ Step 2: Start Retry</button>
+            <button class="btn btn-danger" id="stopBtn" onclick="stopPipeline()" disabled>⏸️ Stop & Export Remaining</button>
+            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Step 3: Download Fixed ZIP</button>
         </div>
 
         <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Console Initialized. Ready to process.</div>
+            <div style="color: var(--lime);">[System] Pipeline Standby. Please upload your CSV to begin.</div>
         </div>
     </div>
 
     <script>
-        const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-        const TOTAL_COUNT = 10000;
-        const CONCURRENT_LIMIT = 6; 
-        const REQUEST_DELAY = 100; 
+        const CID_METADATA_FOLDER = 'QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
+        const CONCURRENT_LIMIT = 4; // Optimized for gateway avoiding bans
+        const REQUEST_DELAY = 250; 
         const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 2;
+        const MAX_RETRY_ATTEMPTS = 4;
 
-        const GATEWAYS = [
-            'https://cloudflare-ipfs.com/ipfs',
+        // Expanded multi-gateway network for deep fallbacks
+        const METADATA_GATEWAYS = [
             'https://ipfs.io/ipfs',
-            'https://gateway.pinata.cloud/ipfs'
+            'https://cloudflare-ipfs.com/ipfs',
+            'https://gateway.pinata.cloud/ipfs',
+            'https://dweb.link/ipfs'
         ];
 
-        // In-memory runtime cache to bypass storage limit crashes
+        const IMAGE_GATEWAYS = [
+            'https://cloudflare-ipfs.com/ipfs',
+            'https://ipfs.io/ipfs',
+            'https://gateway.pinata.cloud/ipfs',
+            'https://dweb.link/ipfs',
+            'https://nftstorage.link/ipfs'
+        ];
+
         let pipelineQueue = [];
         let completedDataMap = new Map(); 
-        let failedIdsList = [];
+        let currentFailedList = [];
         
         let isPipelineRunning = false;
         let stopRequested = false;
         let currentQueueIndex = 0;
-        let isCsvMode = false;
 
         const statTarget = document.getElementById('statTarget');
         const statProcessed = document.getElementById('statProcessed');
@@ -242,17 +252,6 @@
         const stopBtn = document.getElementById('stopBtn');
         const downloadZipBtn = document.getElementById('downloadZipBtn');
         const csvFileInput = document.getElementById('csvFileInput');
-
-        // Setup default 1 to 10000 run array
-        function resetPipelineToGlobal() {
-            pipelineQueue = [];
-            for(let i = 1; i <= TOTAL_COUNT; i++) {
-                pipelineQueue.push(i);
-            }
-            statTarget.textContent = pipelineQueue.length;
-            isCsvMode = false;
-        }
-        resetPipelineToGlobal();
 
         function logToConsole(message, type = '') {
             const div = document.createElement('div');
@@ -276,10 +275,13 @@
             } catch (e) { return null; }
         }
 
-        async function fetchImageAndReplaceBackground(cid, attempt = 0) {
-            const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
+        async function fetchImageWithFallback(cid, attempt = 0) {
+            const currentGateway = IMAGE_GATEWAYS[attempt % IMAGE_GATEWAYS.length];
+            const gatewayUrl = `${currentGateway}/${cid}`;
+            
             try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(7000) });
+                logToConsole(`Attempting Image Pull on Gateway ${attempt + 1} for CID: ${cid.substring(0, 10)}...`, 'log-info');
+                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(9000) });
                 if (!response.ok) throw new Error();
                 const blob = await response.blob();
                 
@@ -326,76 +328,78 @@
                         pCtx.putImageData(imageData, 0, 0);
                         ctx.drawImage(processCanvas, 0, 0);
                         URL.revokeObjectURL(objectURL);
-                        resolve({ success: true, blob: null, dataURL: canvas.toDataURL('image/png') });
+                        resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
                     };
                     img.onerror = () => { URL.revokeObjectURL(objectURL); resolve({ success: false }); };
                 });
             } catch (err) {
-                if (attempt < MAX_RETRY) {
-                    return fetchImageAndReplaceBackground(cid, attempt + 1);
+                if (attempt < MAX_RETRY_ATTEMPTS) {
+                    await new Promise(r => setTimeout(r, 400));
+                    return fetchImageWithFallback(cid, attempt + 1);
                 }
                 return { success: false };
             }
         }
 
-        async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
-            for (let i = 0; i <= retries; i++) {
-                const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-                try {
-                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(5000) });
-                    if (!res.ok) throw new Error();
-                    return await res.text();
-                } catch (err) {
-                    if (i === retries) return null;
-                    await new Promise(r => setTimeout(r, 200));
+        async function fetchMetadataWithFallback(tokenId, attempt = 0) {
+            const currentGateway = METADATA_GATEWAYS[attempt % METADATA_GATEWAYS.length];
+            const targetUrl = `${currentGateway}/${CID_METADATA_FOLDER}/${tokenId}`;
+            
+            try {
+                const res = await fetch(targetUrl, { signal: AbortSignal.timeout(6000) });
+                if (!res.ok) throw new Error();
+                return await res.text();
+            } catch (err) {
+                if (attempt < MAX_RETRY_ATTEMPTS) {
+                    await new Promise(r => setTimeout(r, 400));
+                    return fetchMetadataWithFallback(tokenId, attempt + 1);
                 }
+                return null;
             }
         }
 
         async function processPipelineItem(tokenId) {
-            const rawMetadata = await fetchMetadataWithRetry(tokenId);
+            const rawMetadata = await fetchMetadataWithFallback(tokenId);
             let cid = null;
             let result = { success: false };
 
             if (rawMetadata) {
                 cid = extractImageCid(rawMetadata);
-                if (cid) result = await fetchImageAndReplaceBackground(cid);
+                if (cid) result = await fetchImageWithFallback(cid);
             }
 
             if (result.success && result.dataURL) {
                 completedDataMap.set(tokenId, result.dataURL);
-                logToConsole(`mfer #${tokenId} processed successfully.`, 'log-success');
+                logToConsole(`⚡ Success: mfer #${tokenId} recovered & background injected!`, 'log-success');
             } else {
-                if(!failedIdsList.includes(tokenId)) {
-                    failedIdsList.push(tokenId);
+                if(!currentFailedList.includes(tokenId)) {
+                    currentFailedList.push(tokenId);
                 }
-                logToConsole(`mfer #${tokenId} failed to load from IPFS.`, 'log-error');
+                logToConsole(`❌ Skip: mfer #${tokenId} failed network recovery across gateways.`, 'log-error');
             }
 
-            // Update DOM metrics live
-            statProcessed.textContent = completedDataMap.size + failedIdsList.length;
+            // Live counters update
+            statProcessed.textContent = completedDataMap.size + currentFailedList.length;
             statSuccess.textContent = completedDataMap.size;
-            statFailed.textContent = failedIdsList.length;
+            statFailed.textContent = currentFailedList.length;
         }
 
-        async function startGlobalPipeline() {
-            if (isPipelineRunning) return;
+        async function startRetryPipeline() {
+            if (isPipelineRunning || pipelineQueue.length === 0) return;
             isPipelineRunning = true;
             stopRequested = false;
 
             startBtn.disabled = true;
             stopBtn.disabled = false;
             downloadZipBtn.disabled = true;
-            document.getElementById('uploadWrapper').style.opacity = '0.3';
             csvFileInput.disabled = true;
 
-            logToConsole(`Pipeline started. Processing queue...`, 'log-success');
+            logToConsole(`Starting Targeted Recovery Run for ${pipelineQueue.length} tokens...`, 'log-success');
 
             const worker = async () => {
                 while (currentQueueIndex < pipelineQueue.length && !stopRequested) {
                     const id = pipelineQueue[currentQueueIndex++];
                     
-                    // Skip if already in successful memory map
                     if (completedDataMap.has(id)) continue;
 
                     await processPipelineItem(id);
@@ -410,15 +414,14 @@
             startBtn.disabled = false;
             stopBtn.disabled = true;
             downloadZipBtn.disabled = completedDataMap.size === 0;
-            document.getElementById('uploadWrapper').style.opacity = '1';
             csvFileInput.disabled = false;
 
             if (stopRequested) {
-                logToConsole(`Pipeline paused by user. Exporting failed manifest...`, 'log-error');
+                logToConsole(`Pipeline paused. You can export remaining failures or download successfully fixed items.`, 'log-error');
                 triggerCsvDownload();
             } else {
-                logToConsole(`Pipeline job complete. Stored items: ${completedDataMap.size}`, 'log-success');
-                if(failedIdsList.length > 0) {
+                logToConsole(`Run complete! Successfully fixed ${completedDataMap.size} items.`, 'log-success');
+                if(currentFailedList.length > 0) {
                     triggerCsvDownload();
                 }
             }
@@ -426,19 +429,16 @@
 
         function stopPipeline() {
             stopRequested = true;
-            logToConsole('Stop signal sent. Gracefully halting active threads...');
+            logToConsole('Halting active threads safely...');
         }
 
         function triggerCsvDownload() {
-            if (failedIdsList.length === 0) {
-                alert("No failed items detected in this run!");
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIdsList.join("\n");
+            if (currentFailedList.length === 0) return;
+            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + currentFailedList.join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", isCsvMode ? "retry_failed_items.csv" : "global_failed_items.csv");
+            link.setAttribute("download", "still_failed_tokens.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -464,18 +464,18 @@
                 if (loadedIds.length > 0) {
                     pipelineQueue = loadedIds;
                     currentQueueIndex = 0;
-                    failedIdsList = []; // Clear old fails for fresh session
-                    isCsvMode = true;
+                    currentFailedList = []; 
+                    completedDataMap.clear(); // Clear old success state for new clean file run
 
-                    // Reset counters for CSV targeted tracking
                     statTarget.textContent = pipelineQueue.length;
                     statProcessed.textContent = "0";
-                    statSuccess.textContent = completedDataMap.size; // show current global map size
+                    statSuccess.textContent = "0";
                     statFailed.textContent = "0";
 
-                    logToConsole(`CSV Uploaded! Loaded ${loadedIds.length} target tokens for retry pipeline. Click 'Start Pipeline'`, 'log-success');
+                    startBtn.disabled = false;
+                    logToConsole(`CSV Successfully Parsed! Loaded ${loadedIds.length} Unique Token IDs. Ready to run. Click 'Start Retry'`, 'log-success');
                 } else {
-                    alert("Invalid CSV format or empty list.");
+                    alert("Invalid CSV format or no numeric Token IDs found.");
                 }
             };
             reader.readAsText(file);
@@ -484,27 +484,25 @@
         async function downloadZipArchive() {
             downloadZipBtn.disabled = true;
             const originalText = downloadZipBtn.textContent;
-            downloadZipBtn.textContent = '📦 Packing ZIP (Please Wait)...';
+            downloadZipBtn.textContent = '📦 Building Fixed ZIP...';
 
             try {
                 const zip = new JSZip();
-                const folder = zip.folder(isCsvMode ? "mfer_csv_retry_batch" : "mfer_global_export");
+                const folder = zip.folder("mfer_fixed_retry_images");
 
-                let indexCounter = 1;
                 for (const [id, dataURL] of completedDataMap.entries()) {
                     const res = await fetch(dataURL);
                     const blob = await res.blob();
                     
-                    // Uses exact original serial mapping
+                    // Saves with the EXACT Token ID format matching the original name sequence
                     folder.file(`${id}.png`, blob);
-                    indexCounter++;
                 }
 
                 const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, isCsvMode ? "mfer_retry_fixed.zip" : "mfer_processed_global.zip");
-                logToConsole("ZIP exported successfully.", 'log-success');
+                saveAs(content, "mfer_recovered_lime_batch.zip");
+                logToConsole("Fixed ZIP Archive downloaded successfully!", 'log-success');
             } catch (e) {
-                alert("Compression error.");
+                alert("Error packing ZIP package.");
             }
 
             downloadZipBtn.textContent = originalText;
