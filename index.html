@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · Direct CID Layer Pipeline</title>
+    <title>mfer · Absolute CID Pipeline</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,8 +131,6 @@
         .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px #D8FF0044; }
         .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--card-border); }
         .btn-secondary:hover:not(:disabled) { border-color: var(--text-dim); }
-        .btn-danger { background: rgba(255, 84, 112, 0.15); color: var(--error); border: 1px solid var(--error); }
-        .btn-danger:hover:not(:disabled) { background: var(--error); color: #fff; }
         .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
         .file-upload-btn {
@@ -164,7 +162,6 @@
         .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
         .log-success { color: var(--lime); }
         .log-error { color: var(--error); }
-        .log-info { color: #54b2ff; }
 
     </style>
 </head>
@@ -172,8 +169,8 @@
 
     <div class="brand">
         <div class="swatch"></div>
-        <h1>mfer <span class="hash">· Direct CID Pipeline</span></h1>
-        <p class="sub">High-Speed Image Injection via Mapping CSV</p>
+        <h1>mfer <span class="hash">· Direct ipfs.io Pipeline</span></h1>
+        <p class="sub">100% Fixed Native IPFS Gateway Engine</p>
     </div>
 
     <div class="panel">
@@ -201,32 +198,24 @@
                 📁 Step 1: Upload Token & CID CSV
                 <input type="file" id="csvFileInput" accept=".csv" onchange="handleMappingCSVUpload(event)" />
             </div>
-            <button class="btn btn-primary" id="startBtn" onclick="startCidPipeline()" disabled>▶️ Step 2: Start Rendering from CID</button>
+            <button class="btn btn-primary" id="startBtn" onclick="startCidPipeline()" disabled>▶️ Step 2: Start Rendering</button>
             <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Step 3: Download Custom ZIP</button>
         </div>
 
         <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Standby. Please upload the 'token_id_cid.csv' to ignite the pipeline.</div>
+            <div style="color: var(--lime);">[System] Dedicated Pipeline Standby. Upload your 'token_id_cid.csv' to begin.</div>
         </div>
     </div>
 
     <script>
-        const CONCURRENT_LIMIT = 5; 
+        const CONCURRENT_LIMIT = 4; // safe concurrency to avoid ipfs.io rate-limiting
         const REQUEST_DELAY = 150; 
         const BG_COLOR = '#D8FF00';
-        const MAX_GATEWAY_RETRIES = 4;
+        const TARGET_GATEWAY = 'https://ipfs.io/ipfs'; // Force target link explicitly 
 
-        // Blazing fast direct gateways
-        const IMAGE_GATEWAYS = [
-            'https://cloudflare-ipfs.com/ipfs',
-            'https://ipfs.io/ipfs',
-            'https://gateway.pinata.cloud/ipfs',
-            'https://dweb.link/ipfs'
-        ];
-
-        let pipelineQueue = []; // Holds objects: { tokenId: num, cid: string }
-        let completedDataMap = new Map(); // Maps tokenId -> dataURL
-        let currentFailedList = []; // Holds objects: { tokenId: num, cid: string }
+        let pipelineQueue = []; 
+        let completedDataMap = new Map(); 
+        let currentFailedList = []; 
         
         let isPipelineRunning = false;
         let currentQueueIndex = 0;
@@ -250,30 +239,18 @@
             logger.scrollTop = logger.scrollHeight;
         }
 
-        // Native Bypass Core Loader Engine
-        async function fetchImageDirectlyFromCid(tokenId, cid, attempt = 0) {
-            const currentGateway = IMAGE_GATEWAYS[attempt % IMAGE_GATEWAYS.length];
-            const gatewayUrl = `${currentGateway}/${cid}`;
+        // Clean & strict image loader using exact standard path
+        async function fetchImageDirectlyFromCid(tokenId, cid) {
+            const gatewayUrl = `${TARGET_GATEWAY}/${cid}`;
             
             return new Promise((resolve) => {
                 const img = new Image();
-                img.crossOrigin = "anonymous";
+                img.crossOrigin = "anonymous"; // Safe context handover
                 
                 const timeoutId = setTimeout(() => {
                     img.src = ""; 
-                    handleFail();
-                }, 9000);
-
-                async function handleFail() {
-                    clearTimeout(timeoutId);
-                    if (attempt < MAX_GATEWAY_RETRIES) {
-                        logToConsole(`🔄 Routing to Next Gateway for token #${tokenId}...`, 'log-info');
-                        const retryRes = await fetchImageDirectlyFromCid(tokenId, cid, attempt + 1);
-                        resolve(retryRes);
-                    } else {
-                        resolve({ success: false });
-                    }
-                }
+                    resolve({ success: false });
+                }, 12000); // 12-second max safety threshold
 
                 img.onload = function() {
                     clearTimeout(timeoutId);
@@ -316,11 +293,14 @@
                         ctx.drawImage(processCanvas, 0, 0);
                         resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
                     } catch (e) {
-                        handleFail();
+                        resolve({ success: false });
                     }
                 };
 
-                img.onerror = () => handleFail();
+                img.onerror = () => {
+                    clearTimeout(timeoutId);
+                    resolve({ success: false });
+                };
                 img.src = gatewayUrl;
             });
         }
@@ -330,12 +310,12 @@
 
             if (result.success && result.dataURL) {
                 completedDataMap.set(item.tokenId, result.dataURL);
-                logToConsole(`⚡ Success: mfer #${item.tokenId} rendered perfectly.`, 'log-success');
+                logToConsole(`⚡ Success: mfer #${item.tokenId} processed successfully.`, 'log-success');
             } else {
                 if (!currentFailedList.some(f => f.tokenId === item.tokenId)) {
                     currentFailedList.push(item);
                 }
-                logToConsole(`❌ Error: Unable to fetch assets for token #${item.tokenId}.`, 'log-error');
+                logToConsole(`❌ Failed: mfer #${item.tokenId} gateway timeout/error.`, 'log-error');
             }
 
             statProcessed.textContent = completedDataMap.size + currentFailedList.length;
@@ -351,7 +331,7 @@
             downloadZipBtn.disabled = true;
             csvFileInput.disabled = true;
 
-            logToConsole(`Ignited direct CID processing pipeline for ${pipelineQueue.length} assets...`, 'log-success');
+            logToConsole(`Starting pipeline exclusively on ipfs.io for ${pipelineQueue.length} assets...`, 'log-success');
 
             const worker = async () => {
                 while (currentQueueIndex < pipelineQueue.length) {
@@ -372,7 +352,7 @@
             downloadZipBtn.disabled = completedDataMap.size === 0;
             csvFileInput.disabled = false;
 
-            logToConsole(`Pipeline Run Completed! Rendered successfully: ${completedDataMap.size} items. Ready to zip.`, 'log-success');
+            logToConsole(`Finished! Total Success: ${completedDataMap.size} items. Ready to export.`, 'log-success');
             
             if(currentFailedList.length > 0) {
                 triggerRemainingCsvDownload();
@@ -428,9 +408,9 @@
                     statFailed.textContent = "0";
 
                     startBtn.disabled = false;
-                    logToConsole(`Mapping CSV Accepted! Found ${loadedItems.length} matching rules. Ready to generate!`, 'log-success');
+                    logToConsole(`CSV Uploaded! Loaded ${loadedItems.length} Token mapping records. Ready to run!`, 'log-success');
                 } else {
-                    alert("Invalid CSV format. Please ensure Token_ID and CID columns exist.");
+                    alert("Invalid CSV format.");
                 }
             };
             reader.readAsText(file);
@@ -448,13 +428,11 @@
                 for (const [id, dataURL] of completedDataMap.entries()) {
                     const res = await fetch(dataURL);
                     const blob = await res.blob();
-                    
-                    // Saves output image with exact original Token ID naming convention
                     folder.file(`${id}.png`, blob);
                 }
 
                 const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, "mfer_cid_mapped_lime_batch.zip");
+                saveAs(content, "mfer_ipfs_fixed_lime_batch.zip");
                 logToConsole("Targeted ZIP matching original scheme downloaded successfully!", 'log-success');
             } catch (e) {
                 alert("Error packing target zip.");
