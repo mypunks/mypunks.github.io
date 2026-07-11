@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · #D8FF00 Batch Downloader</title>
+    <title>mfer · #D8FF00 Smart Batch Downloader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -290,7 +290,7 @@
 
     <div class="brand">
         <div class="swatch"></div>
-        <h1>mfer <span class="hash">· Batch Loader</span></h1>
+        <h1>mfer <span class="hash">· Smart Batch</span></h1>
         <p class="sub">Divided into groups of 500 <span class="count-pill">Total 10,000</span></p>
     </div>
 
@@ -300,6 +300,7 @@
         </select>
         <button class="btn btn-primary" id="downloadBatchBtn" onclick="downloadCurrentBatchAsZip()">Download Current Batch ZIP</button>
         <button class="btn btn-danger" id="retryFailedBtn" onclick="retryAllFailedInBatch()" disabled>Retry Failed In Batch (0)</button>
+        <button class="btn btn-danger" style="border-color: #666; color: #aaa;" onclick="clearSavedCache()">Clear Cache</button>
     </div>
 
     <div class="gallery" id="gallery"></div>
@@ -361,15 +362,59 @@
         const modalRetryArea = document.getElementById('modalRetryArea');
         const singleRetryBtn = document.getElementById('singleRetryBtn');
 
+        // Load Persistent Saved Batch from localStorage on startup
         function initDropdown() {
             batchSelect.innerHTML = '';
+            const savedBatch = localStorage.getItem('mfer_current_batch_start');
+            if (savedBatch) {
+                currentBatchStart = parseInt(savedBatch);
+                currentBatchEnd = currentBatchStart + BATCH_SIZE - 1;
+            }
+
             for (let i = 1; i <= TOTAL; i += BATCH_SIZE) {
                 let start = i;
                 let end = i + BATCH_SIZE - 1;
                 let opt = document.createElement('option');
                 opt.value = start;
                 opt.textContent = `Batch: ${start} - ${end}`;
+                if (start === currentBatchStart) opt.selected = true;
                 batchSelect.appendChild(opt);
+            }
+        }
+
+        // Load Single NFT Data from Cache
+        function loadFromLocalStorageCache(tokenId) {
+            const cached = localStorage.getItem(`mfer_cache_${tokenId}`);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed && parsed.dataURL && !parsed.isError) {
+                        nftDataStore[tokenId] = parsed;
+                        return true;
+                    }
+                } catch(e) {}
+            }
+            return false;
+        }
+
+        function saveToLocalStorageCache(tokenId, dataObj) {
+            if (!dataObj.isError) {
+                try {
+                    localStorage.setItem(`mfer_cache_${tokenId}`, JSON.stringify(dataObj));
+                } catch (e) {
+                    // If localStorage fills up completely, clear older items gracefully
+                    console.log("Storage filled, clean up initiated.");
+                }
+            }
+        }
+
+        function clearSavedCache() {
+            if(confirm("Do you want to clear all loaded image cache?")) {
+                for (let i = 1; i <= TOTAL; i++) {
+                    localStorage.removeItem(`mfer_cache_${i}`);
+                }
+                localStorage.removeItem('mfer_current_batch_start');
+                location.reload();
             }
         }
 
@@ -398,7 +443,6 @@
                     canvas.width = 512; canvas.height = 512;
                     const ctx = canvas.getContext('2d');
                     
-                    // Initial base background color fill
                     ctx.fillStyle = BG_COLOR; 
                     ctx.fillRect(0, 0, 512, 512);
 
@@ -415,7 +459,6 @@
                             drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
                         }
                         
-                        // Temporarily draw image to process raw background pixel removal
                         const processCanvas = document.createElement('canvas');
                         processCanvas.width = 512; processCanvas.height = 512;
                         const pCtx = processCanvas.getContext('2d');
@@ -424,22 +467,19 @@
                         const imageData = pCtx.getImageData(0, 0, 512, 512);
                         const data = imageData.data;
                         
-                        // FIX: Lock original target color values BEFORE modifying them in loop
                         const rTarget = data[0];
                         const gTarget = data[1];
                         const bTarget = data[2];
 
                         for (let j = 0; j < data.length; j += 4) {
-                            // Match existing solid background color within tolerance threshold
                             if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
-                                data[j] = 216;     // R
-                                data[j+1] = 255;   // G
-                                data[j+2] = 0;     // B
+                                data[j] = 216;     
+                                data[j+1] = 255;   
+                                data[j+2] = 0;     
                             }
                         }
                         pCtx.putImageData(imageData, 0, 0);
                         
-                        // Draw final processed clear background onto lime stage
                         ctx.drawImage(processCanvas, 0, 0);
                         URL.revokeObjectURL(objectURL);
                         resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
@@ -470,6 +510,13 @@
         }
 
         async function processSingleNFT(tokenId) {
+            // If already stored or available in storage cache, use it immediately
+            if (loadFromLocalStorageCache(tokenId)) {
+                updateCardUI(tokenId);
+                updateBatchCounters();
+                return nftDataStore[tokenId];
+            }
+
             const rawMetadata = await fetchMetadataWithRetry(tokenId);
             let cid = null;
             let result = { success: false };
@@ -492,7 +539,12 @@
                 finalDataURL = canvas.toDataURL('image/png');
             }
 
-            nftDataStore[tokenId] = { tokenId, dataURL: finalDataURL, isError: !result.success };
+            const targetData = { tokenId, dataURL: finalDataURL, isError: !result.success };
+            nftDataStore[tokenId] = targetData;
+            
+            // Save to browser database cache if successful
+            saveToLocalStorageCache(tokenId, targetData);
+
             updateCardUI(tokenId);
             updateBatchCounters();
             return nftDataStore[tokenId];
@@ -519,6 +571,9 @@
         function updateBatchCounters() {
             let loaded = 0, failed = 0;
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
+                if (!nftDataStore[i]) {
+                    loadFromLocalStorageCache(i);
+                }
                 if (nftDataStore[i]) {
                     if (nftDataStore[i].isError) failed++;
                     else loaded++;
@@ -536,6 +591,9 @@
             currentBatchEnd = currentBatchStart + BATCH_SIZE - 1;
             rangeLabel.textContent = `${currentBatchStart} - ${currentBatchEnd}`;
 
+            // Save active batch range configuration to browser state
+            localStorage.setItem('mfer_current_batch_start', currentBatchStart);
+
             gallery.innerHTML = '';
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                 const card = document.createElement('div');
@@ -547,6 +605,7 @@
             }
 
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
+                loadFromLocalStorageCache(i);
                 if (nftDataStore[i]) updateCardUI(i);
             }
             updateBatchCounters();
@@ -566,7 +625,9 @@
                     const currentId = index++;
                     if (currentId > currentBatchEnd) break;
 
+                    // Skip network pull if already loaded successfully in structural memory
                     if (nftDataStore[currentId] && !nftDataStore[currentId].isError) continue;
+                    if (loadFromLocalStorageCache(currentId)) continue;
 
                     await new Promise(r => setTimeout(r, REQUEST_DELAY));
                     await processSingleNFT(currentId);
@@ -584,6 +645,7 @@
 
         async function retrySingleItem(tokenId) {
             singleRetryBtn.disabled = true;
+            localStorage.removeItem(`mfer_cache_${tokenId}`); // clear explicit error cache
             const item = await processSingleNFT(tokenId);
             
             const ctx = modalCanvas.getContext('2d');
@@ -602,7 +664,10 @@
 
             let failedIds = [];
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
-                if (nftDataStore[i] && nftDataStore[i].isError) failedIds.push(i);
+                if (nftDataStore[i] && nftDataStore[i].isError) {
+                    failedIds.push(i);
+                    localStorage.removeItem(`mfer_cache_${i}`);
+                }
             }
 
             let poolIndex = 0;
@@ -643,7 +708,7 @@
 
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 saveAs(zipBlob, `mfer_${currentBatchStart}_to_${currentBatchEnd}.zip`);
-                downloadBatchBtn.textContent = '✅ Pack Downloaded!';
+                downloadBatchBtn.textContent = '¼ Downloaded!';
                 setTimeout(() => { downloadBatchBtn.textContent = 'Download Current Batch ZIP'; }, 2500);
             } catch (err) {
                 alert("ZIP compression failure.");
