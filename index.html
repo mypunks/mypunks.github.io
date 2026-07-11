@@ -1,268 +1,241 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · 10K Ultimate Global Pipeline</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>mfer · CID এক্সট্র্যাক্ট</title>
     <style>
-        :root{
-            --bg: #0a0a0b;
-            --bg-elevated: #131315;
-            --card: #17171a;
-            --card-border: #26262a;
-            --lime: #D8FF00;
-            --lime-dim: #D8FF0022;
-            --text: #f2f2ef;
-            --text-dim: #8f8f94;
-            --error: #ff5470;
-            --error-dim: #ff547022;
-            --radius-lg: 20px;
-            --radius-md: 14px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            background: radial-gradient(ellipse 1200px 700px at 50% -10%, #1c1f0c 0%, var(--bg) 55%), var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            padding: 48px 24px 96px;
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 20px;
             min-height: 100vh;
         }
-
-        .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .brand .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            background: var(--lime);
-            box-shadow: 0 0 18px var(--lime-dim), 0 0 4px var(--lime);
-            margin-bottom: 18px;
-        }
-
         h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: clamp(2.2rem, 5vw, 3.4rem);
-            letter-spacing: -0.02em;
             text-align: center;
-            color: var(--text);
+            color: #fff;
+            margin-bottom: 6px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px #D8FF0066;
         }
-        h1 .hash { color: var(--lime); }
-
         .sub {
             text-align: center;
-            color: var(--text-dim);
-            margin-top: 10px;
-            font-size: 0.95rem;
-            font-family: 'JetBrains Mono', monospace;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
         }
-
-        .panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            max-width: 800px;
-            margin: 0 auto 32px;
-            border-radius: var(--radius-lg);
-            padding: 24px;
+        .sub span {
+            background: #D8FF00;
+            color: #000;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: bold;
         }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-box {
-            background: var(--bg-elevated);
-            border: 1px solid var(--card-border);
-            padding: 16px;
-            border-radius: var(--radius-md);
+        .controls {
             text-align: center;
+            margin-bottom: 20px;
         }
-        .stat-box .label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 6px;
-        }
-        .stat-box .val {
-            font-size: 1.6rem;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .stat-box.lime-status .val { color: var(--lime); }
-        .stat-box.error-status .val { color: var(--error); }
-
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
+        .controls button, .controls label {
+            background: #D8FF00;
             border: none;
-            font-weight: 600;
+            color: #000;
+            font-weight: bold;
             padding: 12px 24px;
             border-radius: 40px;
             cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.18s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1rem;
+            transition: 0.3s;
+            box-shadow: 0 0 20px #D8FF0044;
+            margin: 5px;
+            display: inline-block;
         }
-
-        .btn-primary { background: var(--lime); color: #0a0a0b; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px #D8FF0044; }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--card-border); }
-        .btn-secondary:hover:not(:disabled) { border-color: var(--text-dim); }
-        .btn-danger { background: rgba(255, 84, 112, 0.15); color: var(--error); border: 1px solid var(--error); }
-        .btn-danger:hover:not(:disabled) { background: var(--error); color: #fff; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-        .file-upload-btn {
-            position: relative;
+        .controls button:hover, .controls label:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 40px #D8FF0088;
+        }
+        .controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .controls input[type="file"] {
+            display: none;
+        }
+        .stats {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .stats span {
+            background: #222;
+            padding: 4px 14px;
+            border-radius: 30px;
+            margin: 0 5px;
+            border: 1px solid #D8FF0044;
+        }
+        .stats .highlight {
+            color: #D8FF00;
+            font-weight: bold;
+        }
+        .progress-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background: #222;
+            border-radius: 30px;
             overflow: hidden;
+            height: 30px;
+            border: 1px solid #D8FF0044;
+            position: relative;
         }
-        .file-upload-btn input[type="file"] {
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #D8FF00, #aacc00);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 30px;
+        }
+        .progress-text {
             position: absolute;
-            top: 0; left: 0; opacity: 0;
-            width: 100%; height: 100%;
-            cursor: pointer;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
-
-        .logger-area {
-            background: #060607;
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            height: 180px;
+        .log-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #111;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 300px;
             overflow-y: auto;
-            padding: 14px;
-            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid #333;
+            font-family: 'Courier New', monospace;
             font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.6;
+            color: #aaa;
         }
-        .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
-        .log-success { color: var(--lime); }
-        .log-error { color: var(--error); }
-
+        .log-container .log-success {
+            color: #6f6;
+        }
+        .log-container .log-error {
+            color: #ff6b6b;
+        }
+        .log-container .log-info {
+            color: #6af;
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0d0d0dcc;
+            backdrop-filter: blur(6px);
+            color: #aaa;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 1px solid #D8FF0044;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .status-bar span {
+            background: #222;
+            padding: 2px 14px;
+            border-radius: 30px;
+        }
+        .status-bar .highlight {
+            color: #D8FF00;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .controls button, .controls label { padding: 10px 16px; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="brand">
-        <div class="swatch"></div>
-        <h1>mfer <span class="hash">· 10K Pipeline</span></h1>
-        <p class="sub">Ultimate Background Replacing Engine</p>
+    <h1>🟢 mfer · CID এক্সট্র্যাক্ট</h1>
+    <p class="sub">CSV থেকে Token ID পড়ে <span>CID</span> বের করা</p>
+
+    <div class="controls">
+        <button onclick="loadFromCSV()">📥 CSV থেকে লোড করুন</button>
+        <label for="csvUpload">📤 CSV আপলোড</label>
+        <input type="file" id="csvUpload" accept=".csv" onchange="handleCSVUpload(event)" />
+        <button id="downloadCsvBtn" onclick="downloadCIDCSV()" disabled>📊 CID CSV ডাউনলোড</button>
     </div>
 
-    <div class="panel">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="label">Target Items</div>
-                <div class="val" id="statTarget">10000</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">Processed</div>
-                <div class="val" id="statProcessed">0</div>
-            </div>
-            <div class="stat-box lime-status">
-                <div class="label">Success</div>
-                <div class="val" id="statSuccess">0</div>
-            </div>
-            <div class="stat-box error-status">
-                <div class="label">Failed</div>
-                <div class="val" id="statFailed">0</div>
-            </div>
-        </div>
+    <div class="stats">
+        <span>মোট: <span class="highlight" id="totalStats">০</span></span>
+        <span>সফল: <span class="highlight" id="successStats">০</span></span>
+        <span>ফেইল: <span class="highlight" id="failedStats">০</span></span>
+    </div>
 
-        <div class="controls-row" style="margin-bottom: 20px;">
-            <button class="btn btn-primary" id="startBtn" onclick="startGlobalPipeline()">▶️ Start Pipeline</button>
-            <button class="btn btn-danger" id="stopBtn" onclick="stopPipeline()" disabled>⏸️ Stop & Export CSV</button>
-            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Download ZIP Package</button>
-            
-            <div class="btn btn-secondary file-upload-btn" id="uploadWrapper">
-                📁 Upload Failed CSV
-                <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)" />
-            </div>
-        </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">০%</div>
+    </div>
 
-        <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Console Initialized. Ready to process.</div>
-        </div>
+    <div class="log-container" id="logContainer">
+        <div class="log-info">⏳ CSV আপলোড বা "CSV থেকে লোড করুন" ক্লিক করুন...</div>
+    </div>
+
+    <!-- স্ট্যাটাস বার -->
+    <div class="status-bar" id="statusBar">
+        <span id="statusMessage">প্রস্তুত...</span>
+        <span id="speedIndicator">📊 ০%</span>
     </div>
 
     <script>
+        // ============================================================
+        //  কনফিগারেশন
+        // ============================================================
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-        const TOTAL_COUNT = 10000;
-        const CONCURRENT_LIMIT = 6; 
-        const REQUEST_DELAY = 100; 
-        const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 2;
+        const MAX_RETRY = 3;
+        const CONCURRENT_LIMIT = 20;
 
-        const GATEWAYS = [
-            'https://cloudflare-ipfs.com/ipfs',
-            'https://ipfs.io/ipfs',
-            'https://gateway.pinata.cloud/ipfs'
-        ];
+        // ============================================================
+        //  স্টেট
+        // ============================================================
+        let tokenIds = [];
+        let cidData = []; // {tokenId, cid, success}
+        let isRunning = false;
 
-        // In-memory runtime cache to bypass storage limit crashes
-        let pipelineQueue = [];
-        let completedDataMap = new Map(); 
-        let failedIdsList = [];
-        
-        let isPipelineRunning = false;
-        let stopRequested = false;
-        let currentQueueIndex = 0;
-        let isCsvMode = false;
+        // ============================================================
+        //  DOM রেফারেন্স
+        // ============================================================
+        const logContainer = document.getElementById('logContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const totalStats = document.getElementById('totalStats');
+        const successStats = document.getElementById('successStats');
+        const failedStats = document.getElementById('failedStats');
+        const statusMsg = document.getElementById('statusMessage');
+        const speedIndicator = document.getElementById('speedIndicator');
+        const downloadBtn = document.getElementById('downloadCsvBtn');
 
-        const statTarget = document.getElementById('statTarget');
-        const statProcessed = document.getElementById('statProcessed');
-        const statSuccess = document.getElementById('statSuccess');
-        const statFailed = document.getElementById('statFailed');
-        const logger = document.getElementById('logger');
-        
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const downloadZipBtn = document.getElementById('downloadZipBtn');
-        const csvFileInput = document.getElementById('csvFileInput');
+        // ============================================================
+        //  ডিফল্ট Token IDs (আপনার CSV থেকে)
+        // ============================================================
+        const defaultTokenIds = [465,439,432,414,473,397,204,583,564,71,268,237,682,505,796,736,625,697,979,546,866,576,726,1025,1077,1059,1170,920,966,1218,1221,1200,909,1222,971,1009,1284,1568,1143,1299,1317,1375,1378,1298,1062,1367,1439,1557,1454,1535,1559,1564,1641,1734,1619,1416,1411,1291,1611,1732,1727,1742,1806,1661,1691,1731,1544,1847,1798,1770,1799,1903,1846,1832,1968,1810,1998,1964,2067,1833,2060,2014,1937,2139,2040,2173,2063,1980,2084,2149,2117,2222,2137,2123,2197,2303,2313,2244,2320,2347,2366,2296,2421,2286,2400,2516,2405,2477,2487,2623,2513,2429,2196,2620,2733,2523,2627,2700,2702,2608,2641,2707,2768,2852,2695,2762,2872,2858,2663,2821,2868,2772,2994,2571,2524,2911,2844,2717,2909,2939,2880,3047,3108,3058,3116,2983,2914,3156,2997,2398,3341,3151,3352,3180,3169,3048,3303,3095,3186,3132,3019,3147,3483,3394,3559,3473,3669,3615,3412,3540,3571,3636,3391,3286,3251,3683,3692,3612,3668,3759,3639,3805,3922,3769,3821,3753,3828,3703,3729,3776,3643,3913,4172,4119,4104,3910,3860,4171,3783,4170,3966,4187,3902,3933,4374,4383,3716,4244,4336,4109,4421,4265,4263,4398,4524,4382,4406,4463,4323,4279,4613,4508,4570,4309,4559,4556,4545,4473,4710,4522,4377,4453,4698,4620,4642,4832,4986,4682,4661,4566,4649,4742,4683,4860,4974,4833,4935,4768,4970,5157,5130,4778,5133,5019,5027,4981,5265,4965,4933,5178,4955,5083,5263,5257,5244,5253,4850,4883,5304,5319,5317,5273,5346,5426,5497,5417,5596,5623,5572,5168,5324,5531,5196,5566,5341,5653,5669,5592,5742,5723,5654,5789,5767,5716,5624,5613,5729,5689,5709,5751,5894,5861,6014,5759,5848,6064,5820,6101,6057,5977,6150,6061,6196,6426,6031,6214,6388,6295,6185,6132,6091,6417,6605,5882,6310,6043,6233,6644,6287,6325,6374,6418,6626,6711,6589,6773,6579,6440,6585,6775,7023,7035,6793,7013,6807,6927,6677,6692,7007,6918,6714,7095,7005,7228,7111,7058,7010,7192,7320,7097,7128,7149,7067,7109,7191,7401,7287,7461,7133,7478,7360,7223,7433,7356,7521,7316,7537,7445,7476,7436,7661,7605,7771,7825,7705,7805,7645,7463,7808,7747,7685,7850,7883,7975,7669,7881,7939,7896,7773,7729,7823,8142,7759,7899,8144,8286,8033,8046,7962,7907,7880,8328,8066,8067,7972,8156,7864,8194,8395,8244,8305,8437,8155,8336,8233,8537,8312,8442,8511,8516,8393,8602,8531,8656,8273,8626,8324,8898,8980,8140,8885,8921,8751,8951,8728,8758,8456,8487,8824,8894,8910,9151,9141,9052,9139,9028,8794,8786,8919,9249,8643,9218,8986,9095,9247,9176,9189,9349,9179,9104,9421,9311,9324,9395,9356,9310,9384,9221,9304,9336,9258,9436,9562,9518,9276,9500,9485,9672,9531,9544,9565,9479,9642,9543,9607,9580,9632,9648,9807,9871,9445,9750,9826,9751,9828,9915,9980,9773,9722,9712,9733,9977,9820,9844,9989,9988,9902];
 
-        // Setup default 1 to 10000 run array
-        function resetPipelineToGlobal() {
-            pipelineQueue = [];
-            for(let i = 1; i <= TOTAL_COUNT; i++) {
-                pipelineQueue.push(i);
-            }
-            statTarget.textContent = pipelineQueue.length;
-            isCsvMode = false;
-        }
-        resetPipelineToGlobal();
-
-        function logToConsole(message, type = '') {
-            const div = document.createElement('div');
-            div.className = `log-entry ${type}`;
-            const time = new Date().toLocaleTimeString();
-            div.innerHTML = `<span>[${time}] ${message}</span>`;
-            logger.appendChild(div);
-            logger.scrollTop = logger.scrollHeight;
-        }
-
+        // ============================================================
+        //  হেল্পার ফাংশন
+        // ============================================================
         function extractImageCid(metadata) {
             try {
                 let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
@@ -270,180 +243,163 @@
                     let img = data.image;
                     if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
                     if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
-                    return img.includes('ipfs.io/ipfs/') ? img.split('ipfs.io/ipfs/')[1]?.split('?')[0] : img;
+                    if (img.includes('ipfs.io/ipfs/')) {
+                        return img.split('ipfs.io/ipfs/')[1]?.split('?')[0] || img;
+                    }
+                    return img;
+                }
+                if (data.image_data) return data.image_data;
+                if (data.animation_url) return data.animation_url;
+                for (let key of Object.keys(data)) {
+                    let val = data[key];
+                    if (typeof val === 'string' && (val.includes('ipfs://') || val.includes('/ipfs/'))) {
+                        if (val.startsWith('ipfs://')) return val.replace('ipfs://', '');
+                        if (val.startsWith('/ipfs/')) return val.replace('/ipfs/', '');
+                        return val;
+                    }
                 }
                 return null;
-            } catch (e) { return null; }
-        }
-
-        async function fetchImageAndReplaceBackground(cid, attempt = 0) {
-            const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
-            try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(7000) });
-                if (!response.ok) throw new Error();
-                const blob = await response.blob();
-                
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 512; canvas.height = 512;
-                    const ctx = canvas.getContext('2d');
-                    
-                    ctx.fillStyle = BG_COLOR; 
-                    ctx.fillRect(0, 0, 512, 512);
-
-                    const img = new Image();
-                    const objectURL = URL.createObjectURL(blob);
-                    img.src = objectURL;
-
-                    img.onload = function() {
-                        const imgAspect = img.width / img.height;
-                        let drawW = 512, drawH = 512, offsetX = 0, offsetY = 0;
-                        if (imgAspect > 1) {
-                            drawH = 512; drawW = 512 * imgAspect; offsetX = (512 - drawW) / 2;
-                        } else {
-                            drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
-                        }
-                        
-                        const processCanvas = document.createElement('canvas');
-                        processCanvas.width = 512; processCanvas.height = 512;
-                        const pCtx = processCanvas.getContext('2d');
-                        pCtx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-                        const imageData = pCtx.getImageData(0, 0, 512, 512);
-                        const data = imageData.data;
-                        
-                        const rTarget = data[0];
-                        const gTarget = data[1];
-                        const bTarget = data[2];
-
-                        for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
-                                data[j] = 216;     
-                                data[j+1] = 255;   
-                                data[j+2] = 0;     
-                            }
-                        }
-                        pCtx.putImageData(imageData, 0, 0);
-                        ctx.drawImage(processCanvas, 0, 0);
-                        URL.revokeObjectURL(objectURL);
-                        resolve({ success: true, blob: null, dataURL: canvas.toDataURL('image/png') });
-                    };
-                    img.onerror = () => { URL.revokeObjectURL(objectURL); resolve({ success: false }); };
-                });
-            } catch (err) {
-                if (attempt < MAX_RETRY) {
-                    return fetchImageAndReplaceBackground(cid, attempt + 1);
-                }
-                return { success: false };
+            } catch (e) {
+                return null;
             }
         }
 
-        async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.textContent = message;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateProgress(current, total) {
+            const percent = Math.round((current / total) * 100);
+            progressBar.style.width = `${percent}%`;
+            progressText.textContent = `${percent}%`;
+            speedIndicator.textContent = `📊 ${percent}%`;
+        }
+
+        function updateStats() {
+            const total = cidData.length;
+            const success = cidData.filter(item => item.success).length;
+            const failed = cidData.filter(item => !item.success).length;
+            totalStats.textContent = total;
+            successStats.textContent = success;
+            failedStats.textContent = failed;
+        }
+
+        // ============================================================
+        //  ফেচ ব্যাচ (রিট্রাই সহ)
+        // ============================================================
+        async function fetchWithRetry(url, tokenId, retries = MAX_RETRY) {
             for (let i = 0; i <= retries; i++) {
-                const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
                 try {
-                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(5000) });
-                    if (!res.ok) throw new Error();
-                    return await res.text();
+                    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const text = await res.text();
+                    return { tokenId, text };
                 } catch (err) {
-                    if (i === retries) return null;
-                    await new Promise(r => setTimeout(r, 200));
+                    if (i === retries) {
+                        return { tokenId, error: err.message };
+                    }
+                    await new Promise(r => setTimeout(r, 500 * (i + 1)));
                 }
             }
         }
 
-        async function processPipelineItem(tokenId) {
-            const rawMetadata = await fetchMetadataWithRetry(tokenId);
-            let cid = null;
-            let result = { success: false };
-
-            if (rawMetadata) {
-                cid = extractImageCid(rawMetadata);
-                if (cid) result = await fetchImageAndReplaceBackground(cid);
-            }
-
-            if (result.success && result.dataURL) {
-                completedDataMap.set(tokenId, result.dataURL);
-                logToConsole(`mfer #${tokenId} processed successfully.`, 'log-success');
-            } else {
-                if(!failedIdsList.includes(tokenId)) {
-                    failedIdsList.push(tokenId);
-                }
-                logToConsole(`mfer #${tokenId} failed to load from IPFS.`, 'log-error');
-            }
-
-            // Update DOM metrics live
-            statProcessed.textContent = completedDataMap.size + failedIdsList.length;
-            statSuccess.textContent = completedDataMap.size;
-            statFailed.textContent = failedIdsList.length;
-        }
-
-        async function startGlobalPipeline() {
-            if (isPipelineRunning) return;
-            isPipelineRunning = true;
-            stopRequested = false;
-
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            downloadZipBtn.disabled = true;
-            document.getElementById('uploadWrapper').style.opacity = '0.3';
-            csvFileInput.disabled = true;
-
-            logToConsole(`Pipeline started. Processing queue...`, 'log-success');
-
-            const worker = async () => {
-                while (currentQueueIndex < pipelineQueue.length && !stopRequested) {
-                    const id = pipelineQueue[currentQueueIndex++];
-                    
-                    // Skip if already in successful memory map
-                    if (completedDataMap.has(id)) continue;
-
-                    await processPipelineItem(id);
-                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
-                }
-            };
-
-            const pool = Array(CONCURRENT_LIMIT).fill(null).map(() => worker());
-            await Promise.all(pool);
-
-            isPipelineRunning = false;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            downloadZipBtn.disabled = completedDataMap.size === 0;
-            document.getElementById('uploadWrapper').style.opacity = '1';
-            csvFileInput.disabled = false;
-
-            if (stopRequested) {
-                logToConsole(`Pipeline paused by user. Exporting failed manifest...`, 'log-error');
-                triggerCsvDownload();
-            } else {
-                logToConsole(`Pipeline job complete. Stored items: ${completedDataMap.size}`, 'log-success');
-                if(failedIdsList.length > 0) {
-                    triggerCsvDownload();
-                }
-            }
-        }
-
-        function stopPipeline() {
-            stopRequested = true;
-            logToConsole('Stop signal sent. Gracefully halting active threads...');
-        }
-
-        function triggerCsvDownload() {
-            if (failedIdsList.length === 0) {
-                alert("No failed items detected in this run!");
+        // ============================================================
+        //  CID এক্সট্র্যাক্ট করা
+        // ============================================================
+        async function extractCIDs() {
+            if (isRunning) return;
+            if (tokenIds.length === 0) {
+                alert('কোনো Token ID নেই। প্রথমে CSV আপলোড করুন বা "CSV থেকে লোড করুন" ক্লিক করুন।');
                 return;
             }
-            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIdsList.join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", isCsvMode ? "retry_failed_items.csv" : "global_failed_items.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+
+            isRunning = true;
+            cidData = [];
+            downloadBtn.disabled = true;
+            logContainer.innerHTML = '';
+            addLog('🚀 CID এক্সট্র্যাক্ট শুরু হচ্ছে...', 'info');
+
+            const total = tokenIds.length;
+            let processed = 0;
+            const batchSize = CONCURRENT_LIMIT;
+
+            for (let start = 0; start < total; start += batchSize) {
+                const end = Math.min(start + batchSize, total);
+                const batchTokens = tokenIds.slice(start, end);
+
+                const promises = batchTokens.map(async (tokenId) => {
+                    const url = `${BASE_URL}/${tokenId}`;
+                    const res = await fetchWithRetry(url, tokenId);
+
+                    let cid = null;
+                    let success = false;
+
+                    if (res.error) {
+                        addLog(`❌ #${tokenId}: ${res.error}`, 'error');
+                    } else {
+                        cid = extractImageCid(res.text);
+                        if (cid) {
+                            success = true;
+                            addLog(`✅ #${tokenId}: ${cid.substring(0, 20)}...`, 'success');
+                        } else {
+                            addLog(`⚠️ #${tokenId}: CID পাওয়া যায়নি`, 'error');
+                        }
+                    }
+
+                    return { tokenId, cid, success };
+                });
+
+                const results = await Promise.all(promises);
+                cidData.push(...results);
+
+                processed += batchTokens.length;
+                updateProgress(processed, total);
+                updateStats();
+                statusMsg.textContent = `প্রসেস: ${processed}/${total}`;
+
+                await new Promise(r => setTimeout(r, 20));
+            }
+
+            const successCount = cidData.filter(item => item.success).length;
+            const failCount = cidData.filter(item => !item.success).length;
+            addLog(`✅ সম্পন্ন! সফল: ${successCount}, ফেইল: ${failCount}`, 'info');
+            statusMsg.textContent = `✅ সম্পন্ন! সফল: ${successCount}, ফেইল: ${failCount}`;
+            downloadBtn.disabled = false;
+            isRunning = false;
         }
 
+        // ============================================================
+        //  CID CSV ডাউনলোড
+        // ============================================================
+        function downloadCIDCSV() {
+            if (cidData.length === 0) {
+                alert('কোনো CID ডেটা নেই। প্রথমে CID এক্সট্র্যাক্ট করুন।');
+                return;
+            }
+
+            let csvContent = 'Token_ID,CID,Status\n';
+            for (const item of cidData) {
+                const status = item.success ? 'Success' : 'Failed';
+                csvContent += `${item.tokenId},${item.cid || 'N/A'},${status}\n`;
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'token_id_cid_mapping.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            addLog('📥 CSV ডাউনলোড শুরু হয়েছে!', 'info');
+        }
+
+        // ============================================================
+        //  CSV আপলোড
+        // ============================================================
         function handleCSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -451,65 +407,65 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const loadedIds = [];
+                const lines = text.split('\n');
+                const tokens = [];
 
                 for (let i = 1; i < lines.length; i++) {
-                    const val = lines[i].trim();
-                    if (val && !isNaN(val)) {
-                        loadedIds.push(parseInt(val));
+                    const line = lines[i].trim();
+                    if (line) {
+                        const num = parseInt(line);
+                        if (!isNaN(num)) {
+                            tokens.push(num);
+                        }
                     }
                 }
 
-                if (loadedIds.length > 0) {
-                    pipelineQueue = loadedIds;
-                    currentQueueIndex = 0;
-                    failedIdsList = []; // Clear old fails for fresh session
-                    isCsvMode = true;
-
-                    // Reset counters for CSV targeted tracking
-                    statTarget.textContent = pipelineQueue.length;
-                    statProcessed.textContent = "0";
-                    statSuccess.textContent = completedDataMap.size; // show current global map size
-                    statFailed.textContent = "0";
-
-                    logToConsole(`CSV Uploaded! Loaded ${loadedIds.length} target tokens for retry pipeline. Click 'Start Pipeline'`, 'log-success');
-                } else {
-                    alert("Invalid CSV format or empty list.");
+                if (tokens.length === 0) {
+                    alert('CSV থেকে কোনো Token ID পাওয়া যায়নি।');
+                    return;
                 }
+
+                tokenIds = tokens;
+                logContainer.innerHTML = '';
+                addLog(`📄 CSV লোড: ${tokens.length} টি Token ID`, 'info');
+                statusMsg.textContent = `${tokens.length} টি Token ID লোড হয়েছে`;
+                updateProgress(0, tokens.length);
+                updateStats();
+                totalStats.textContent = tokens.length;
+
+                // অটো এক্সট্র্যাক্ট শুরু
+                extractCIDs();
             };
             reader.readAsText(file);
         }
 
-        async function downloadZipArchive() {
-            downloadZipBtn.disabled = true;
-            const originalText = downloadZipBtn.textContent;
-            downloadZipBtn.textContent = '📦 Packing ZIP (Please Wait)...';
+        // ============================================================
+        //  ডিফল্ট CSV থেকে লোড
+        // ============================================================
+        function loadFromCSV() {
+            tokenIds = [...defaultTokenIds];
+            logContainer.innerHTML = '';
+            addLog(`📄 ডিফল্ট CSV লোড: ${tokenIds.length} টি Token ID`, 'info');
+            statusMsg.textContent = `${tokenIds.length} টি Token ID লোড হয়েছে`;
+            updateProgress(0, tokenIds.length);
+            updateStats();
+            totalStats.textContent = tokenIds.length;
 
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder(isCsvMode ? "mfer_csv_retry_batch" : "mfer_global_export");
-
-                let indexCounter = 1;
-                for (const [id, dataURL] of completedDataMap.entries()) {
-                    const res = await fetch(dataURL);
-                    const blob = await res.blob();
-                    
-                    // Uses exact original serial mapping
-                    folder.file(`${id}.png`, blob);
-                    indexCounter++;
-                }
-
-                const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, isCsvMode ? "mfer_retry_fixed.zip" : "mfer_processed_global.zip");
-                logToConsole("ZIP exported successfully.", 'log-success');
-            } catch (e) {
-                alert("Compression error.");
-            }
-
-            downloadZipBtn.textContent = originalText;
-            downloadZipBtn.disabled = false;
+            // অটো এক্সট্র্যাক্ট শুরু
+            extractCIDs();
         }
+
+        // ============================================================
+        //  পেজ লোড
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            // ডিফল্ট Token IDs লোড
+            tokenIds = [...defaultTokenIds];
+            totalStats.textContent = tokenIds.length;
+            statusMsg.textContent = `${tokenIds.length} টি Token ID প্রস্তুত`;
+            addLog(`📄 ডিফল্ট CSV লোড: ${tokenIds.length} টি Token ID`, 'info');
+            addLog('💡 "CSV থেকে লোড করুন" ক্লিক করলে CID এক্সট্র্যাক্ট শুরু হবে', 'info');
+        });
     </script>
 </body>
 </html>
