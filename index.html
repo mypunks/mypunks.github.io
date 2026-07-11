@@ -1,400 +1,583 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Metadata Downloader</title>
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mfer · ব্যাকগ্রাউন্ড #D8FF00</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        body { background: #0a0a12; font-family: 'Inter', sans-serif; }
-        .mono { font-family: 'Courier New', monospace; }
-        .btn-download {
-            background: linear-gradient(135deg, #ff5a5f, #ff2a2f);
-            transition: all 0.2s ease;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .btn-download:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255,90,95,0.4); }
-        .btn-download:active { transform: scale(0.98); }
-        .btn-download-all {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-            transition: all 0.2s ease;
+        body {
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
         }
-        .btn-download-all:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(124,58,237,0.4); }
-        .btn-secondary {
-            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
-            border: 1px solid rgba(255,90,95,0.2);
-            transition: all 0.2s ease;
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 6px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 20px #D8FF0066;
         }
-        .btn-secondary:hover { border-color: #ff5a5f; transform: scale(1.02); }
-        .preview-box {
-            background: #16162a;
-            border: 1px solid #2a2a4a;
-            max-height: 500px;
-            overflow-y: auto;
+        .sub {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
         }
-        .preview-box pre {
-            color: #e0e0e0;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-all;
+        .sub span {
+            background: #D8FF00;
+            color: #000;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: bold;
         }
-        .status-bar {
-            background: #1a1a2a;
-            border-radius: 8px;
-            padding: 12px 16px;
-            border-left: 3px solid #ff5a5f;
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
         }
-        .progress-bar-bg {
-            background: #0a0a12;
-            border-radius: 20px;
-            overflow: hidden;
-            height: 6px;
+        .controls button {
+            background: #D8FF00;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: 0.3s;
+            box-shadow: 0 0 20px #D8FF0044;
         }
-        .progress-bar-fill {
-            background: linear-gradient(90deg, #ff5a5f, #ff8a8f);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 20px;
+        .controls button:hover {
+            transform: scale(1.05);
+            background: #fff;
+            box-shadow: 0 0 40px #D8FF0088;
         }
-        .badge-count {
-            background: rgba(255,90,95,0.2);
-            color: #ff8a8f;
-            padding: 2px 10px;
+        .controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== গ্যালারি ===== */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ===== NFT কার্ড (শুধু রিপ্লেস করা ইমেজ) ===== */
+        .nft-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+            border: 2px solid #444;
+            cursor: pointer;
+        }
+        .nft-card:hover {
+            transform: scale(1.04);
+            box-shadow: 0 12px 35px rgba(216, 255, 0, 0.25);
+            border-color: #D8FF00;
+            z-index: 2;
+        }
+        .nft-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
             border-radius: 12px;
-            font-size: 11px;
+            display: block;
+            background: #D8FF00; /* ফাইনাল ব্যাকগ্রাউন্ড */
         }
-        .json-key { color: #ff8a8f; }
-        .json-string { color: #6ee7b7; }
-        .json-number { color: #93c5fd; }
+        .nft-card .token-id {
+            color: #D8FF00;
+            font-weight: bold;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            background: #1a1a1a;
+            padding: 4px 12px;
+            border-radius: 30px;
+            display: inline-block;
+            border: 1px solid #D8FF0033;
+        }
+
+        /* ===== মোডাল (512x512 ক্যানভাস) ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e1e1e;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 0 60px rgba(216, 255, 0, 0.25);
+            border: 2px solid #D8FF00;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+        }
+        .modal-content .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 2rem;
+            color: #D8FF00;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-weight: bold;
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+        .modal-content .close-btn:hover {
+            transform: scale(1.3);
+            color: #fff;
+        }
+        .modal-content .modal-title {
+            color: #D8FF00;
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 512px;
+            margin: 0 auto;
+            aspect-ratio: 1 / 1;
+            background: #D8FF00;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #D8FF00;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+        }
+        .canvas-wrapper canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            image-rendering: auto;
+        }
+
+        /* ===== স্ট্যাটাস বার ===== */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0d0d0dcc;
+            backdrop-filter: blur(6px);
+            color: #aaa;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 1px solid #D8FF0044;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .status-bar span {
+            background: #222;
+            padding: 2px 14px;
+            border-radius: 30px;
+        }
+        .status-bar .highlight {
+            color: #D8FF00;
+            font-weight: bold;
+        }
+        .btn-reload {
+            background: #D8FF00;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 4px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-reload:hover {
+            background: #fff;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            .modal-content { padding: 16px; }
+        }
     </style>
 </head>
 <body>
-    <div class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Header -->
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-1 h-8 bg-[#ff5a5f] rounded-full"></div>
-            <div>
-                <h1 class="mono text-2xl font-bold text-white">📦 JSON Metadata Downloader</h1>
-                <p class="text-sm text-gray-400">CryptoDickbutts · Series 3 — Raw JSON download</p>
-            </div>
-        </div>
 
-        <!-- Download All Button -->
-        <div class="bg-[#12121f] rounded-2xl p-6 border border-white/10 mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="layers" class="w-5 h-5 text-[#8b5cf6]"></i>
-                    <div>
-                        <span class="text-sm font-bold text-white">All JSON Files (1-5360)</span>
-                        <p class="text-xs text-gray-500">Download all raw metadata as a single JSON file</p>
-                    </div>
-                </div>
-                <button id="download-all-btn" class="btn-download-all flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold mono transition-all shadow-lg">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    📥 Download All (index.json)
-                </button>
-            </div>
-        </div>
+    <h1>🟢 mfer · #D8FF00</h1>
+    <p class="sub">ব্যাকগ্রাউন্ড রিপ্লেস করা <span>১০,০০০</span> NFT</p>
 
-        <!-- Range Download Buttons -->
-        <div class="bg-[#12121f] rounded-2xl p-6 border border-white/10 mb-6">
-            <div class="flex flex-wrap items-center gap-2 mb-4">
-                <i data-lucide="folder" class="w-4 h-4 text-[#ff5a5f]"></i>
-                <span class="text-sm font-bold text-white">Download by range:</span>
-            </div>
-            <div id="button-container" class="flex flex-wrap gap-2"></div>
-        </div>
+    <div class="controls">
+        <button id="downloadAllBtn" onclick="downloadAllAsZip()">📦 সব ছবি জিপে ডাউনলোড</button>
+    </div>
 
-        <!-- Status & Progress -->
-        <div id="status-container" class="status-bar mb-4 hidden">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span id="status-text" class="text-sm text-gray-300">Downloading...</span>
-                    <span id="status-detail" class="text-xs text-gray-500 ml-2"></span>
-                </div>
-                <span id="status-count" class="text-sm font-mono text-[#ff5a5f]">0/0</span>
-            </div>
-            <div class="progress-bar-bg mt-2">
-                <div id="progress-bar" class="progress-bar-fill"></div>
-            </div>
-        </div>
+    <div class="gallery" id="gallery"></div>
 
-        <!-- JSON Preview Section -->
-        <div class="bg-[#12121f] rounded-2xl border border-white/10 overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-3 border-b border-white/10">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="file-code" class="w-4 h-4 text-[#ff5a5f]"></i>
-                    <span class="text-sm font-bold text-white">JSON Preview</span>
-                    <span id="file-count" class="badge-count">0 files</span>
-                </div>
-                <button id="clear-preview" class="btn-secondary px-3 py-1 rounded-xl text-xs text-gray-400 transition-all">
-                    <i data-lucide="x" class="w-3 h-3 inline"></i> Clear
-                </button>
-            </div>
-            <div id="preview-container" class="preview-box p-4">
-                <div class="text-center text-gray-500 py-8">
-                    <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-3 text-gray-600"></i>
-                    <p class="text-sm">No JSON loaded yet</p>
-                </div>
+    <!-- ===== মোডাল ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+            <div class="modal-title" id="modalTitle">#1234</div>
+            <div class="canvas-wrapper">
+                <canvas id="modalCanvas" width="512" height="512"></canvas>
             </div>
         </div>
     </div>
 
+    <!-- ===== স্ট্যাটাস বার ===== -->
+    <div class="status-bar" id="statusBar">
+        <span id="loadedCount">০</span>
+        <span id="totalCount">১০,০০০</span>
+        <span id="statusMessage">প্রস্তুত হচ্ছে...</span>
+        <button class="btn-reload" onclick="loadAllNFTs()">🔄 রিলোড</button>
+    </div>
+
     <script>
-        // ======================== CONFIGURATION ========================
-        const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
-        const CONCURRENT_LIMIT = 50;
-        const TOTAL_NFTS = 5360;
+        // ============================================================
+        //  কনফিগারেশন
+        // ============================================================
+        const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
+        const TOTAL = 10000;
+        const CONCURRENT_LIMIT = 30;
+        const GATEWAY = 'https://ipfs.io/ipfs';
+        const BG_COLOR = '#D8FF00';
 
-        const CID_RANGES = [
-            { start: 160, end: 499, cid: 'QmcENAp91phXWRT7JpEpAasVve4oCsYbev56HNHD2BgLjE', folder: '0', label: '160-499' },
-            { start: 500, end: 999, cid: 'QmfUxUc1iu2RQSm1AygUEtX7giPrrzhvhKToQ4biQcimLf', folder: '1', label: '500-999' },
-            { start: 1000, end: 1499, cid: 'Qmeo1JdaA4hufbKneRQVNYQS5BJGGziBr4k14gzHeCgb9L', folder: '2', label: '1000-1499' },
-            { start: 1500, end: 1999, cid: 'QmUQu8Q66QYW2pn77oojimEQhvjH8tCs1jMbDHj43tcCFu', folder: '3', label: '1500-1999' },
-            { start: 2000, end: 2499, cid: 'Qmd8YGp9yUKtXas1cT3UsYFpWwfWHvV4Bssj8Pbvrq6BZ5', folder: '4', label: '2000-2499' },
-            { start: 2500, end: 2999, cid: 'QmfWsA2JKaDE3ipd8FdLHsayGQ6PQ4wVAfCK4PEb1ykUif', folder: '5', label: '2500-2999' },
-            { start: 3000, end: 3499, cid: 'QmdDkgz1a85LaJZxEr6awGCaf2CpZBMWc9eQ1ezEh8sqJW', folder: '6', label: '3000-3499' },
-            { start: 3500, end: 3999, cid: 'QmaduZqVgbqtJAoW7eyejNSLVsqXVeaRPC5HkG1SeGCyut', folder: '7', label: '3500-3999' },
-            { start: 4000, end: 4499, cid: 'QmQLmSXT5zY6XcNrdwhX8GbGc9QrbEhbwvEmjggRBxKeib', folder: '8', label: '4000-4499' },
-            { start: 4500, end: 4999, cid: 'QmTLx6G5hUDCoV8aBbXLuuV1kaUwd6KiSrARUJUHLGhEcP', folder: '9', label: '4500-4999' },
-            { start: 5000, end: 5360, cid: 'QmZodri3bfsGebBBBjeBAJLztq6DmQLDqiXi4LhEeU2QCS', folder: '10', label: '5000-5360' }
-        ];
+        // ============================================================
+        //  DOM রেফারেন্স
+        // ============================================================
+        const gallery = document.getElementById('gallery');
+        const loadedSpan = document.getElementById('loadedCount');
+        const totalSpan = document.getElementById('totalCount');
+        const statusMsg = document.getElementById('statusMessage');
+        const downloadBtn = document.getElementById('downloadAllBtn');
 
-        // ======================== UTILITIES ========================
-        function getMetadataUrl(range, id) {
-            return `${IPFS_GATEWAY}${range.cid}/${range.folder}/${id}.json`;
-        }
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalCanvas = document.getElementById('modalCanvas');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
 
-        async function fetchJSON(url) {
+        let loaded = 0;
+        let failed = 0;
+        let isRunning = false;
+        let processedImages = []; // {tokenId, dataURL}
+
+        // ============================================================
+        //  মেটাডাটা থেকে CID বের করা
+        // ============================================================
+        function extractImageCid(metadata) {
             try {
-                const response = await fetch(url);
-                if (!response.ok) return null;
-                return await response.json();
-            } catch {
+                let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+                if (data.image) {
+                    let img = data.image;
+                    if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
+                    if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
+                    if (img.includes('ipfs.io/ipfs/')) {
+                        return img.split('ipfs.io/ipfs/')[1]?.split('?')[0] || img;
+                    }
+                    return img;
+                }
+                if (data.image_data) return data.image_data;
+                if (data.animation_url) return data.animation_url;
+                for (let key of Object.keys(data)) {
+                    let val = data[key];
+                    if (typeof val === 'string' && (val.includes('ipfs://') || val.includes('/ipfs/'))) {
+                        if (val.startsWith('ipfs://')) return val.replace('ipfs://', '');
+                        if (val.startsWith('/ipfs/')) return val.replace('/ipfs/', '');
+                        return val;
+                    }
+                }
+                return null;
+            } catch (e) {
                 return null;
             }
         }
 
-        function getRangeForId(id) {
-            for (const range of CID_RANGES) {
-                if (id >= range.start && id <= range.end) return range;
-            }
-            return null;
+        // ============================================================
+        //  ব্যাকগ্রাউন্ড রিপ্লেস (ক্যানভাসে)
+        // ============================================================
+        function replaceBackground(imageUrl, tokenId) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                // ১. ব্যাকগ্রাউন্ড #D8FF00
+                ctx.fillStyle = BG_COLOR;
+                ctx.fillRect(0, 0, 512, 512);
+
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = imageUrl;
+
+                img.onload = function() {
+                    // ২. ইমেজ ড্র
+                    const imgAspect = img.width / img.height;
+                    const canvasAspect = 1;
+                    let drawW, drawH, offsetX, offsetY;
+                    if (imgAspect > canvasAspect) {
+                        drawH = 512;
+                        drawW = 512 * imgAspect;
+                        offsetX = (512 - drawW) / 2;
+                        offsetY = 0;
+                    } else {
+                        drawW = 512;
+                        drawH = 512 / imgAspect;
+                        offsetX = 0;
+                        offsetY = (512 - drawH) / 2;
+                    }
+                    ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+                    // ৩. ব্যাকগ্রাউন্ড রিপ্লেস (কর্নারের রঙ ধরে)
+                    const imageData = ctx.getImageData(0, 0, 512, 512);
+                    const data = imageData.data;
+                    const r = data[0];
+                    const g = data[1];
+                    const b = data[2];
+                    const tolerance = 30;
+
+                    for (let i = 0; i < data.length; i += 4) {
+                        const pr = data[i];
+                        const pg = data[i+1];
+                        const pb = data[i+2];
+                        if (Math.abs(pr - r) < tolerance && Math.abs(pg - g) < tolerance && Math.abs(pb - b) < tolerance) {
+                            data[i] = 216;
+                            data[i+1] = 255;
+                            data[i+2] = 0;
+                        }
+                    }
+                    ctx.putImageData(imageData, 0, 0);
+
+                    resolve(canvas.toDataURL('image/png'));
+                };
+
+                img.onerror = function() {
+                    // যদি লোড না হয়, ব্যাকগ্রাউন্ড দেখাবে
+                    ctx.fillStyle = BG_COLOR;
+                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.fillStyle = '#00000088';
+                    ctx.font = '20px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⚠️ Error', 256, 256);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+            });
         }
 
-        // ======================== CREATE BUTTONS ========================
-        function createButtons() {
-            const container = document.getElementById('button-container');
-            container.innerHTML = '';
+        // ============================================================
+        //  NFT কার্ড তৈরি (শুধু রিপ্লেস করা ইমেজ)
+        // ============================================================
+        function createNFTCard(tokenId, dataURL) {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
+            card.dataset.tokenId = tokenId;
 
-            CID_RANGES.forEach((range, index) => {
-                const count = range.end - range.start + 1;
-                const btn = document.createElement('button');
-                btn.className = 'btn-secondary flex items-center gap-2 px-3 py-1.5 rounded-xl text-white text-xs font-bold mono transition-all';
-                btn.innerHTML = `
-                    <i data-lucide="download" class="w-3 h-3"></i>
-                    <span>${range.label}</span>
-                    <span class="bg-white/5 px-1.5 py-0.5 rounded text-[10px]">${count}</span>
-                `;
-                btn.addEventListener('click', () => downloadRange(range));
-                container.appendChild(btn);
+            const img = document.createElement('img');
+            img.alt = `mfer #${tokenId}`;
+            img.src = dataURL; // সরাসরি রিপ্লেস করা ইমেজ
+
+            const idSpan = document.createElement('div');
+            idSpan.className = 'token-id';
+            idSpan.textContent = `#${tokenId}`;
+
+            card.appendChild(img);
+            card.appendChild(idSpan);
+
+            // মোডাল খোলা
+            card.addEventListener('click', function() {
+                openModal(tokenId, dataURL);
             });
 
-            setTimeout(() => {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }, 50);
+            return card;
         }
 
-        // ======================== DOWNLOAD ALL ========================
-        async function downloadAll() {
-            const total = TOTAL_NFTS;
-            
-            if (!confirm(`📦 Download all ${total} JSON files as a single index.json?\n\nThis will take ~15-20 seconds. Continue?`)) return;
-
-            showStatus(`⏳ Downloading all ${total} files...`, 'fetching from IPFS...');
-
-            const allData = {};
-            let completed = 0;
-            let failed = 0;
-            const startTime = Date.now();
-
-            // Get all IDs
-            const ids = Array.from({ length: total }, (_, i) => i + 1);
-
-            // Fetch in batches - বড় ব্যাচ সাইজ
-            const batchSize = 50;
-            for (let i = 0; i < ids.length; i += batchSize) {
-                const batch = ids.slice(i, i + batchSize);
-
-                await Promise.all(batch.map(async (id) => {
-                    const range = getRangeForId(id);
-                    if (!range) { failed++; completed++; updateProgress(completed, total, startTime); return; }
-
-                    const url = getMetadataUrl(range, id);
-                    const data = await fetchJSON(url);
-
-                    if (data) {
-                        allData[id] = data;
-                    } else {
-                        failed++;
-                    }
-
-                    completed++;
-                    updateProgress(completed, total, startTime);
-                }));
-            }
-
-            // সরাসরি JSON তৈরি - কোনো অতিরিক্ত লেখা নেই
-            const jsonContent = JSON.stringify(allData, null, 2);
-
-            // ডাউনলোড
-            const blob = new Blob([jsonContent], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `index_${Object.keys(allData).length}_files.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-
-            // প্রিভিউ দেখান
-            showPreview(jsonContent, Object.keys(allData).length, failed);
-
-            hideStatusAfter(5);
+        // ============================================================
+        //  মোডাল (রিপ্লেস করা ইমেজ দেখাবে)
+        // ============================================================
+        function openModal(tokenId, dataURL) {
+            modalTitle.textContent = `#${tokenId}`;
+            const canvas = modalCanvas;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = function() {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(img, 0, 0, 512, 512);
+            };
+            img.src = dataURL;
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
 
-        // ======================== DOWNLOAD RANGE ========================
-        async function downloadRange(range) {
-            const total = range.end - range.start + 1;
-            
-            if (!confirm(`📦 Download ${total} JSON files from ${range.label}?\n\nContinue?`)) return;
-
-            showStatus(`⏳ Downloading ${range.label}...`, `from ${range.cid.slice(0, 12)}...`);
-
-            const allData = {};
-            let completed = 0;
-            let failed = 0;
-            const startTime = Date.now();
-
-            const ids = Array.from({ length: total }, (_, i) => range.start + i);
-
-            const batchSize = 50;
-            for (let i = 0; i < ids.length; i += batchSize) {
-                const batch = ids.slice(i, i + batchSize);
-
-                await Promise.all(batch.map(async (id) => {
-                    const url = getMetadataUrl(range, id);
-                    const data = await fetchJSON(url);
-
-                    if (data) {
-                        allData[id] = data;
-                    } else {
-                        failed++;
-                    }
-
-                    completed++;
-                    updateProgress(completed, total, startTime);
-                }));
-            }
-
-            const jsonContent = JSON.stringify(allData, null, 2);
-
-            const blob = new Blob([jsonContent], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${range.label}_${Object.keys(allData).length}_files.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(a.href);
-
-            showPreview(jsonContent, Object.keys(allData).length, failed);
-
-            hideStatusAfter(5);
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
         }
 
-        // ======================== UI HELPERS ========================
-        function showStatus(text, detail) {
-            const container = document.getElementById('status-container');
-            document.getElementById('status-text').textContent = text;
-            document.getElementById('status-detail').textContent = detail || '';
-            document.getElementById('status-count').textContent = '0/0';
-            document.getElementById('progress-bar').style.width = '0%';
-            container.classList.remove('hidden');
-        }
-
-        function updateProgress(completed, total, startTime) {
-            const progress = (completed / total) * 100;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('status-count').textContent = `${completed}/${total}`;
-
-            const elapsed = (Date.now() - startTime) / 1000;
-            if (elapsed > 0) {
-                document.getElementById('status-detail').textContent = `${(completed / elapsed).toFixed(1)} files/sec`;
-            }
-        }
-
-        function hideStatusAfter(seconds) {
-            setTimeout(() => {
-                document.getElementById('status-container').classList.add('hidden');
-            }, seconds * 1000);
-        }
-
-        function showPreview(jsonContent, count, failed) {
-            const container = document.getElementById('preview-container');
-            const preview = jsonContent.length > 2000 ? jsonContent.substring(0, 2000) + '\n\n... (truncated)' : jsonContent;
-
-            container.innerHTML = `
-                <div class="space-y-3">
-                    <div class="bg-[#0a0a12] rounded-lg p-3 border border-white/5">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-[#ff5a5f] mono">📄 JSON Preview</span>
-                            <span class="text-[10px] text-gray-500">${(jsonContent.length / 1024).toFixed(1)} KB</span>
-                        </div>
-                        <pre class="text-xs text-gray-300 overflow-x-auto">${escapeHtml(preview)}</pre>
-                    </div>
-                    <div class="text-center text-gray-500 text-xs">
-                        ${count} files loaded ${failed > 0 ? `• ${failed} failed` : ''}
-                    </div>
-                </div>
-            `;
-            document.getElementById('file-count').textContent = `${count} files`;
-
-            setTimeout(() => {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }, 50);
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m] || m));
-        }
-
-        // ======================== EVENT LISTENERS ========================
-        document.getElementById('download-all-btn')?.addEventListener('click', downloadAll);
-
-        document.getElementById('clear-preview')?.addEventListener('click', () => {
-            document.getElementById('preview-container').innerHTML = `
-                <div class="text-center text-gray-500 py-8">
-                    <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-3 text-gray-600"></i>
-                    <p class="text-sm">No JSON loaded yet</p>
-                </div>
-            `;
-            document.getElementById('file-count').textContent = '0 files';
-            document.getElementById('status-container').classList.add('hidden');
-            setTimeout(() => {
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            }, 50);
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
         });
 
-        // ======================== INIT ========================
-        createButtons();
+        // ============================================================
+        //  ব্যাচ ফেচ + প্রসেস
+        // ============================================================
+        async function fetchBatch(start, end) {
+            const promises = [];
+            for (let i = start; i <= end && i <= TOTAL; i++) {
+                const url = `${BASE_URL}/${i}`;
+                promises.push(
+                    fetch(url, { signal: AbortSignal.timeout(8000) })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                            return res.text();
+                        })
+                        .then(text => ({ tokenId: i, text }))
+                        .catch(err => ({ tokenId: i, error: err.message }))
+                );
+            }
+            return Promise.all(promises);
+        }
 
-        setTimeout(() => {
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }, 100);
+        // ============================================================
+        //  সব NFT লোড করা (শুধু রিপ্লেস করা ছবি দেখাবে)
+        // ============================================================
+        async function loadAllNFTs() {
+            if (isRunning) return;
+            isRunning = true;
+            gallery.innerHTML = '';
+            loaded = 0;
+            failed = 0;
+            processedImages = [];
+            downloadBtn.disabled = true;
+            updateStatus('লোড শুরু হচ্ছে...', 0);
+
+            let processed = 0;
+            const batchSize = CONCURRENT_LIMIT;
+
+            for (let start = 1; start <= TOTAL; start += batchSize) {
+                const end = Math.min(start + batchSize - 1, TOTAL);
+                const results = await fetchBatch(start, end);
+
+                for (const res of results) {
+                    let cid = null;
+                    if (res.error) {
+                        failed++;
+                        cid = 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2';
+                    } else {
+                        cid = extractImageCid(res.text);
+                        if (!cid) {
+                            failed++;
+                            cid = 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2';
+                        }
+                    }
+
+                    // ব্যাকগ্রাউন্ড রিপ্লেস
+                    const imageUrl = `${GATEWAY}/${cid}`;
+                    const dataURL = await replaceBackground(imageUrl, res.tokenId);
+
+                    // সংরক্ষণ
+                    processedImages.push({ tokenId: res.tokenId, dataURL });
+
+                    // কার্ড তৈরি
+                    const card = createNFTCard(res.tokenId, dataURL);
+                    gallery.appendChild(card);
+
+                    loaded++;
+                }
+
+                processed += results.length;
+                updateStatus(`প্রসেস করা হয়েছে ${processed} টি`, processed);
+                await new Promise(r => setTimeout(r, 30));
+            }
+
+            updateStatus(`✅ সম্পন্ন! লোড: ${loaded}, ফেল: ${failed}`, loaded);
+            downloadBtn.disabled = false;
+            isRunning = false;
+        }
+
+        // ============================================================
+        //  জিপ ডাউনলোড (সব রিপ্লেস করা ছবি)
+        // ============================================================
+        async function downloadAllAsZip() {
+            if (processedImages.length === 0) {
+                alert('কোনো ছবি প্রসেস করা হয়নি। দয়া করে প্রথমে লোড করুন।');
+                return;
+            }
+
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = '⏳ জিপ তৈরি হচ্ছে...';
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder('mfer_bg_replaced');
+
+                for (const item of processedImages) {
+                    // dataURL থেকে ব্লব তৈরি
+                    const response = await fetch(item.dataURL);
+                    const blob = await response.blob();
+                    folder.file(`mfer_${item.tokenId}.png`, blob);
+                }
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                saveAs(zipBlob, 'mfer_10000_bg_replaced.zip');
+            } catch (error) {
+                console.error('জিপ তৈরি ব্যর্থ:', error);
+                alert('জিপ তৈরি করতে সমস্যা হয়েছে। কনসোল চেক করুন।');
+            }
+
+            downloadBtn.disabled = false;
+            downloadBtn.textContent = '📦 সব ছবি জিপে ডাউনলোড';
+        }
+
+        // ============================================================
+        //  স্ট্যাটাস আপডেট
+        // ============================================================
+        function updateStatus(msg, count) {
+            loadedSpan.textContent = count || loaded;
+            totalSpan.textContent = TOTAL;
+            statusMsg.textContent = msg;
+        }
+
+        // ============================================================
+        //  শুরু
+        // ============================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllNFTs();
+        });
     </script>
 </body>
 </html>
