@@ -20,6 +20,7 @@
             --text: #f2f2ef;
             --text-dim: #8f8f94;
             --error: #ff5470;
+            --error-dim: #ff547022;
             --radius-lg: 20px;
             --radius-md: 14px;
         }
@@ -127,6 +128,24 @@
             transform: translateY(-2px);
         }
 
+        .btn-danger {
+            background: transparent;
+            color: var(--error);
+            border: 1px solid var(--error);
+            box-shadow: 0 0 10px var(--error-dim);
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: var(--error);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--error-dim);
+        }
+        .btn-danger:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .gallery {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -151,6 +170,13 @@
             border-color: var(--lime);
             z-index: 2;
         }
+        .nft-card.is-error-card {
+            border-color: rgba(255, 84, 112, 0.4);
+        }
+        .nft-card.is-error-card:hover {
+            border-color: var(--error);
+            box-shadow: 0 16px 40px -12px rgba(255, 84, 112, 0.2);
+        }
         .nft-card img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -171,6 +197,10 @@
             display: inline-block;
             border: 1px solid #D8FF0022;
         }
+        .nft-card.is-error-card .token-id {
+            color: var(--error);
+            border-color: rgba(255, 84, 112, 0.2);
+        }
         .nft-card .status-badge {
             position: absolute;
             top: 8px;
@@ -182,6 +212,7 @@
             padding: 2px 9px;
             border-radius: 20px;
             opacity: 0;
+            transition: opacity 0.2s;
         }
         .nft-card .status-badge.show { opacity: 1; }
 
@@ -207,6 +238,9 @@
             max-width: 560px;
             width: 100%;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
         .modal-content .close-btn {
             position: absolute;
@@ -230,7 +264,6 @@
             color: var(--lime);
             text-align: center;
             font-size: 1.3rem;
-            margin-bottom: 16px;
             font-weight: 600;
         }
         .canvas-wrapper {
@@ -249,6 +282,13 @@
             width: 100% !important;
             height: 100% !important;
         }
+        
+        .modal-retry-area {
+            display: none;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .modal-retry-area.show { display: flex; }
 
         .status-bar {
             position: fixed;
@@ -277,6 +317,7 @@
             border-radius: 30px;
         }
         .status-bar .highlight { color: var(--lime); font-weight: 600; }
+        .status-bar .failed-highlight { color: var(--error); font-weight: 600; }
 
         @media (max-width: 1100px) {
             .gallery { grid-template-columns: repeat(4, 1fr); }
@@ -296,12 +337,12 @@
     <div class="brand">
         <div class="swatch"></div>
         <h1>mfer <span class="hash">· #D8FF00</span></h1>
-        <p class="sub">Safe & Stable Loading <span class="count-pill">10,000 NFTs</span></p>
+        <p class="sub">Dynamic Recovery Pipeline <span class="count-pill">10,000 NFTs</span></p>
     </div>
 
     <div class="controls">
         <button class="btn btn-primary" id="downloadAllBtn" onclick="downloadAllAsZip()">Download All as ZIP</button>
-        <button class="btn btn-ghost" onclick="loadAllNFTs()">Reload Gallery</button>
+        <button class="btn btn-danger" id="retryFailedBtn" onclick="retryAllFailed()" disabled>Retry All Failed (0)</button>
     </div>
 
     <div class="gallery" id="gallery"></div>
@@ -314,26 +355,29 @@
             <div class="canvas-wrapper">
                 <canvas id="modalCanvas" width="512" height="512"></canvas>
             </div>
+            <div class="modal-retry-area" id="modalRetryArea">
+                <button class="btn btn-primary" style="background:var(--error); color:#fff; box-shadow:none;" id="singleRetryBtn">🔄 Retry Loading This Item</button>
+            </div>
         </div>
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar" id="statusBar">
-        <span><span id="loadedCount" class="highlight">0</span> / <span id="totalCount">10,000</span></span>
-        <span id="statusMessage">Preparing...</span>
+        <span>Loaded: <span id="loadedCount" class="highlight">0</span> / 10,000</span>
+        <span>Failed: <span id="failedCount" class="failed-highlight">0</span></span>
+        <span id="statusMessage">Preparing pipeline...</span>
         <span id="speedIndicator">🚀 0/sec</span>
     </div>
 
     <script>
         // ============================================================
-        // CONFIGURATION (Optimized for Anti-Rate Limiting)
+        // CONFIGURATION
         // ============================================================
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
         const TOTAL = 10000;
         
-        // Lowered concurrency + smart delay to keep connection stable forever
         const CONCURRENT_LIMIT = 5; 
-        const REQUEST_DELAY = 150; // 150ms dynamic gap between queue pulls
+        const REQUEST_DELAY = 150; 
         
         const GATEWAYS = [
             'https://cloudflare-ipfs.com/ipfs',
@@ -342,34 +386,34 @@
         ];
         
         const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 4;
+        const MAX_RETRY = 3;
 
         // ============================================================
-        // DOM REFERENCES
+        // STATE STORAGE (Persistent In-Memory Array)
         // ============================================================
+        let nftDataStore = new Array(TOTAL + 1).fill(null); 
+        let isRunning = false;
+        let activeModalTokenId = null;
+        let startTime = 0;
+
+        // DOM Elements
         const gallery = document.getElementById('gallery');
         const loadedSpan = document.getElementById('loadedCount');
-        const totalSpan = document.getElementById('totalCount');
+        const failedSpan = document.getElementById('failedCount');
         const statusMsg = document.getElementById('statusMessage');
         const speedIndicator = document.getElementById('speedIndicator');
         const downloadBtn = document.getElementById('downloadAllBtn');
+        const retryFailedBtn = document.getElementById('retryFailedBtn');
 
         const modalOverlay = document.getElementById('modalOverlay');
         const modalCanvas = document.getElementById('modalCanvas');
         const modalTitle = document.getElementById('modalTitle');
         const closeModalBtn = document.getElementById('closeModalBtn');
-
-        let loaded = 0;
-        let failed = 0;
-        let isRunning = false;
-        let processedImages = [];
-        let startTime = 0;
-        
-        let domRenderedCount = 0;
-        const RENDER_BATCH_SIZE = 15;
+        const modalRetryArea = document.getElementById('modalRetryArea');
+        const singleRetryBtn = document.getElementById('singleRetryBtn');
 
         // ============================================================
-        // EXTRACT CID FROM METADATA
+        // CORE PIPELINE FUNCTIONS
         // ============================================================
         function extractImageCid(metadata) {
             try {
@@ -384,19 +428,14 @@
                     return img;
                 }
                 return null;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
         }
 
-        // ============================================================
-        // CORS-PROOF BACKGROUND REPLACEMENT WITH GATEWAY ROTATION
-        // ============================================================
         async function fetchImageAndReplaceBackground(cid, attempt = 0) {
             const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
             try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(10000) });
-                if (!response.ok) throw new Error('Gateway Error');
+                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(9000) });
+                if (!response.ok) throw new Error('Gateway Fail');
                 const blob = await response.blob();
                 
                 return new Promise((resolve) => {
@@ -416,15 +455,11 @@
                         const imgAspect = img.width / img.height;
                         let drawW, drawH, offsetX, offsetY;
                         if (imgAspect > 1) {
-                            drawH = 512;
-                            drawW = 512 * imgAspect;
-                            offsetX = (512 - drawW) / 2;
-                            offsetY = 0;
+                            drawH = 512; drawW = 512 * imgAspect;
+                            offsetX = (512 - drawW) / 2; offsetY = 0;
                         } else {
-                            drawW = 512;
-                            drawH = 512 / imgAspect;
-                            offsetX = 0;
-                            offsetY = (512 - drawH) / 2;
+                            drawW = 512; drawH = 512 / imgAspect;
+                            offsetX = 0; offsetY = (512 - drawH) / 2;
                         }
                         ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
@@ -437,127 +472,146 @@
                             if (Math.abs(data[j] - r) < tolerance && 
                                 Math.abs(data[j+1] - g) < tolerance && 
                                 Math.abs(data[j+2] - b) < tolerance) {
-                                data[j] = 216;
-                                data[j+1] = 255;
-                                data[j+2] = 0;
+                                data[j] = 216; data[j+1] = 255; data[j+2] = 0;
                             }
                         }
                         ctx.putImageData(imageData, 0, 0);
                         URL.revokeObjectURL(objectURL);
                         resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
                     };
-
-                    img.onerror = function() {
-                        URL.revokeObjectURL(objectURL);
-                        resolve({ success: false });
-                    };
+                    img.onerror = () => { URL.revokeObjectURL(objectURL); resolve({ success: false }); };
                 });
             } catch (err) {
                 if (attempt < MAX_RETRY) {
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 400));
                     return fetchImageAndReplaceBackground(cid, attempt + 1);
                 }
                 return { success: false };
             }
         }
 
-        // ============================================================
-        // NFT CARD CREATION
-        // ============================================================
-        function createNFTCard(tokenId, dataURL) {
-            const card = document.createElement('div');
-            card.className = 'nft-card';
-            card.dataset.tokenId = tokenId;
-
-            const img = document.createElement('img');
-            img.alt = `mfer #${tokenId}`;
-            img.src = dataURL;
-            img.loading = 'lazy';
-
-            const idSpan = document.createElement('div');
-            idSpan.className = 'token-id';
-            idSpan.textContent = `#${tokenId}`;
-
-            const badge = document.createElement('div');
-            badge.className = 'status-badge';
-            badge.textContent = '⚠️';
-
-            card.appendChild(img);
-            card.appendChild(idSpan);
-            card.appendChild(badge);
-
-            card.addEventListener('click', function() {
-                openModal(tokenId, dataURL);
-            });
-
-            return card;
-        }
-
-        // ============================================================
-        // MODAL HANDLERS
-        // ============================================================
-        function openModal(tokenId, dataURL) {
-            modalTitle.textContent = `#${tokenId}`;
-            const ctx = modalCanvas.getContext('2d');
-            const img = new Image();
-            img.onload = function() {
-                ctx.clearRect(0, 0, 512, 512);
-                ctx.drawImage(img, 0, 0, 512, 512);
-            };
-            img.src = dataURL;
-            modalOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        closeModalBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
-
-        // ============================================================
-        // FETCH METADATA WITH RATE-LIMIT BYPASS RETRY
-        // ============================================================
         async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
             for (let i = 0; i <= retries; i++) {
                 const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-                const url = `${gatewayBase}/${tokenId}`;
-                
                 try {
-                    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const text = await res.text();
-                    return { tokenId, text };
+                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(7000) });
+                    if (!res.ok) throw new Error();
+                    return await res.text();
                 } catch (err) {
-                    if (i === retries) return { tokenId, error: err.message };
-                    // Linear backoff logic to smooth out network bursts
-                    await new Promise(r => setTimeout(r, 600 * (i + 1)));
+                    if (i === retries) return null;
+                    await new Promise(r => setTimeout(r, 500 * (i + 1)));
                 }
             }
         }
 
         // ============================================================
-        // LOAD AND PROCESS PIPELINE (Anti-Ban Version)
+        // SINGLE CARD PROCESSING & IN-PLACE UPDATE
+        // ============================================================
+        async function processSingleNFT(tokenId) {
+            const rawMetadata = await fetchMetadataWithRetry(tokenId);
+            let cid = null;
+            let result = { success: false };
+
+            if (rawMetadata) {
+                cid = extractImageCid(rawMetadata);
+                if (cid) result = await fetchImageAndReplaceBackground(cid);
+            }
+
+            let finalDataURL = result.dataURL;
+            if (!result.success) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512; canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = BG_COLOR; ctx.fillRect(0, 0, 512, 512);
+                ctx.fillStyle = '#17171a'; ctx.font = 'bold 24px monospace'; ctx.textAlign = 'center';
+                ctx.fillText(`mfer #${tokenId}`, 256, 240);
+                ctx.font = '16px monospace'; ctx.fillStyle = '#ff5470';
+                ctx.fillText('⚠️ Gateway Timeout', 256, 280);
+                finalDataURL = canvas.toDataURL('image/png');
+            }
+
+            // Save state globally
+            nftDataStore[tokenId] = {
+                tokenId,
+                dataURL: finalDataURL,
+                isError: !result.success
+            };
+
+            updateCardUI(tokenId);
+            updateStatsCounter();
+            return nftDataStore[tokenId];
+        }
+
+        function updateCardUI(tokenId) {
+            const item = nftDataStore[tokenId];
+            let card = document.querySelector(`.nft-card[data-token-id="${tokenId}"]`);
+            
+            const isNew = !card;
+            if (isNew) {
+                card = document.createElement('div');
+                card.className = 'nft-card';
+                card.dataset.tokenId = tokenId;
+                card.innerHTML = `<img><div class="token-id"></div><div class="status-badge">⚠️</div>`;
+                card.addEventListener('click', () => openModal(tokenId));
+            }
+
+            const img = card.querySelector('img');
+            const idSpan = card.querySelector('.token-id');
+            const badge = card.querySelector('.status-badge');
+
+            img.src = item.dataURL;
+            idSpan.textContent = `#${tokenId}`;
+
+            if (item.isError) {
+                card.classList.add('is-error-card');
+                badge.classList.add('show');
+            } else {
+                card.classList.remove('is-error-card');
+                badge.classList.remove('show');
+            }
+
+            if (isNew) {
+                // Keep structural order intact inside grid layout
+                gallery.appendChild(card);
+            }
+        }
+
+        function updateStatsCounter() {
+            let loaded = 0;
+            let failed = 0;
+            for(let i = 1; i <= TOTAL; i++) {
+                if (nftDataStore[i]) {
+                    if (nftDataStore[i].isError) failed++;
+                    else loaded++;
+                }
+            }
+            loadedSpan.textContent = loaded.toLocaleString('en-US');
+            failedSpan.textContent = failed.toLocaleString('en-US');
+            
+            if (failed > 0) {
+                retryFailedBtn.disabled = false;
+                retryFailedBtn.textContent = `Retry All Failed (${failed})`;
+            } else {
+                retryFailedBtn.disabled = true;
+                retryFailedBtn.textContent = `Retry All Failed (0)`;
+            }
+        }
+
+        // ============================================================
+        // MASS LOADER LOOP (Skips already cached successes)
         // ============================================================
         async function loadAllNFTs() {
             if (isRunning) return;
             isRunning = true;
-            gallery.innerHTML = '';
-            loaded = 0;
-            failed = 0;
-            domRenderedCount = 0;
-            processedImages = [];
             downloadBtn.disabled = true;
             startTime = Date.now();
-            updateStatus('Starting stable connection...', 0);
+            statusMsg.textContent = "Processing batch queue...";
 
             const speedInterval = setInterval(() => {
                 if (!isRunning) { clearInterval(speedInterval); return; }
+                let processed = nftDataStore.filter(x => x !== null).length;
                 const elapsed = (Date.now() - startTime) / 1000;
-                const speed = (loaded / elapsed).toFixed(1);
+                const speed = (processed / elapsed).toFixed(1);
                 speedIndicator.textContent = `🚀 ${speed || 0}/sec`;
             }, 1000);
 
@@ -567,88 +621,136 @@
                     const currentId = index++;
                     if (currentId > TOTAL) break;
 
-                    // Adding vital micro-delay to prevent IPFS rate limits
-                    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
-
-                    const res = await fetchMetadataWithRetry(currentId);
-                    let cid = null;
-                    let processedResult = { success: false };
-
-                    if (!res.error) {
-                        cid = extractImageCid(res.text);
-                        if (cid) {
-                            processedResult = await fetchImageAndReplaceBackground(cid);
+                    // STRICT CONDITION: If already successfully loaded, protect it and skip
+                    if (nftDataStore[currentId] && !nftDataStore[currentId].isError) {
+                        // Ensure UI elements are constructed if empty
+                        if(!document.querySelector(`.nft-card[data-token-id="${currentId}"]`)) {
+                            updateCardUI(currentId);
                         }
+                        continue;
                     }
 
-                    let finalDataURL = processedResult.dataURL;
-                    let isError = !processedResult.success;
-
-                    if (isError) {
-                        failed++;
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 512;
-                        canvas.height = 512;
-                        const ctx = canvas.getContext('2d');
-                        ctx.fillStyle = BG_COLOR;
-                        ctx.fillRect(0, 0, 512, 512);
-                        ctx.fillStyle = '#17171a';
-                        ctx.font = 'bold 24px monospace';
-                        ctx.textAlign = 'center';
-                        ctx.fillText(`mfer #${currentId}`, 256, 240);
-                        ctx.font = '16px monospace';
-                        ctx.fillStyle = '#ff5470';
-                        ctx.fillText('⚠️ Gateway Timeout', 256, 280);
-                        finalDataURL = canvas.toDataURL('image/png');
-                    } else {
-                        loaded++;
-                    }
-
-                    processedImages.push({ tokenId: currentId, dataURL: finalDataURL, isError });
-
-                    if (processedImages.length % RENDER_BATCH_SIZE === 0 || processedImages.length === TOTAL) {
-                        renderNextBatch();
-                    }
-                    
-                    updateStatus(`Processing Collection: ${processedImages.length}/${TOTAL}`, loaded);
+                    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+                    await processSingleNFT(currentId);
                 }
             };
 
-            // Spawn optimized worker pool
             const workers = Array(CONCURRENT_LIMIT).fill(null).map(() => queueWorker());
             await Promise.all(workers);
 
             clearInterval(speedInterval);
-            renderNextBatch();
-            
-            updateStatus(`✅ Finished! Loaded: ${loaded}, Rate Limited: ${failed}`, loaded);
+            isRunning = false;
+            statusMsg.textContent = "✅ System Idle / Stable";
             speedIndicator.textContent = `✅ Active`;
             downloadBtn.disabled = false;
-            isRunning = false;
+            updateStatsCounter();
         }
 
-        function renderNextBatch() {
-            const fragment = document.createDocumentFragment();
-            const targets = processedImages.slice(domRenderedCount);
+        // ============================================================
+        // RETRY CONTROLS (Targeted Single & Batch)
+        // ============================================================
+        async function retrySingleItem(tokenId) {
+            singleRetryBtn.disabled = true;
+            singleRetryBtn.textContent = '⚡ Reloading...';
             
-            for (const item of targets) {
-                const card = createNFTCard(item.tokenId, item.dataURL);
-                if (item.isError) {
-                    const badge = card.querySelector('.status-badge');
-                    if (badge) badge.classList.add('show');
-                }
-                fragment.appendChild(card);
+            statusMsg.textContent = `Retrying item #${tokenId}...`;
+            const updatedItem = await processSingleNFT(tokenId);
+
+            // Dynamically refresh modal context view instantly
+            const ctx = modalCanvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(img, 0, 0, 512, 512);
+            };
+            img.src = updatedItem.dataURL;
+
+            if (!updatedItem.isError) {
+                modalRetryArea.classList.remove('show');
+                statusMsg.textContent = `✅ Item #${tokenId} Fixed!`;
+            } else {
+                statusMsg.textContent = `❌ Item #${tokenId} Timeout Again.`;
             }
             
-            gallery.appendChild(fragment);
-            domRenderedCount = processedImages.length;
+            singleRetryBtn.disabled = false;
+            singleRetryBtn.textContent = '🔄 Retry Loading This Item';
+        }
+
+        async function retryAllFailed() {
+            if (isRunning) return;
+            isRunning = true;
+            retryFailedBtn.disabled = true;
+            statusMsg.textContent = "Retrying failed queue items exclusively...";
+
+            let failedIds = [];
+            for (let i = 1; i <= TOTAL; i++) {
+                if (nftDataStore[i] && nftDataStore[i].isError) failedIds.push(i);
+            }
+
+            let poolIndex = 0;
+            const queueWorker = async () => {
+                while (poolIndex < failedIds.length) {
+                    const tokenId = failedIds[poolIndex++];
+                    if (!tokenId) break;
+
+                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
+                    await processSingleNFT(tokenId);
+                }
+            };
+
+            const workers = Array(CONCURRENT_LIMIT).fill(null).map(() => queueWorker());
+            await Promise.all(workers);
+
+            isRunning = false;
+            statusMsg.textContent = "✅ Failed Queue Retried.";
+            updateStatsCounter();
         }
 
         // ============================================================
-        // ZIP DOWNLOAD
+        // MODAL INTERFACE
+        // ============================================================
+        function openModal(tokenId) {
+            activeModalTokenId = tokenId;
+            const item = nftDataStore[tokenId];
+            modalTitle.textContent = `#${tokenId}`;
+            
+            const ctx = modalCanvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, 512, 512);
+                ctx.drawImage(img, 0, 0, 512, 512);
+            };
+            img.src = item.dataURL;
+
+            if (item.isError) {
+                modalRetryArea.classList.add('show');
+            } else {
+                modalRetryArea.classList.remove('show');
+            }
+
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            activeModalTokenId = null;
+        }
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+        singleRetryBtn.addEventListener('click', () => {
+            if (activeModalTokenId) retrySingleItem(activeModalTokenId);
+        });
+
+        // ============================================================
+        // ZIP PACKER
         // ============================================================
         async function downloadAllAsZip() {
-            if (processedImages.length === 0) return;
+            const currentProcessed = nftDataStore.filter(x => x !== null);
+            if (currentProcessed.length === 0) return;
             downloadBtn.disabled = true;
             downloadBtn.textContent = 'Packing Files...';
 
@@ -657,14 +759,14 @@
                 const folder = zip.folder('mfer_neon_bg');
                 const batchSize = 100;
 
-                for (let i = 0; i < processedImages.length; i += batchSize) {
-                    const batch = processedImages.slice(i, i + batchSize);
+                for (let i = 0; i < currentProcessed.length; i += batchSize) {
+                    const batch = currentProcessed.slice(i, i + batchSize);
                     await Promise.all(batch.map(async (item) => {
                         const response = await fetch(item.dataURL);
                         const blob = await response.blob();
                         folder.file(`mfer_${item.tokenId}.png`, blob);
                     }));
-                    downloadBtn.textContent = `Compiling: ${Math.min(i + batchSize, processedImages.length)}/${processedImages.length}`;
+                    downloadBtn.textContent = `Compiling: ${Math.min(i + batchSize, currentProcessed.length)}/${currentProcessed.length}`;
                 }
 
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
@@ -672,17 +774,12 @@
                 downloadBtn.textContent = '✅ Downloaded!';
                 setTimeout(() => { downloadBtn.textContent = 'Download All as ZIP'; }, 3000);
             } catch (error) {
-                alert('ZIP pipeline error.');
+                alert('ZIP packing failed.');
             }
             downloadBtn.disabled = false;
         }
 
-        function updateStatus(msg, count) {
-            loadedSpan.textContent = count.toLocaleString('en-US');
-            totalSpan.textContent = TOTAL.toLocaleString('en-US');
-            statusMsg.textContent = msg;
-        }
-
+        // Init App Loop
         window.addEventListener('DOMContentLoaded', () => {
             loadAllNFTs();
         });
