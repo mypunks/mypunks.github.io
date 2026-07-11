@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · #D8FF00 Collection</title>
+    <title>mfer · #D8FF00 Batch Downloader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,6 +88,23 @@
             gap: 14px;
             margin-bottom: 44px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .select-input {
+            background: var(--bg-elevated);
+            color: var(--text);
+            border: 1px solid var(--card-border);
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .select-input:focus {
+            border-color: var(--lime);
         }
 
         .btn {
@@ -117,17 +134,6 @@
             transform: none;
         }
 
-        .btn-ghost {
-            background: transparent;
-            color: var(--text);
-            border: 1px solid var(--card-border);
-        }
-        .btn-ghost:hover {
-            border-color: var(--lime);
-            color: var(--lime);
-            transform: translateY(-2px);
-        }
-
         .btn-danger {
             background: transparent;
             color: var(--error);
@@ -138,7 +144,6 @@
             background: var(--error);
             color: #fff;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px var(--error-dim);
         }
         .btn-danger:disabled {
             opacity: 0.3;
@@ -170,13 +175,7 @@
             border-color: var(--lime);
             z-index: 2;
         }
-        .nft-card.is-error-card {
-            border-color: rgba(255, 84, 112, 0.4);
-        }
-        .nft-card.is-error-card:hover {
-            border-color: var(--error);
-            box-shadow: 0 16px 40px -12px rgba(255, 84, 112, 0.2);
-        }
+        .nft-card.is-error-card { border-color: rgba(255, 84, 112, 0.4); }
         .nft-card img {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -197,10 +196,6 @@
             display: inline-block;
             border: 1px solid #D8FF0022;
         }
-        .nft-card.is-error-card .token-id {
-            color: var(--error);
-            border-color: rgba(255, 84, 112, 0.2);
-        }
         .nft-card .status-badge {
             position: absolute;
             top: 8px;
@@ -212,7 +207,6 @@
             padding: 2px 9px;
             border-radius: 20px;
             opacity: 0;
-            transition: opacity 0.2s;
         }
         .nft-card .status-badge.show { opacity: 1; }
 
@@ -233,7 +227,6 @@
             background: var(--bg-elevated);
             border-radius: var(--radius-lg);
             padding: 22px;
-            box-shadow: 0 0 80px rgba(216, 255, 0, 0.15);
             border: 1px solid var(--card-border);
             max-width: 560px;
             width: 100%;
@@ -251,20 +244,6 @@
             cursor: pointer;
             background: none;
             border: none;
-            font-weight: 400;
-            transition: transform 0.2s, color 0.2s;
-            line-height: 1;
-        }
-        .modal-content .close-btn:hover {
-            transform: scale(1.2);
-            color: var(--lime);
-        }
-        .modal-content .modal-title {
-            font-family: 'Space Grotesk', sans-serif;
-            color: var(--lime);
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: 600;
         }
         .canvas-wrapper {
             position: relative;
@@ -275,26 +254,14 @@
             background: var(--lime);
             border-radius: var(--radius-md);
             overflow: hidden;
-            border: 1px solid var(--card-border);
         }
-        .canvas-wrapper canvas {
-            display: block;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        .modal-retry-area {
-            display: none;
-            justify-content: center;
-            margin-top: 5px;
-        }
+        .canvas-wrapper canvas { width: 100% !important; height: 100% !important; }
+        .modal-retry-area { display: none; justify-content: center; }
         .modal-retry-area.show { display: flex; }
 
         .status-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             background: rgba(10, 10, 11, 0.85);
             backdrop-filter: blur(10px);
             color: var(--text-dim);
@@ -310,39 +277,30 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .status-bar span {
-            background: var(--bg-elevated);
-            border: 1px solid var(--card-border);
-            padding: 3px 14px;
-            border-radius: 30px;
-        }
+        .status-bar span { background: var(--bg-elevated); border: 1px solid var(--card-border); padding: 3px 14px; border-radius: 30px; }
         .status-bar .highlight { color: var(--lime); font-weight: 600; }
         .status-bar .failed-highlight { color: var(--error); font-weight: 600; }
 
-        @media (max-width: 1100px) {
-            .gallery { grid-template-columns: repeat(4, 1fr); }
-        }
-        @media (max-width: 800px) {
-            .gallery { grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        }
-        @media (max-width: 520px) {
-            h1 { font-size: 1.9rem; }
-            .gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-            .modal-content { padding: 16px; }
-        }
+        @media (max-width: 1100px) { .gallery { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 800px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+        @media (max-width: 520px) { .gallery { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
     </style>
 </head>
 <body>
 
     <div class="brand">
         <div class="swatch"></div>
-        <h1>mfer <span class="hash">· #D8FF00</span></h1>
-        <p class="sub">Dynamic Recovery Pipeline <span class="count-pill">10,000 NFTs</span></p>
+        <h1>mfer <span class="hash">· Batch Loader</span></h1>
+        <p class="sub">Divided into groups of 500 <span class="count-pill">Total 10,000</span></p>
     </div>
 
     <div class="controls">
-        <button class="btn btn-primary" id="downloadAllBtn" onclick="downloadAllAsZip()">Download All as ZIP</button>
-        <button class="btn btn-danger" id="retryFailedBtn" onclick="retryAllFailed()" disabled>Retry All Failed (0)</button>
+        <!-- Batch Selector Dropdown -->
+        <select class="select-input" id="batchSelect" onchange="changeBatch()">
+            <!-- Generated dynamically via JS -->
+        </select>
+        <button class="btn btn-primary" id="downloadBatchBtn" onclick="downloadCurrentBatchAsZip()">Download Current Batch ZIP</button>
+        <button class="btn btn-danger" id="retryFailedBtn" onclick="retryAllFailedInBatch()" disabled>Retry Failed In Batch (0)</button>
     </div>
 
     <div class="gallery" id="gallery"></div>
@@ -350,71 +308,75 @@
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-content">
-            <button class="close-btn" id="closeModalBtn">&times;</button>
-            <div class="modal-title" id="modalTitle">#1234</div>
+            <button class="close-btn" id="closeModalBtn" onclick="closeModal()">&times;</button>
+            <div class="modal-title" id="modalTitle">#1</div>
             <div class="canvas-wrapper">
                 <canvas id="modalCanvas" width="512" height="512"></canvas>
             </div>
             <div class="modal-retry-area" id="modalRetryArea">
-                <button class="btn btn-primary" style="background:var(--error); color:#fff; box-shadow:none;" id="singleRetryBtn">🔄 Retry Loading This Item</button>
+                <button class="btn btn-primary" style="background:var(--error); color:#fff; box-shadow:none;" id="singleRetryBtn">🔄 Retry This Item</button>
             </div>
         </div>
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar" id="statusBar">
-        <span>Loaded: <span id="loadedCount" class="highlight">0</span> / 10,000</span>
-        <span>Failed: <span id="failedCount" class="failed-highlight">0</span></span>
-        <span id="statusMessage">Preparing pipeline...</span>
-        <span id="speedIndicator">🚀 0/sec</span>
+        <span>Current Range: <span id="rangeLabel" class="highlight">1 - 500</span></span>
+        <span>Batch Loaded: <span id="loadedCount" class="highlight">0</span> / 500</span>
+        <span>Batch Failed: <span id="failedCount" class="failed-highlight">0</span></span>
+        <span id="statusMessage">Pipeline Ready</span>
     </div>
 
     <script>
-        // ============================================================
-        // CONFIGURATION
-        // ============================================================
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
         const TOTAL = 10000;
-        
+        const BATCH_SIZE = 500;
         const CONCURRENT_LIMIT = 5; 
-        const REQUEST_DELAY = 150; 
-        
+        const REQUEST_DELAY = 120; 
+        const BG_COLOR = '#D8FF00';
+        const MAX_RETRY = 3;
+
         const GATEWAYS = [
             'https://cloudflare-ipfs.com/ipfs',
             'https://ipfs.io/ipfs',
             'https://gateway.pinata.cloud/ipfs'
         ];
-        
-        const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 3;
 
-        // ============================================================
-        // STATE STORAGE (Persistent In-Memory Array)
-        // ============================================================
-        let nftDataStore = new Array(TOTAL + 1).fill(null); 
-        let isRunning = false;
+        // Central Memory Store (Locks loaded files from deletion)
+        let nftDataStore = new Array(TOTAL + 1).fill(null);
+        let currentBatchStart = 1;
+        let currentBatchEnd = 500;
+        let isBatchRunning = false;
         let activeModalTokenId = null;
-        let startTime = 0;
 
-        // DOM Elements
+        // Elements
+        const batchSelect = document.getElementById('batchSelect');
         const gallery = document.getElementById('gallery');
         const loadedSpan = document.getElementById('loadedCount');
         const failedSpan = document.getElementById('failedCount');
+        const rangeLabel = document.getElementById('rangeLabel');
         const statusMsg = document.getElementById('statusMessage');
-        const speedIndicator = document.getElementById('speedIndicator');
-        const downloadBtn = document.getElementById('downloadAllBtn');
+        const downloadBatchBtn = document.getElementById('downloadBatchBtn');
         const retryFailedBtn = document.getElementById('retryFailedBtn');
-
         const modalOverlay = document.getElementById('modalOverlay');
         const modalCanvas = document.getElementById('modalCanvas');
         const modalTitle = document.getElementById('modalTitle');
-        const closeModalBtn = document.getElementById('closeModalBtn');
         const modalRetryArea = document.getElementById('modalRetryArea');
         const singleRetryBtn = document.getElementById('singleRetryBtn');
 
-        // ============================================================
-        // CORE PIPELINE FUNCTIONS
-        // ============================================================
+        // Setup Dropdown Options
+        function initDropdown() {
+            batchSelect.innerHTML = '';
+            for (let i = 1; i <= TOTAL; i += BATCH_SIZE) {
+                let start = i;
+                let end = i + BATCH_SIZE - 1;
+                let opt = document.createElement('option');
+                opt.value = start;
+                opt.textContent = `Batch: ${start} - ${end}`;
+                batchSelect.appendChild(opt);
+            }
+        }
+
         function extractImageCid(metadata) {
             try {
                 let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
@@ -422,10 +384,7 @@
                     let img = data.image;
                     if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
                     if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
-                    if (img.includes('ipfs.io/ipfs/')) {
-                        return img.split('ipfs.io/ipfs/')[1]?.split('?')[0] || img;
-                    }
-                    return img;
+                    return img.includes('ipfs.io/ipfs/') ? img.split('ipfs.io/ipfs/')[1]?.split('?')[0] : img;
                 }
                 return null;
             } catch (e) { return null; }
@@ -434,18 +393,15 @@
         async function fetchImageAndReplaceBackground(cid, attempt = 0) {
             const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
             try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(9000) });
-                if (!response.ok) throw new Error('Gateway Fail');
+                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(8000) });
+                if (!response.ok) throw new Error();
                 const blob = await response.blob();
                 
                 return new Promise((resolve) => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 512;
-                    canvas.height = 512;
+                    canvas.width = 512; canvas.height = 512;
                     const ctx = canvas.getContext('2d');
-
-                    ctx.fillStyle = BG_COLOR;
-                    ctx.fillRect(0, 0, 512, 512);
+                    ctx.fillStyle = BG_COLOR; ctx.fillRect(0, 0, 512, 512);
 
                     const img = new Image();
                     const objectURL = URL.createObjectURL(blob);
@@ -453,25 +409,18 @@
 
                     img.onload = function() {
                         const imgAspect = img.width / img.height;
-                        let drawW, drawH, offsetX, offsetY;
+                        let drawW = 512, drawH = 512, offsetX = 0, offsetY = 0;
                         if (imgAspect > 1) {
-                            drawH = 512; drawW = 512 * imgAspect;
-                            offsetX = (512 - drawW) / 2; offsetY = 0;
+                            drawH = 512; drawW = 512 * imgAspect; offsetX = (512 - drawW) / 2;
                         } else {
-                            drawW = 512; drawH = 512 / imgAspect;
-                            offsetX = 0; offsetY = (512 - drawH) / 2;
+                            drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
                         }
                         ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
                         const imageData = ctx.getImageData(0, 0, 512, 512);
                         const data = imageData.data;
-                        const r = data[0], g = data[1], b = data[2];
-                        const tolerance = 25;
-
                         for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - r) < tolerance && 
-                                Math.abs(data[j+1] - g) < tolerance && 
-                                Math.abs(data[j+2] - b) < tolerance) {
+                            if (Math.abs(data[j] - data[0]) < 25 && Math.abs(data[j+1] - data[1]) < 25 && Math.abs(data[j+2] - data[2]) < 25) {
                                 data[j] = 216; data[j+1] = 255; data[j+2] = 0;
                             }
                         }
@@ -483,7 +432,7 @@
                 });
             } catch (err) {
                 if (attempt < MAX_RETRY) {
-                    await new Promise(r => setTimeout(r, 400));
+                    await new Promise(r => setTimeout(r, 300));
                     return fetchImageAndReplaceBackground(cid, attempt + 1);
                 }
                 return { success: false };
@@ -494,19 +443,16 @@
             for (let i = 0; i <= retries; i++) {
                 const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
                 try {
-                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(7000) });
+                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(6000) });
                     if (!res.ok) throw new Error();
                     return await res.text();
                 } catch (err) {
                     if (i === retries) return null;
-                    await new Promise(r => setTimeout(r, 500 * (i + 1)));
+                    await new Promise(r => setTimeout(r, 400));
                 }
             }
         }
 
-        // ============================================================
-        // SINGLE CARD PROCESSING & IN-PLACE UPDATE
-        // ============================================================
         async function processSingleNFT(tokenId) {
             const rawMetadata = await fetchMetadataWithRetry(tokenId);
             let cid = null;
@@ -530,107 +476,90 @@
                 finalDataURL = canvas.toDataURL('image/png');
             }
 
-            // Save state globally
-            nftDataStore[tokenId] = {
-                tokenId,
-                dataURL: finalDataURL,
-                isError: !result.success
-            };
-
+            nftDataStore[tokenId] = { tokenId, dataURL: finalDataURL, isError: !result.success };
             updateCardUI(tokenId);
-            updateStatsCounter();
+            updateBatchCounters();
             return nftDataStore[tokenId];
         }
 
         function updateCardUI(tokenId) {
             const item = nftDataStore[tokenId];
             let card = document.querySelector(`.nft-card[data-token-id="${tokenId}"]`);
-            
-            const isNew = !card;
-            if (isNew) {
-                card = document.createElement('div');
-                card.className = 'nft-card';
-                card.dataset.tokenId = tokenId;
-                card.innerHTML = `<img><div class="token-id"></div><div class="status-badge">⚠️</div>`;
-                card.addEventListener('click', () => openModal(tokenId));
-            }
+            if (!card) return; // Ignore cards not currently visible in batch dom
 
             const img = card.querySelector('img');
-            const idSpan = card.querySelector('.token-id');
             const badge = card.querySelector('.status-badge');
 
             img.src = item.dataURL;
-            idSpan.textContent = `#${tokenId}`;
-
             if (item.isError) {
                 card.classList.add('is-error-card');
-                badge.classList.add('show');
+                badge.style.opacity = 1;
             } else {
                 card.classList.remove('is-error-card');
-                badge.classList.remove('show');
-            }
-
-            if (isNew) {
-                // Keep structural order intact inside grid layout
-                gallery.appendChild(card);
+                badge.style.opacity = 0;
             }
         }
 
-        function updateStatsCounter() {
-            let loaded = 0;
-            let failed = 0;
-            for(let i = 1; i <= TOTAL; i++) {
+        function updateBatchCounters() {
+            let loaded = 0, failed = 0;
+            for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                 if (nftDataStore[i]) {
                     if (nftDataStore[i].isError) failed++;
                     else loaded++;
                 }
             }
-            loadedSpan.textContent = loaded.toLocaleString('en-US');
-            failedSpan.textContent = failed.toLocaleString('en-US');
-            
-            if (failed > 0) {
-                retryFailedBtn.disabled = false;
-                retryFailedBtn.textContent = `Retry All Failed (${failed})`;
-            } else {
-                retryFailedBtn.disabled = true;
-                retryFailedBtn.textContent = `Retry All Failed (0)`;
-            }
+            loadedSpan.textContent = loaded;
+            failedSpan.textContent = failed;
+            retryFailedBtn.disabled = failed === 0;
+            retryFailedBtn.textContent = `Retry Failed In Batch (${failed})`;
         }
 
         // ============================================================
-        // MASS LOADER LOOP (Skips already cached successes)
+        // BATCH LOGIC
         // ============================================================
-        async function loadAllNFTs() {
-            if (isRunning) return;
-            isRunning = true;
-            downloadBtn.disabled = true;
-            startTime = Date.now();
-            statusMsg.textContent = "Processing batch queue...";
+        async function changeBatch() {
+            if (isBatchRunning) return;
+            currentBatchStart = parseInt(batchSelect.value);
+            currentBatchEnd = currentBatchStart + BATCH_SIZE - 1;
+            rangeLabel.textContent = `${currentBatchStart} - ${currentBatchEnd}`;
 
-            const speedInterval = setInterval(() => {
-                if (!isRunning) { clearInterval(speedInterval); return; }
-                let processed = nftDataStore.filter(x => x !== null).length;
-                const elapsed = (Date.now() - startTime) / 1000;
-                const speed = (processed / elapsed).toFixed(1);
-                speedIndicator.textContent = `🚀 ${speed || 0}/sec`;
-            }, 1000);
+            // Build structural Skeleton DOM for this specific batch
+            gallery.innerHTML = '';
+            for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
+                const card = document.createElement('div');
+                card.className = 'nft-card';
+                card.dataset.tokenId = i;
+                card.innerHTML = `<img><div class="token-id">#${i}</div><div class="status-badge">⚠️</div>`;
+                card.addEventListener('click', () => openModal(i));
+                gallery.appendChild(card);
+            }
 
-            let index = 1;
+            // Sync already processed values from central memory loop
+            for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
+                if (nftDataStore[i]) updateCardUI(i);
+            }
+            updateBatchCounters();
+
+            // Fire queue worker to load non-cached entries
+            await startBatchPipeline();
+        }
+
+        async function startBatchPipeline() {
+            if (isBatchRunning) return;
+            isBatchRunning = true;
+            downloadBatchBtn.disabled = true;
+            statusMsg.textContent = "Loading current batch...";
+
+            let index = currentBatchStart;
             const queueWorker = async () => {
-                while (index <= TOTAL) {
+                while (index <= currentBatchEnd) {
                     const currentId = index++;
-                    if (currentId > TOTAL) break;
+                    if (currentId > currentBatchEnd) break;
 
-                    // STRICT CONDITION: If already successfully loaded, protect it and skip
-                    if (nftDataStore[currentId] && !nftDataStore[currentId].isError) {
-                        // Ensure UI elements are constructed if empty
-                        if(!document.querySelector(`.nft-card[data-token-id="${currentId}"]`)) {
-                            updateCardUI(currentId);
-                        }
-                        continue;
-                    }
+                    // If loaded successfully in previous session, do not hit network
+                    if (nftDataStore[currentId] && !nftDataStore[currentId].isError) continue;
 
-                    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
                     await processSingleNFT(currentId);
                 }
             };
@@ -638,150 +567,116 @@
             const workers = Array(CONCURRENT_LIMIT).fill(null).map(() => queueWorker());
             await Promise.all(workers);
 
-            clearInterval(speedInterval);
-            isRunning = false;
-            statusMsg.textContent = "✅ System Idle / Stable";
-            speedIndicator.textContent = `✅ Active`;
-            downloadBtn.disabled = false;
-            updateStatsCounter();
+            isBatchRunning = false;
+            downloadBatchBtn.disabled = false;
+            statusMsg.textContent = "Batch ready for export.";
+            updateBatchCounters();
         }
 
         // ============================================================
-        // RETRY CONTROLS (Targeted Single & Batch)
+        // RETRIES
         // ============================================================
         async function retrySingleItem(tokenId) {
             singleRetryBtn.disabled = true;
-            singleRetryBtn.textContent = '⚡ Reloading...';
+            const item = await processSingleNFT(tokenId);
             
-            statusMsg.textContent = `Retrying item #${tokenId}...`;
-            const updatedItem = await processSingleNFT(tokenId);
-
-            // Dynamically refresh modal context view instantly
             const ctx = modalCanvas.getContext('2d');
             const img = new Image();
-            img.onload = () => {
-                ctx.clearRect(0, 0, 512, 512);
-                ctx.drawImage(img, 0, 0, 512, 512);
-            };
-            img.src = updatedItem.dataURL;
+            img.onload = () => { ctx.clearRect(0,0,512,512); ctx.drawImage(img,0,0,512,512); };
+            img.src = item.dataURL;
 
-            if (!updatedItem.isError) {
-                modalRetryArea.classList.remove('show');
-                statusMsg.textContent = `✅ Item #${tokenId} Fixed!`;
-            } else {
-                statusMsg.textContent = `❌ Item #${tokenId} Timeout Again.`;
-            }
-            
+            if (!item.isError) modalRetryArea.classList.remove('show');
             singleRetryBtn.disabled = false;
-            singleRetryBtn.textContent = '🔄 Retry Loading This Item';
         }
 
-        async function retryAllFailed() {
-            if (isRunning) return;
-            isRunning = true;
+        async function retryAllFailedInBatch() {
+            if (isBatchRunning) return;
+            isBatchRunning = true;
             retryFailedBtn.disabled = true;
-            statusMsg.textContent = "Retrying failed queue items exclusively...";
 
             let failedIds = [];
-            for (let i = 1; i <= TOTAL; i++) {
+            for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                 if (nftDataStore[i] && nftDataStore[i].isError) failedIds.push(i);
             }
 
             let poolIndex = 0;
             const queueWorker = async () => {
                 while (poolIndex < failedIds.length) {
-                    const tokenId = failedIds[poolIndex++];
-                    if (!tokenId) break;
-
+                    const id = failedIds[poolIndex++];
+                    if (!id) break;
                     await new Promise(r => setTimeout(r, REQUEST_DELAY));
-                    await processSingleNFT(tokenId);
+                    await processSingleNFT(id);
                 }
             };
 
             const workers = Array(CONCURRENT_LIMIT).fill(null).map(() => queueWorker());
             await Promise.all(workers);
 
-            isRunning = false;
-            statusMsg.textContent = "✅ Failed Queue Retried.";
-            updateStatsCounter();
+            isBatchRunning = false;
+            updateBatchCounters();
         }
 
         // ============================================================
-        // MODAL INTERFACE
+        // RE-INDEXED ZIP DOWNLOAD GENERATOR (1.png to 500.png)
         // ============================================================
+        async function downloadCurrentBatchAsZip() {
+            downloadBatchBtn.disabled = true;
+            downloadBatchBtn.textContent = 'Generating Package...';
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder(`batch_${currentBatchStart}_to_${currentBatchEnd}`);
+
+                let virtualIndex = 1; // Always forces structural save naming logic from 1 to 500
+                for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
+                    const item = nftDataStore[i];
+                    if (item) {
+                        const response = await fetch(item.dataURL);
+                        const blob = await response.blob();
+                        folder.file(`${virtualIndex}.png`, blob);
+                    }
+                    virtualIndex++;
+                }
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                saveAs(zipBlob, `mfer_${currentBatchStart}_to_${currentBatchEnd}.zip`);
+                downloadBatchBtn.textContent = '✅ Pack Downloaded!';
+                setTimeout(() => { downloadBatchBtn.textContent = 'Download Current Batch ZIP'; }, 2500);
+            } catch (err) {
+                alert("ZIP compression failure.");
+            }
+            downloadBatchBtn.disabled = false;
+        }
+
+        // Modal Controls
         function openModal(tokenId) {
             activeModalTokenId = tokenId;
             const item = nftDataStore[tokenId];
-            modalTitle.textContent = `#${tokenId}`;
-            
+            if (!item) return;
+
+            modalTitle.textContent = `mfer #${tokenId}`;
             const ctx = modalCanvas.getContext('2d');
             const img = new Image();
-            img.onload = () => {
-                ctx.clearRect(0, 0, 512, 512);
-                ctx.drawImage(img, 0, 0, 512, 512);
-            };
+            img.onload = () => { ctx.clearRect(0,0,512,512); ctx.drawImage(img,0,0,512,512); };
             img.src = item.dataURL;
 
-            if (item.isError) {
-                modalRetryArea.classList.add('show');
-            } else {
-                modalRetryArea.classList.remove('show');
-            }
-
+            modalRetryArea.classList.toggle('show', item.isError);
             modalOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
             modalOverlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
             activeModalTokenId = null;
         }
 
-        closeModalBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
         singleRetryBtn.addEventListener('click', () => {
             if (activeModalTokenId) retrySingleItem(activeModalTokenId);
         });
 
-        // ============================================================
-        // ZIP PACKER
-        // ============================================================
-        async function downloadAllAsZip() {
-            const currentProcessed = nftDataStore.filter(x => x !== null);
-            if (currentProcessed.length === 0) return;
-            downloadBtn.disabled = true;
-            downloadBtn.textContent = 'Packing Files...';
-
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder('mfer_neon_bg');
-                const batchSize = 100;
-
-                for (let i = 0; i < currentProcessed.length; i += batchSize) {
-                    const batch = currentProcessed.slice(i, i + batchSize);
-                    await Promise.all(batch.map(async (item) => {
-                        const response = await fetch(item.dataURL);
-                        const blob = await response.blob();
-                        folder.file(`mfer_${item.tokenId}.png`, blob);
-                    }));
-                    downloadBtn.textContent = `Compiling: ${Math.min(i + batchSize, currentProcessed.length)}/${currentProcessed.length}`;
-                }
-
-                const zipBlob = await zip.generateAsync({ type: 'blob' });
-                saveAs(zipBlob, 'mfer_neon_collection.zip');
-                downloadBtn.textContent = '✅ Downloaded!';
-                setTimeout(() => { downloadBtn.textContent = 'Download All as ZIP'; }, 3000);
-            } catch (error) {
-                alert('ZIP packing failed.');
-            }
-            downloadBtn.disabled = false;
-        }
-
-        // Init App Loop
+        // Bootstrap App
         window.addEventListener('DOMContentLoaded', () => {
-            loadAllNFTs();
+            initDropdown();
+            changeBatch();
         });
     </script>
 </body>
