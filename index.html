@@ -295,9 +295,8 @@
     </div>
 
     <div class="controls">
-        <!-- Batch Selector Dropdown -->
         <select class="select-input" id="batchSelect" onchange="changeBatch()">
-            <!-- Generated dynamically via JS -->
+            <!-- Dynamic Options -->
         </select>
         <button class="btn btn-primary" id="downloadBatchBtn" onclick="downloadCurrentBatchAsZip()">Download Current Batch ZIP</button>
         <button class="btn btn-danger" id="retryFailedBtn" onclick="retryAllFailedInBatch()" disabled>Retry Failed In Batch (0)</button>
@@ -342,14 +341,12 @@
             'https://gateway.pinata.cloud/ipfs'
         ];
 
-        // Central Memory Store (Locks loaded files from deletion)
         let nftDataStore = new Array(TOTAL + 1).fill(null);
         let currentBatchStart = 1;
         let currentBatchEnd = 500;
         let isBatchRunning = false;
         let activeModalTokenId = null;
 
-        // Elements
         const batchSelect = document.getElementById('batchSelect');
         const gallery = document.getElementById('gallery');
         const loadedSpan = document.getElementById('loadedCount');
@@ -364,7 +361,6 @@
         const modalRetryArea = document.getElementById('modalRetryArea');
         const singleRetryBtn = document.getElementById('singleRetryBtn');
 
-        // Setup Dropdown Options
         function initDropdown() {
             batchSelect.innerHTML = '';
             for (let i = 1; i <= TOTAL; i += BATCH_SIZE) {
@@ -401,7 +397,10 @@
                     const canvas = document.createElement('canvas');
                     canvas.width = 512; canvas.height = 512;
                     const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = BG_COLOR; ctx.fillRect(0, 0, 512, 512);
+                    
+                    // Initial base background color fill
+                    ctx.fillStyle = BG_COLOR; 
+                    ctx.fillRect(0, 0, 512, 512);
 
                     const img = new Image();
                     const objectURL = URL.createObjectURL(blob);
@@ -415,16 +414,33 @@
                         } else {
                             drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
                         }
-                        ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+                        
+                        // Temporarily draw image to process raw background pixel removal
+                        const processCanvas = document.createElement('canvas');
+                        processCanvas.width = 512; processCanvas.height = 512;
+                        const pCtx = processCanvas.getContext('2d');
+                        pCtx.drawImage(img, offsetX, offsetY, drawW, drawH);
 
-                        const imageData = ctx.getImageData(0, 0, 512, 512);
+                        const imageData = pCtx.getImageData(0, 0, 512, 512);
                         const data = imageData.data;
+                        
+                        // FIX: Lock original target color values BEFORE modifying them in loop
+                        const rTarget = data[0];
+                        const gTarget = data[1];
+                        const bTarget = data[2];
+
                         for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - data[0]) < 25 && Math.abs(data[j+1] - data[1]) < 25 && Math.abs(data[j+2] - data[2]) < 25) {
-                                data[j] = 216; data[j+1] = 255; data[j+2] = 0;
+                            // Match existing solid background color within tolerance threshold
+                            if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
+                                data[j] = 216;     // R
+                                data[j+1] = 255;   // G
+                                data[j+2] = 0;     // B
                             }
                         }
-                        ctx.putImageData(imageData, 0, 0);
+                        pCtx.putImageData(imageData, 0, 0);
+                        
+                        // Draw final processed clear background onto lime stage
+                        ctx.drawImage(processCanvas, 0, 0);
                         URL.revokeObjectURL(objectURL);
                         resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
                     };
@@ -485,7 +501,7 @@
         function updateCardUI(tokenId) {
             const item = nftDataStore[tokenId];
             let card = document.querySelector(`.nft-card[data-token-id="${tokenId}"]`);
-            if (!card) return; // Ignore cards not currently visible in batch dom
+            if (!card) return;
 
             const img = card.querySelector('img');
             const badge = card.querySelector('.status-badge');
@@ -514,16 +530,12 @@
             retryFailedBtn.textContent = `Retry Failed In Batch (${failed})`;
         }
 
-        // ============================================================
-        // BATCH LOGIC
-        // ============================================================
         async function changeBatch() {
             if (isBatchRunning) return;
             currentBatchStart = parseInt(batchSelect.value);
             currentBatchEnd = currentBatchStart + BATCH_SIZE - 1;
             rangeLabel.textContent = `${currentBatchStart} - ${currentBatchEnd}`;
 
-            // Build structural Skeleton DOM for this specific batch
             gallery.innerHTML = '';
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                 const card = document.createElement('div');
@@ -534,13 +546,11 @@
                 gallery.appendChild(card);
             }
 
-            // Sync already processed values from central memory loop
             for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                 if (nftDataStore[i]) updateCardUI(i);
             }
             updateBatchCounters();
 
-            // Fire queue worker to load non-cached entries
             await startBatchPipeline();
         }
 
@@ -556,7 +566,6 @@
                     const currentId = index++;
                     if (currentId > currentBatchEnd) break;
 
-                    // If loaded successfully in previous session, do not hit network
                     if (nftDataStore[currentId] && !nftDataStore[currentId].isError) continue;
 
                     await new Promise(r => setTimeout(r, REQUEST_DELAY));
@@ -573,9 +582,6 @@
             updateBatchCounters();
         }
 
-        // ============================================================
-        // RETRIES
-        // ============================================================
         async function retrySingleItem(tokenId) {
             singleRetryBtn.disabled = true;
             const item = await processSingleNFT(tokenId);
@@ -616,9 +622,6 @@
             updateBatchCounters();
         }
 
-        // ============================================================
-        // RE-INDEXED ZIP DOWNLOAD GENERATOR (1.png to 500.png)
-        // ============================================================
         async function downloadCurrentBatchAsZip() {
             downloadBatchBtn.disabled = true;
             downloadBatchBtn.textContent = 'Generating Package...';
@@ -627,7 +630,7 @@
                 const zip = new JSZip();
                 const folder = zip.folder(`batch_${currentBatchStart}_to_${currentBatchEnd}`);
 
-                let virtualIndex = 1; // Always forces structural save naming logic from 1 to 500
+                let virtualIndex = 1; 
                 for (let i = currentBatchStart; i <= currentBatchEnd; i++) {
                     const item = nftDataStore[i];
                     if (item) {
@@ -648,7 +651,6 @@
             downloadBatchBtn.disabled = false;
         }
 
-        // Modal Controls
         function openModal(tokenId) {
             activeModalTokenId = tokenId;
             const item = nftDataStore[tokenId];
@@ -673,7 +675,6 @@
             if (activeModalTokenId) retrySingleItem(activeModalTokenId);
         });
 
-        // Bootstrap App
         window.addEventListener('DOMContentLoaded', () => {
             initDropdown();
             changeBatch();
