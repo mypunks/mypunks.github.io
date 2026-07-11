@@ -296,7 +296,7 @@
     <div class="brand">
         <div class="swatch"></div>
         <h1>mfer <span class="hash">· #D8FF00</span></h1>
-        <p class="sub">Fast-loading collection <span class="count-pill">10,000 NFTs</span></p>
+        <p class="sub">Safe & Stable Loading <span class="count-pill">10,000 NFTs</span></p>
     </div>
 
     <div class="controls">
@@ -326,11 +326,14 @@
 
     <script>
         // ============================================================
-        // CONFIGURATION (Optimized with Multi-Gateways)
+        // CONFIGURATION (Optimized for Anti-Rate Limiting)
         // ============================================================
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
         const TOTAL = 10000;
-        const CONCURRENT_LIMIT = 25; // Adjusted slightly for safety on mobile platforms
+        
+        // Lowered concurrency + smart delay to keep connection stable forever
+        const CONCURRENT_LIMIT = 5; 
+        const REQUEST_DELAY = 150; // 150ms dynamic gap between queue pulls
         
         const GATEWAYS = [
             'https://cloudflare-ipfs.com/ipfs',
@@ -339,7 +342,7 @@
         ];
         
         const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 3;
+        const MAX_RETRY = 4;
 
         // ============================================================
         // DOM REFERENCES
@@ -363,7 +366,7 @@
         let startTime = 0;
         
         let domRenderedCount = 0;
-        const RENDER_BATCH_SIZE = 30;
+        const RENDER_BATCH_SIZE = 15;
 
         // ============================================================
         // EXTRACT CID FROM METADATA
@@ -387,77 +390,75 @@
         }
 
         // ============================================================
-        // CORS-PROOF BACKGROUND REPLACEMENT (FETCH TO BLOB METHOD)
+        // CORS-PROOF BACKGROUND REPLACEMENT WITH GATEWAY ROTATION
         // ============================================================
-        async function fetchImageAndReplaceBackground(cid) {
-            // Try different gateways if one gets blocked by CORS
-            for (let i = 0; i < GATEWAYS.length; i++) {
-                const imgUrl = `${GATEWAYS[i]}/${cid}`;
-                try {
-                    // Fetching directly as blob bypasses canvas security errors
-                    const response = await fetch(imgUrl);
-                    if (!response.ok) continue;
-                    const blob = await response.blob();
-                    
-                    return new Promise((resolve) => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = 512;
-                        canvas.height = 512;
-                        const ctx = canvas.getContext('2d');
+        async function fetchImageAndReplaceBackground(cid, attempt = 0) {
+            const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
+            try {
+                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(10000) });
+                if (!response.ok) throw new Error('Gateway Error');
+                const blob = await response.blob();
+                
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 512;
+                    canvas.height = 512;
+                    const ctx = canvas.getContext('2d');
 
-                        ctx.fillStyle = BG_COLOR;
-                        ctx.fillRect(0, 0, 512, 512);
+                    ctx.fillStyle = BG_COLOR;
+                    ctx.fillRect(0, 0, 512, 512);
 
-                        const img = new Image();
-                        const objectURL = URL.createObjectURL(blob);
-                        img.src = objectURL;
+                    const img = new Image();
+                    const objectURL = URL.createObjectURL(blob);
+                    img.src = objectURL;
 
-                        img.onload = function() {
-                            const imgAspect = img.width / img.height;
-                            let drawW, drawH, offsetX, offsetY;
-                            if (imgAspect > 1) {
-                                drawH = 512;
-                                drawW = 512 * imgAspect;
-                                offsetX = (512 - drawW) / 2;
-                                offsetY = 0;
-                            } else {
-                                drawW = 512;
-                                drawH = 512 / imgAspect;
-                                offsetX = 0;
-                                offsetY = (512 - drawH) / 2;
+                    img.onload = function() {
+                        const imgAspect = img.width / img.height;
+                        let drawW, drawH, offsetX, offsetY;
+                        if (imgAspect > 1) {
+                            drawH = 512;
+                            drawW = 512 * imgAspect;
+                            offsetX = (512 - drawW) / 2;
+                            offsetY = 0;
+                        } else {
+                            drawW = 512;
+                            drawH = 512 / imgAspect;
+                            offsetX = 0;
+                            offsetY = (512 - drawH) / 2;
+                        }
+                        ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+
+                        const imageData = ctx.getImageData(0, 0, 512, 512);
+                        const data = imageData.data;
+                        const r = data[0], g = data[1], b = data[2];
+                        const tolerance = 25;
+
+                        for (let j = 0; j < data.length; j += 4) {
+                            if (Math.abs(data[j] - r) < tolerance && 
+                                Math.abs(data[j+1] - g) < tolerance && 
+                                Math.abs(data[j+2] - b) < tolerance) {
+                                data[j] = 216;
+                                data[j+1] = 255;
+                                data[j+2] = 0;
                             }
-                            ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+                        URL.revokeObjectURL(objectURL);
+                        resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
+                    };
 
-                            // Background color swap pass
-                            const imageData = ctx.getImageData(0, 0, 512, 512);
-                            const data = imageData.data;
-                            const r = data[0], g = data[1], b = data[2];
-                            const tolerance = 25;
-
-                            for (let j = 0; j < data.length; j += 4) {
-                                if (Math.abs(data[j] - r) < tolerance && 
-                                    Math.abs(data[j+1] - g) < tolerance && 
-                                    Math.abs(data[j+2] - b) < tolerance) {
-                                    data[j] = 216;
-                                    data[j+1] = 255;
-                                    data[j+2] = 0;
-                                }
-                            }
-                            ctx.putImageData(imageData, 0, 0);
-                            URL.revokeObjectURL(objectURL); // clean up memory
-                            resolve({ success: true, dataURL: canvas.toDataURL('image/png') });
-                        };
-
-                        img.onerror = function() {
-                            URL.revokeObjectURL(objectURL);
-                            resolve({ success: false });
-                        };
-                    });
-                } catch (err) {
-                    // Continue loop to try fallback gateway
+                    img.onerror = function() {
+                        URL.revokeObjectURL(objectURL);
+                        resolve({ success: false });
+                    };
+                });
+            } catch (err) {
+                if (attempt < MAX_RETRY) {
+                    await new Promise(r => setTimeout(r, 500));
+                    return fetchImageAndReplaceBackground(cid, attempt + 1);
                 }
+                return { success: false };
             }
-            return { success: false };
         }
 
         // ============================================================
@@ -518,7 +519,7 @@
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
         // ============================================================
-        // FETCH METADATA WITH SMART RETRY
+        // FETCH METADATA WITH RATE-LIMIT BYPASS RETRY
         // ============================================================
         async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
             for (let i = 0; i <= retries; i++) {
@@ -526,19 +527,20 @@
                 const url = `${gatewayBase}/${tokenId}`;
                 
                 try {
-                    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+                    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const text = await res.text();
                     return { tokenId, text };
                 } catch (err) {
                     if (i === retries) return { tokenId, error: err.message };
-                    await new Promise(r => setTimeout(r, 200 * (i + 1)));
+                    // Linear backoff logic to smooth out network bursts
+                    await new Promise(r => setTimeout(r, 600 * (i + 1)));
                 }
             }
         }
 
         // ============================================================
-        // LOAD AND PROCESS PIPELINE
+        // LOAD AND PROCESS PIPELINE (Anti-Ban Version)
         // ============================================================
         async function loadAllNFTs() {
             if (isRunning) return;
@@ -550,12 +552,12 @@
             processedImages = [];
             downloadBtn.disabled = true;
             startTime = Date.now();
-            updateStatus('Syncing nodes safely...', 0);
+            updateStatus('Starting stable connection...', 0);
 
             const speedInterval = setInterval(() => {
                 if (!isRunning) { clearInterval(speedInterval); return; }
                 const elapsed = (Date.now() - startTime) / 1000;
-                const speed = Math.round(loaded / elapsed);
+                const speed = (loaded / elapsed).toFixed(1);
                 speedIndicator.textContent = `🚀 ${speed || 0}/sec`;
             }, 1000);
 
@@ -564,6 +566,9 @@
                 while (index <= TOTAL) {
                     const currentId = index++;
                     if (currentId > TOTAL) break;
+
+                    // Adding vital micro-delay to prevent IPFS rate limits
+                    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
 
                     const res = await fetchMetadataWithRetry(currentId);
                     let cid = null;
@@ -581,7 +586,6 @@
 
                     if (isError) {
                         failed++;
-                        // Fallback UI rendering so app doesn't freeze
                         const canvas = document.createElement('canvas');
                         canvas.width = 512;
                         canvas.height = 512;
@@ -594,7 +598,7 @@
                         ctx.fillText(`mfer #${currentId}`, 256, 240);
                         ctx.font = '16px monospace';
                         ctx.fillStyle = '#ff5470';
-                        ctx.fillText('⚠️ Fetch Timeout', 256, 280);
+                        ctx.fillText('⚠️ Gateway Timeout', 256, 280);
                         finalDataURL = canvas.toDataURL('image/png');
                     } else {
                         loaded++;
@@ -606,17 +610,18 @@
                         renderNextBatch();
                     }
                     
-                    updateStatus(`Rendering Items: ${processedImages.length}/${TOTAL}`, loaded);
+                    updateStatus(`Processing Collection: ${processedImages.length}/${TOTAL}`, loaded);
                 }
             };
 
+            // Spawn optimized worker pool
             const workers = Array(CONCURRENT_LIMIT).fill(null).map(() => queueWorker());
             await Promise.all(workers);
 
             clearInterval(speedInterval);
             renderNextBatch();
             
-            updateStatus(`✅ Done! Processed: ${loaded}, Nodes Swapped: ${failed}`, loaded);
+            updateStatus(`✅ Finished! Loaded: ${loaded}, Rate Limited: ${failed}`, loaded);
             speedIndicator.textContent = `✅ Active`;
             downloadBtn.disabled = false;
             isRunning = false;
@@ -640,12 +645,12 @@
         }
 
         // ============================================================
-        // DOWNLOAD ALL ZIP PROJECTION
+        // ZIP DOWNLOAD
         // ============================================================
         async function downloadAllAsZip() {
             if (processedImages.length === 0) return;
             downloadBtn.disabled = true;
-            downloadBtn.textContent = 'Packing Packets...';
+            downloadBtn.textContent = 'Packing Files...';
 
             try {
                 const zip = new JSZip();
@@ -667,7 +672,7 @@
                 downloadBtn.textContent = '✅ Downloaded!';
                 setTimeout(() => { downloadBtn.textContent = 'Download All as ZIP'; }, 3000);
             } catch (error) {
-                alert('Zip pipeline compression fault.');
+                alert('ZIP pipeline error.');
             }
             downloadBtn.disabled = false;
         }
