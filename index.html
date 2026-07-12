@@ -58,13 +58,13 @@
             transition: background-color 0.3s ease;
         }
         
-        /* লোড হওয়া ছবির নতুন নির্দিষ্ট ব্যাকগ্রাউন্ড কালার */
+        /* লোড হওয়া ছবির নির্দিষ্ট লাইম গ্রিন ব্যাকগ্রাউন্ড কালার */
         .nft-card.loaded-success {
-            background-color: #d4ff00; /* আপনার দেওয়া কালার কোড */
+            background-color: #d4ff00; 
             border-color: #b5db00;
         }
         
-        /* সফল কার্ডের টেক্সট কালার অ্যাডজাস্টমেন্ট যাতে বোঝা যায় */
+        /* কার্ড সফল হলে টেক্সট কালার যাতে স্পষ্ট দেখা যায় */
         .nft-card.loaded-success .id {
             color: #000 !important;
         }
@@ -167,7 +167,7 @@
                 card.id = `card-${id}`;
                 document.getElementById('gallery').appendChild(card);
             }
-            card.className = 'nft-card'; // রিসেট করা
+            card.className = 'nft-card'; 
             card.innerHTML = `<div class="id">#${id}</div><div class="status waiting" id="status-${id}">⏳ মেটাডাটা...</div>`;
 
             try {
@@ -181,9 +181,9 @@
                 document.getElementById(`status-${id}`).innerText = "⏳ ইমেজ লোড...";
                 const imageBlob = await fetchImageBlob(cid);
                 
-                zip.file(`mfer_${id}.png`, imageBlob);
+                // এখানে ফিক্স করা হয়েছে: mfer_ বাদ দিয়ে শুধু টোকেন আইডি দিয়ে ফাইল নাম করা হলো
+                zip.file(`${id}.png`, imageBlob);
 
-                // সফল হলে লাইম গ্রিন ব্যাকগ্রাউন্ডের ক্লাস অ্যাড করা
                 card.classList.add('loaded-success');
                 document.getElementById(`status-${id}`).innerText = "✅ সম্পন্ন";
                 document.getElementById(`status-${id}`).className = "status success";
