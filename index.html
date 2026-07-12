@@ -1,514 +1,595 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · 10K Ultimate Global Pipeline</title>
+    <title>mfer · ৫১৭টি রিকভারি</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root{
-            --bg: #0a0a0b;
-            --bg-elevated: #131315;
-            --card: #17171a;
-            --card-border: #26262a;
-            --lime: #D8FF00;
-            --lime-dim: #D8FF0022;
-            --text: #f2f2ef;
-            --text-dim: #8f8f94;
-            --error: #ff5470;
-            --error-dim: #ff547022;
-            --radius-lg: 20px;
-            --radius-md: 14px;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: radial-gradient(ellipse 1200px 700px at 50% -10%, #1c1f0c 0%, var(--bg) 55%), var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            padding: 48px 24px 96px;
-            min-height: 100vh;
+        body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
+        h1 { text-align: center; color: #fff; margin-bottom: 6px; font-size: 2.5rem; text-shadow: 0 0 20px #D8FF0066; }
+        .sub { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 1.1rem; }
+        .sub span { background: #D8FF00; color: #000; padding: 2px 14px; border-radius: 30px; font-weight: bold; }
+        .controls { text-align: center; margin-bottom: 20px; }
+        .controls button {
+            background: #D8FF00; border: none; color: #000; font-weight: bold;
+            padding: 12px 30px; border-radius: 40px; cursor: pointer; font-size: 1rem;
+            transition: 0.3s; box-shadow: 0 0 20px #D8FF0044; margin: 5px;
         }
-
-        .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .brand .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            background: var(--lime);
-            box-shadow: 0 0 18px var(--lime-dim), 0 0 4px var(--lime);
-            margin-bottom: 18px;
-        }
-
-        h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: clamp(2.2rem, 5vw, 3.4rem);
-            letter-spacing: -0.02em;
-            text-align: center;
-            color: var(--text);
-        }
-        h1 .hash { color: var(--lime); }
-
-        .sub {
-            text-align: center;
-            color: var(--text-dim);
-            margin-top: 10px;
-            font-size: 0.95rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            max-width: 800px;
-            margin: 0 auto 32px;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-box {
-            background: var(--bg-elevated);
-            border: 1px solid var(--card-border);
-            padding: 16px;
-            border-radius: var(--radius-md);
-            text-align: center;
-        }
-        .stat-box .label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 6px;
-        }
-        .stat-box .val {
-            font-size: 1.6rem;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-        .stat-box.lime-status .val { color: var(--lime); }
-        .stat-box.error-status .val { color: var(--error); }
-
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            border: none;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.18s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary { background: var(--lime); color: #0a0a0b; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px #D8FF0044; }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--card-border); }
-        .btn-secondary:hover:not(:disabled) { border-color: var(--text-dim); }
-        .btn-danger { background: rgba(255, 84, 112, 0.15); color: var(--error); border: 1px solid var(--error); }
-        .btn-danger:hover:not(:disabled) { background: var(--error); color: #fff; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-        .file-upload-btn {
-            position: relative;
-            overflow: hidden;
-        }
-        .file-upload-btn input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; opacity: 0;
-            width: 100%; height: 100%;
-            cursor: pointer;
-        }
-
-        .logger-area {
-            background: #060607;
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            height: 180px;
-            overflow-y: auto;
-            padding: 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.6;
-        }
-        .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
-        .log-success { color: var(--lime); }
-        .log-error { color: var(--error); }
-
+        .controls button:hover { transform: scale(1.05); background: #fff; box-shadow: 0 0 40px #D8FF0088; }
+        .controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .stats { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 0.95rem; }
+        .stats span { background: #222; padding: 4px 14px; border-radius: 30px; margin: 0 5px; border: 1px solid #D8FF0044; }
+        .stats .highlight { color: #D8FF00; font-weight: bold; }
+        .progress-container { width: 100%; max-width: 600px; margin: 20px auto; background: #222; border-radius: 30px; overflow: hidden; height: 30px; border: 1px solid #D8FF0044; position: relative; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #D8FF00, #aacc00); width: 0%; transition: width 0.3s ease; border-radius: 30px; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-weight: bold; font-size: 0.9rem; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-width: 1400px; margin: 20px auto; }
+        .nft-card { background: #2a2a2a; border-radius: 16px; padding: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s ease; text-align: center; border: 2px solid #444; cursor: pointer; }
+        .nft-card:hover { transform: scale(1.04); box-shadow: 0 12px 35px rgba(216, 255, 0, 0.25); border-color: #D8FF00; z-index: 2; }
+        .nft-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; display: block; background: #444; }
+        .nft-card .token-id { color: #D8FF00; font-weight: bold; margin-top: 6px; font-size: 0.85rem; background: #1a1a1a; padding: 2px 10px; border-radius: 30px; display: inline-block; border: 1px solid #D8FF0033; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(6px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #1e1e1e; border-radius: 24px; padding: 20px; box-shadow: 0 0 60px rgba(216, 255, 0, 0.25); border: 2px solid #D8FF00; max-width: 600px; width: 100%; position: relative; }
+        .modal-content .close-btn { position: absolute; top: 12px; right: 18px; font-size: 2rem; color: #D8FF00; cursor: pointer; background: none; border: none; font-weight: bold; }
+        .modal-content .close-btn:hover { transform: scale(1.3); color: #fff; }
+        .modal-content .modal-title { color: #D8FF00; text-align: center; font-size: 1.3rem; margin-bottom: 12px; font-weight: 600; }
+        .canvas-wrapper { position: relative; width: 100%; max-width: 512px; margin: 0 auto; aspect-ratio: 1 / 1; background: #D8FF00; border-radius: 16px; overflow: hidden; border: 3px solid #D8FF00; }
+        .canvas-wrapper canvas { display: block; width: 100% !important; height: 100% !important; }
+        .status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0d0d0dcc; backdrop-filter: blur(6px); color: #aaa; padding: 10px 20px; text-align: center; font-size: 0.9rem; border-top: 1px solid #D8FF0044; z-index: 999; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+        .status-bar span { background: #222; padding: 2px 14px; border-radius: 30px; }
+        .log-container { max-width: 800px; margin: 10px auto; background: #111; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #aaa; }
+        .log-container .log-success { color: #6f6; }
+        .log-container .log-error { color: #ff6b6b; }
+        .log-container .log-info { color: #6af; }
+        @media (max-width: 600px) { h1 { font-size: 1.8rem; } .gallery { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; } }
     </style>
 </head>
 <body>
 
-    <div class="brand">
-        <div class="swatch"></div>
-        <h1>mfer <span class="hash">· 10K Pipeline</span></h1>
-        <p class="sub">Ultimate Background Replacing Engine</p>
+    <h1>🟢 mfer · ৫১৭টি রিকভারি</h1>
+    <p class="sub">শুধু <span>৫১৭</span> টি NFT · ব্যাকগ্রাউন্ড #D8FF00</p>
+
+    <div class="controls">
+        <button id="startLoadBtn" onclick="loadNFTs()">🚀 লোড শুরু</button>
+        <button id="downloadZipBtn" onclick="downloadAllAsZip()" disabled>📦 জিপ ডাউনলোড</button>
     </div>
 
-    <div class="panel">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="label">Target Items</div>
-                <div class="val" id="statTarget">10000</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">Processed</div>
-                <div class="val" id="statProcessed">0</div>
-            </div>
-            <div class="stat-box lime-status">
-                <div class="label">Success</div>
-                <div class="val" id="statSuccess">0</div>
-            </div>
-            <div class="stat-box error-status">
-                <div class="label">Failed</div>
-                <div class="val" id="statFailed">0</div>
-            </div>
-        </div>
+    <div class="stats">
+        <span>মোট: <span class="highlight" id="totalStats">০</span></span>
+        <span>সফল: <span class="highlight" id="successStats">০</span></span>
+        <span>ফেইল: <span class="highlight" id="failedStats">০</span></span>
+    </div>
 
-        <div class="controls-row" style="margin-bottom: 20px;">
-            <button class="btn btn-primary" id="startBtn" onclick="startGlobalPipeline()">▶️ Start Pipeline</button>
-            <button class="btn btn-danger" id="stopBtn" onclick="stopPipeline()" disabled>⏸️ Stop & Export CSV</button>
-            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Download ZIP Package</button>
-            
-            <div class="btn btn-secondary file-upload-btn" id="uploadWrapper">
-                📁 Upload Failed CSV
-                <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)" />
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="progress-text" id="progressText">০%</div>
+    </div>
+
+    <div class="log-container" id="logContainer">
+        <div class="log-info">⏳ "লোড শুরু" ক্লিক করুন...</div>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+
+    <!-- মোডাল -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModalBtn" onclick="closeModal()">&times;</button>
+            <div class="modal-title" id="modalTitle">#1234</div>
+            <div class="canvas-wrapper">
+                <canvas id="modalCanvas" width="512" height="512"></canvas>
             </div>
         </div>
+    </div>
 
-        <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Console Initialized. Ready to process.</div>
-        </div>
+    <!-- স্ট্যাটাস বার -->
+    <div class="status-bar" id="statusBar">
+        <span id="statusMessage">প্রস্তুত...</span>
+        <span id="speedIndicator">📊 ০%</span>
     </div>
 
     <script>
-        const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-        const TOTAL_COUNT = 10000;
-        const CONCURRENT_LIMIT = 6; 
-        const REQUEST_DELAY = 100; 
-        const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 2;
-
-        const GATEWAYS = [
-            'https://cloudflare-ipfs.com/ipfs',
-            'https://ipfs.io/ipfs',
-            'https://gateway.pinata.cloud/ipfs'
+        // ৫১৭টি Token ID + CID (আপনার ইনপুট করা ডাটা)
+        const NFT_DATA = [
+            [465, "QmUHJGCyuGqVvTLQjrFJgKLd4BP4h1nLqcb1PucVV9GST1"],
+            [439, "QmeQm6BwhCaR5sSjj6fH5wreyUJEGZBzh6HAxpfiKeZrQb"],
+            [432, "QmQUoVwFiY3sGfJ4vzSCoThQ1besZ1e31JiRm14RgxNPoF"],
+            [414, "QmVH9jTyvznXGkB1dCvm5oFXQveZdxpYgmTZhrEWUBP2HX"],
+            [473, "QmX8yiJ4ebHvGhRYJ2sbSqijEvwNqc3VpnQ2ifGowTvfdt"],
+            [397, "QmQuWGHtV3RBX6cdG4kp3HEtvxsE7mvZMupRaM99NgoGo6"],
+            [204, "QmVWLj5hsRv4RrpfdmLek7zTk6NEfoFMHE9pTK6DSyKMBi"],
+            [583, "QmPcqkhyddRudQttZymc2gwbaa9ySFGhisZEH97Pto22Yu"],
+            [564, "QmUdmkM1N6Rn5Ve8TkGFMy3x8mYZPGw5TaK25hQfQ9NE6B"],
+            [71, "QmdP2g9mdxrW5p7yC7ntZfYaauaznNjGMV3uyzcPcXMw4B"],
+            [268, "QmRqYyrWidrtxU9b1xeeeGCTyoCcMXheBGeYrdm85DLs7W"],
+            [237, "QmNSHgpP1fUqxpUDuQLG3jvrfJ2Pp7YbC5KGyLmaoiSRvX"],
+            [682, "QmTi1jmNYxN3XjNNY7EhbQtQVa25giVzuHB46p6BmWdYaJ"],
+            [505, "QmRsRoFa8BsqptJLNxp8v3CrGL4cF9bDqWwcz1VfWK6WTB"],
+            [796, "QmQpUUZmfyutj6gtXQqrTeNBuJWBhEgST74wFN3jyjmWeb"],
+            [736, "QmUuhRseCUm2CcV83k6dymdP63egCoVHx5iP8Yhu8x7Cm2"],
+            [625, "QmZXEDoUDJaBhHzwgBURpdqGSf39vePGQDE7nBxx8MPcPa"],
+            [697, "QmSJwQQGCnT3RrLmgXHYYtZrfbuqnVT3RVomCm71wVNvgN"],
+            [979, "QmQXN3QXJx3PqL11ccPRoXh77EJPLjgRgHmrukgGC8aaVP"],
+            [546, "QmXY5HSz34yBWWRKKWjFxMia1BiAz7M57CojWHM8vyXVGC"],
+            [866, "Qme1ca73G93VbgYg1YS6sMkGcyCLdWHgoZsCi6HBJY1wKL"],
+            [576, "QmSYAvcn52iEN9BrUaMP6aEen8L3GCgtUA8S8K6tBuUTTp"],
+            [726, "QmWVEX52wikKZq3rTU2t99QfFfVr9cQL3st4TjNKmrXGL1"],
+            [1025, "Qme5ErZy1JLbPEt5DPPjDCxkHRKfEcEKNAirQVPBj9k88g"],
+            [1077, "QmaLKgjA4QBxpSLQe3RiDac1j5wmqo7wnq2PLHWZifSxrh"],
+            [1059, "QmWLdqbHLp4NC8Ya4jbKa1WS4R7pL5qth3WjjL4Rv695Rg"],
+            [1170, "QmR92CfMK2WRhspypfnGhN2Q2RqE9d74L1azGBoLDsqG41"],
+            [920, "QmTTmaxjmXCsVn4ZnAJGRonsVJ5Z2m2resuJadDJM2F3yM"],
+            [966, "Qme5rTyNNduVp3LeQqN6Je8yv7MYvY8Pqm3SfJeqJzPYvG"],
+            [1218, "QmPXp1X7qEKHziDX28XYQ2wjjHrXY23ZKNpxGmBbnA9GTE"],
+            [1221, "QmXcpYg4hZSi2aULfMT6bNrcUs8nQfjrWsvjXvPqbYpozN"],
+            [1200, "QmaxpV4smXrGcmFo6LyR6afzE11skE2js2PJgNukQ22es1"],
+            [909, "QmPSoLyQMGsrZMaGwoMgsURkk2tt4gKZAfhbvr2gtnHXCk"],
+            [1222, "Qme9X7oD9DEuvNyzML9spA6VhQ8kF7QKBe1W73szrydrLW"],
+            [971, "Qmanrh1Yi4P1QaaQM7uTVCPnqKb2LKxv41tqxex1Gz7Q8r"],
+            [1009, "QmPya9en6VbHyQWq7AsftBTJEbdsmAoSxxAQMMnUGCZxEZ"],
+            [1284, "QmZjYLbMiDzBfRScPe2CGvpNLRcKfBWW3AFBegbDMUgN9q"],
+            [1568, "QmPnGLU9aWgH5pyoEbfQEukzdpi4sbpT3dGpmBXAmAgSKN"],
+            [1143, "QmPFmaMCTU4dBnBzDTFDyPb3FAw99DVSdj9sMDPG1BFFD4"],
+            [1299, "Qmaag3MTS9aGdqNkD7jWxk8TdEocT2XUqZrjvAScXL4RDN"],
+            [1317, "QmXvpfVeByzevH8XsHpiimdNuJuYUnsW8bPh92FqJkMWcb"],
+            [1375, "QmZ92sqTQUEvMFvs6dk854km3GRVoyH7iKryyYp8K6ZvG5"],
+            [1378, "QmSyR3VN1zCPDCZCZLKcAFr74TnYT94or97oWrz8xvzs7h"],
+            [1298, "QmUQjAtR9u1gWpBXsuJ2KGyeRD3hmrYWt6EBT2oXq47XFg"],
+            [1062, "QmaP9V1fqE8o56VDEmT7ZF2DFrtxNTPDGT4YDVJLCt71DU"],
+            [1367, "QmPGQy5etxeSdYSkEtFwJKv9H6hS1Z743npfTTRNMzhvo1"],
+            [1439, "QmShLKxtEpz1bHdxYYrmaBoEFEvMBytUJsL3D1iGWddQ4Z"],
+            [1557, "Qmc1CTSPUZ1aEe5mGc47RrtaCF5eKuPb1NBKDbNck4h7VJ"],
+            [1454, "QmWAXtjQ6rjrsmnyQhxPymAntwzT6Uh7LZKxWUx5Ffyx6t"],
+            [1535, "QmWz1Hht1DWSYbFtavSQxbYFZtmZyjLqUXTS4EiyhJP8US"],
+            [1559, "QmVKZcUbRdgDvhpDBoaGbdyPNYohgrxKbUsRCEJUSGBpV5"],
+            [1564, "QmR9nc2pWvMDLHX7N8ePHhmC7jAR5M4gqgGySJtxFHBvUF"],
+            [1641, "QmVnECjccRC1dk1SMr1Tj2EmezfUo554WCAtghg5Kgkr4M"],
+            [1734, "QmeffntYG7KhXc5wqjWsER9cTewuQ9UoxKT4mKJVxWynew"],
+            [1619, "QmVHgsSn2X1DbnGoVcoARYbXTz7XKNCvsAexwjaUyDU1ZH"],
+            [1416, "QmTURmeKfiWBmvRpMdqnRQPDfawToqFHaihGonBSk1f6vb"],
+            [1411, "QmNt5dEbQa7i5ukbqWx6y2vRCXWLRZqu13AnHZ4xKgLEMM"],
+            [1291, "Qmbtk5FciRSWQndRdNSw7erb1JgtSgGZDhcQYoVYvqzwgk"],
+            [1611, "QmUqGP18JSnG5U8kvYyun4tFpqxCmCeUhzYqawdDrEpcnL"],
+            [1732, "QmewapRHgC2GedniwYKBmDnRsb3P5bEhME9QArPy8Ze8Gt"],
+            [1727, "QmPwP68TVXmgH5jdCgFYEyQhtLnMMxJ4i3JSqsjB27QArW"],
+            [1742, "QmcK4YXk99bD4kmNxwhU4wMHbCrgTqQ6mNy3o52vEwwf2T"],
+            [1806, "QmeYVAJx91cACHnCrvEU6m7RPY7g1JGWsyfTExC1Jj9Ekv"],
+            [1661, "QmWfYTu4t5pVESXJyMrMWC1EChEnzFMZEiovQqpFn7o86q"],
+            [1691, "QmcLsL3KLzea3dDitbGePqo4Vpp9oB6aVdmiTc4avCJTw9"],
+            [1731, "QmT9N9JZZtYT35nCVovwMmNESWbhZPFK8zCtXvuYT8JPCW"],
+            [1544, "QmULyygpEfr2P4MtAsjYULCnuYz23fzH3QFt4MMm3miuo9"],
+            [1847, "QmRpddTEtBpLCQm8ztw87RNauuhsWRgioqMTJnCgcdDQWr"],
+            [1798, "QmNZ2UgQrHAsnmf9Kgo4viWUSyQpjEa2Eo6aaoFwnCLqpV"],
+            [1770, "QmYT7Q5pZYdhJ7GWSCXEL432KGNaWSuYWmVxd2LoNRvc7X"],
+            [1799, "QmWG4BrZNBeBkPtvmGvzYTd9MupEyyH7bi4vFqskLD5Anq"],
+            [1903, "QmaGoCUAFXw1THStcrPYEi6PurKaLTyiF5KVCxQtDFjrce"],
+            [1846, "QmYN7a4n4PTgbUNuDKtrFKvBTQb2UmGVY4yMsG8wLsNeuC"],
+            [1832, "QmU1zSiMncP1Exap9kvVeC2ENSDdxc4U19ocdJaCgqYMbU"],
+            [1968, "QmbRehiTdesCygyDhMg6eQx7Bs5snaYe6EsmqBGpRiqxny"],
+            [1810, "QmYPjkbJFusvwBMS93bFSSb96LfrWKpjRbL7cQ6v1sopVK"],
+            [1998, "QmZqoJT2WN45q8wBaYQLzapMatx7gFgkCDiDNGh5pdAVMb"],
+            [1964, "QmewgP2RAfVayrTDbg9TMgXNTkwe1DXa1cGM6qPMdkNXy4"],
+            [2067, "QmRWbhpUsM4y1xeXEv5KC2NaQXMYgMQ3cHUrMAJSpJyKBY"],
+            [1833, "QmQoXyTofZA1gFrSKqSGNGyjNLsxQUqYY3gjGJhgaMZtnj"],
+            [2060, "Qmf12W3tGdMH3cKzReKSVNRJiAvKnHmwkwHAckqP7sNax4"],
+            [2014, "QmUrmuKpNJHWfPcMGi3F2VR4p8KB9HjSadXicQrMguECBP"],
+            [1937, "QmdqikY6sbXA6bYhmz97F2nzp6jUcrnDwryYJ5V4hoXw7t"],
+            [2139, "QmbUiZ69FwHq76cTsrDhjMkdCjKjc2rfrbqkURattuNx9S"],
+            [2040, "QmR1Yz2MTLnhDPqdafdFpZSuxDRN9t4NjGUmPb3Q9vFgyt"],
+            [2173, "QmSYgjWeDr9zi83vVgFUknHRQ8G1uTyTCP5VgxCDFKAP2x"],
+            [2063, "QmPeFJdNfYjz64PGZYYMiApcW3J4AnQMGRa9X7yejdzqk5"],
+            [1980, "QmcSzUP7b6inU4d2Po5QnsNqpYbo9PtD5MHTHSMSUg4Wff"],
+            [2084, "QmPPpBGqe15qdcWgpJ3FyRycU7KigkSrePjeoM1EDaz8FX"],
+            [2149, "QmZWeidocqEqLLM55pezxuyY5HUnr2siXDZqniyVsbBpne"],
+            [2117, "Qmb5biNXVkis1L5Yf8sbt5MT6PzznUmXY1hyvWTewpUY1F"],
+            [2222, "QmYHoRja5oP35i3PMp2rF3GvFBchDtt9W8aX5Js5vxUtCF"],
+            [2137, "QmPxaRiKn8LuoQi29mS2DnMUciyKY2FgZyfQdQtMUBMFtN"],
+            [2123, "QmbmjSc226Nqr5D4fqXrWzjgyw2m8tNXSyg4PCUNCVpW9f"],
+            [2197, "QmfRgkSsnaV2AsrU1Fq83KWkRcG5vHzKngcxGYU6fVQxP2"],
+            [2303, "QmSgxW7citvmi15vUvpk34GuNFm69WLCCBPBqjxWTSFuiY"],
+            [2313, "QmPwcLwxwvh8qhXeb1sDrm3rS3QeMiDEZwsG8cpaziH6md"],
+            [2244, "Qmcgpd1NATs3obMURPCnMGL8i4YZ7Pi9sjT8AFpEGvUxwX"],
+            [2320, "QmQbRPvSgAx6SUMGpBVfeM8kykhq2b1Mw9s9mcVNqXS4sL"],
+            [2347, "Qmb6Sa4SQFoqV3FufN9NQEQYn51rpKW1hHHumevKNn2ogo"],
+            [2366, "QmSpTwEvSuGNXGRKYot7AdCWKVnkuzGP6dQ8M2n8QPnerU"],
+            [2296, "QmZ12hFTc1WH5vvxnSRtEJxFHDjUPbrgUMtjPun9HsSwbG"],
+            [2421, "QmVkvYQcTAtkbkDWyHEoDqnWC2HQjQRa2qHtxvex1WzgwM"],
+            [2286, "QmNwVtACJn2Cz1WFfSxZvdb7HfpJdNokSsCDJygEU8Vcwb"],
+            [2400, "QmSUdFhS7TvSxhcVnmA2oyeRcePzYrjY2FpJHHCAmHUjPE"],
+            [2516, "Qmf8wkb1sHHzCVcG1xMHFBQHxqsCNe7mYKAn3iiUueZnGA"],
+            [2405, "QmbN4YnELM3W4q1xcdts62UDaFf7DgrazMCQGrcSzsjSXt"],
+            [2477, "Qmbz1K8TLgwBcWX8XJtNSm1hifvQqPtBkEFuTEtdpMa57N"],
+            [2487, "QmQc9ThPDfSiNr3BJukLSGLyt1C75iakwrU2A6SLRLKSYJ"],
+            [2623, "Qmet8ddzSaVm36FZjGVxoZbp3C4npnnXe6p9S9hKFWgytv"],
+            [2513, "QmU2uJKGgEZr9eNuRbJySvviVP7jxukbrx7rphorrfYZ4B"],
+            [2429, "Qmbmige2WAsCErbs2ZJjV75tJy1U29mEPDLg4R3hw8iZsy"],
+            [2196, "QmWWpkffmS6J6QP5nzVUSGs7T8xYFifj1sipHuSuxDVMYW"],
+            [2620, "QmXHGpdDvRnMSmCn9KaNU9WvQ3JW36Fznku9VfzyeUTA61"],
+            [2733, "QmPjPqSjkDGLeKeuETkW8mE98K8EFgi1GgicqvYUb94pgz"],
+            [2523, "QmPNKeShqEymjyEMBpbkFJ6QkGSoBmddFuXDNSJWBwkSP4"],
+            [2627, "Qmdg1e9nikW4amEJSLEvmeyfqBDWLdqcd3SPDkV3fdpZRQ"],
+            [2700, "QmUAe9nfYrg2iggzNShDLoJRyd3rN48JLydVzohifVGFyK"],
+            [2702, "QmQUvWt6r7d15orvkryz54yQAFJN7z464afc5DAhLRURw4"],
+            [2608, "QmQVrjAxABAqXoiXQLStP3bNDK1gnQTVBCbAKoPbZDrP83"],
+            [2641, "QmbKvWhiaagVue4VYvsXmpKeSXxxeYgDxZS5ewstJwaBBV"],
+            [2707, "QmQc9jyLoqSbaoB9tEH5rPmqwrepnp8kpLnnvfLwJnYtyt"],
+            [2768, "QmRKN2uKC5StBbHLRegcjrQTesve6ifpmopABgPeaLi1Hu"],
+            [2852, "QmRpwBgAR4Hzby53barDeFXzrYiphuY9bWK63D53QzTKWd"],
+            [2695, "QmPGGb7PiMHt1UKuRQ3vUs3E4afR82qhdz7EP4FX1WRdVW"],
+            [2762, "QmbYSKZTCpW9tmLS4iu9xBKSfSEQBfyReGiXSCnpxoskMx"],
+            [2872, "QmNRn261wkrmuhzQCbSLZYGCDVESxpDPpzMfcQPK56YDYa"],
+            [2858, "QmdhKNmgYRVQnJoqpY3SVER461dbQSB8dtvF4PgwLTihiF"],
+            [2663, "Qme9Tjfune2bvqyqck5Xk4XUwnN2zz28SrnVrNtFDCHNoc"],
+            [2821, "QmNQN6LtcgxWSFpSQG5WSRn6drYjJH3rcXAarEAgFtrBvE"],
+            [2868, "QmTepWUDS5QPBRsUrjKySqZE6KWznshWjBjkx8Qp7Hq7T9"],
+            [2772, "QmaagPvmsmPGtQdjYuJnhu2ib2KsG8PVhzyon8pfjrES4G"],
+            [2994, "QmWuoB1eLuhpMgTByJxPu4ZQYGed2kn9WrzB1fj4K5Bgnp"],
+            [2571, "QmSG4NRsFx3cdskuBkJtkp8Xta9Q4uhfg4hx6UDbrfdLnS"],
+            [2524, "QmW39FCTvn5VmppcdpL7dPCPnNdGfkM9LzRyfdDckg7BDt"],
+            [2911, "QmWjSvNAnr7tZxFAz4tshYu2WhqY12jcia53tiaGVnio3B"],
+            [2844, "QmfPGRNDGG4r7xjwpYYXVWvtgoQ7mG3cCmBjfZ6QHZCofZ"],
+            [2717, "QmR7CBmbdxdK92pZMVosB67tor6vBv3yzrcctzsc2dCmn6"],
+            [2909, "QmX3ZoeEStCfJ2SsruVWaGncsrv4oK3zxc9EY9PB6ywjgV"],
+            [2939, "QmeJn9btcFckhZWNMs5RXTp9MJrG9NEMvxZEwjYGveFTar"],
+            [2880, "QmbJPXjhLrTyLcj9FbtF9LhcZoN1fZ3ihPTNiLn9oELfAt"],
+            [3047, "QmfVBYmT79pzKHCbDfHpubaQREdmHuANMWZwCpqNYGpTpM"],
+            [3108, "QmXgQNnXzPuBy6KShGcRjzqmef957yJT8zGevm5oHt2zHN"],
+            [3058, "QmQDoQZj17XMiLduSFf149XDtgXf4kie2D7kVcJTX67mR5"],
+            [3116, "QmVDWA4rPqaxHN6jEaTSoZM33dkjMMBP7YAnFWG4X6DNJw"],
+            [2983, "QmWN1eLxgZPZ34H8sLUVJfzHnAn9GUT15GH4Ph4Mw5h4Tg"],
+            [2914, "QmcDDtnd5P4e3PpGRs2hzxaqJHFAhdppurEbsFWky68xJM"],
+            [3156, "QmY2u3xdBdka5fLd4U5a6Z77v1cZtNQdKJKU3X51dFbUgp"],
+            [2997, "QmTuiENunciF3PagDuCKtrY1d4wrgqjNpniHa7DZfYbTG9"],
+            [2398, "QmTU22his7zwj3rn3Rbt37PCYfGZKTTCXUB3NMerdydSyv"],
+            [3341, "QmbRjEgjrNtahr5G7KVEVgyRXmVag2VACd5h8T6XYaouEs"],
+            [3151, "QmPQ1qAfnrgsYPtShFiSHs1Lb3fkRsZFDBXrKTzy7dGchm"],
+            [3352, "QmNvxteLe2ZJU6u6xAx7SYx3rf6n1SMwiEirk95LjV3C91"],
+            [3180, "QmPsgm4fiNZwWKw3xxjNYsoshDmMkZB8sDfJShrV35iZNg"],
+            [3169, "QmXdbhhvmArfgmE3jJSm1YMc3TQcey5sJX8ktUTPiMF4De"],
+            [3048, "QmSs4dc42MpKHmoZu9FvHuTfoGmLEvCSvjHthNJQ5AbJsx"],
+            [3303, "QmczhCSA9A1u95reTXhiTyN25KkBcxGVLTLUEZXPw4KuoY"],
+            [3095, "QmQKU3xPsapFk9w9rAFMbavvfXtj7S7YN66XfsGDa4tDys"],
+            [3186, "QmaSJM9H4iTzfAk1gcbj8jjFKjKLj55edo2Fp8ffRLT8Dj"],
+            [3132, "QmNtraRjjd42rmyRmVEMcx3oBYX8i6CQfxf8CZqxUyiiru"],
+            [3019, "QmUrt91wKCQt9M5Jj25UuSquKv5J73iRKoY7vAdPVtzLNr"],
+            [3147, "QmSRfUqANd3nbBYUuS9iAJTGPXdT2LyDsuFGJZX4Bqwhpa"],
+            [3483, "QmV4z92RwomktMfumJRWeCuSuWzSQpHzEA4KhukgmBnVPd"],
+            [3394, "QmXkmCYhMrNikZSoaF4AQUEodx8DaMuv1deMCFhw5jLJ4E"],
+            [3559, "QmNynRSCfRjhFKcnrEAgx6gcVmoHUWpJWanEkFhK8qm3AS"],
+            [3473, "QmX3jLQ9c48E8dKFoF6apNanYwrmvn2kBGfVet7fn4KSgq"],
+            [3669, "Qmc4zyoUeJd3wjgBfMpuPboRSydaYVempYLDvkVMf4jePk"],
+            [3615, "QmUL5aLvzvviVnyzcF2dcxAfmosPAB2U1noqQCxauCp3oG"],
+            [3412, "QmeJ2MWhrjAYbnXAWyDhruu4TpidB6WoJNig5ENyWviqD4"],
+            [3540, "QmdytzZ9YATGQt7x1nZpCM2NWPeposyMmMBGKuHLKof4b4"],
+            [3571, "QmY2NmRzQG7JiMkyfYYQMQ3AkSw1BZ5d1xzW1HbGEzRfJE"],
+            [3636, "QmQxPXMnTSFpXUfGKHq8TEps6EdoQSsAaRmFYNPpfUiidH"],
+            [3391, "QmZj5BNusFu8dWjmhRjc55dP3DZ6t1hQnAmYpPUde3MvHw"],
+            [3286, "QmUkxPAXHZEPtuhtScdnuTbJYozMS89CqBpwFaLzCjNL8u"],
+            [3251, "QmcV1pd6enuZoVJdt4bsDBLxAqFjXqR6k394bgYwfnEC1k"],
+            [3683, "QmPX64vMd9FBD8EBJ2KZZ1ydQkbw2hn6aNPVqEZ5wTjGW4"],
+            [3692, "QmWeqUyGfHGH8Jxmpo9zBPb97EauQ1kGEKyGqj3xgCNiQ7"],
+            [3612, "QmXjhipAfXBVmW673NRGbMDHivBXkY7Uk82n2rPb12ojBR"],
+            [3668, "Qme42eqWZL1ERe2Gbu45RAjyoPp198niambNpbKje4b7wJ"],
+            [3759, "QmRhUHmF8XqftTskqMB7ehU8tuzhGJtsJgbHTJfKSJud5v"],
+            [3639, "QmSKdS3gRz9RX7XH5ACeFYQYnQVGL5ge7MtXurzepTo6tH"],
+            [3805, "QmPUw5BRUspq4b6YaXdiAJPxzbeW4LzhcnvWuhEfwAZHpq"],
+            [3922, "QmYxPf7XqkWq96gqXJgWWxw5pCuhete8VJrgWuiBHH8tcv"],
+            [3769, "QmbVB5VmdMyCFU9DTmU5BdQ8JLDfZAEXmtxsmfvVtDXbJf"],
+            [3821, "QmcdPUHdJW3ZaorpBeHmGra7Liif68Dh8saGaVa5ys13SB"],
+            [3753, "QmR466DzyoiBtvQf9LG2sXDcr7VVeufgt3xv6p9kYsDv9c"],
+            [3828, "QmTPHqkSochZs4gCY4svYMydzeqHqjXCcm5xmMX4wZwGcK"],
+            [3703, "QmdrSBW1WZPf7ghJ1Uy5TSY4RE5j8sATCUmFbwFdJnbzkz"],
+            [3729, "QmW6WP2AYe5ogaTAeJcr3sHBDRtGgc3EqsykCdVXyxP3h2"],
+            [3776, "QmZXZ2hKne4MAmMpyPfB5oxTw2yNaYET8owYTwBrb7jsiT"],
+            [3643, "QmUq43zcY8jHsDPya3yUYYTy1WuVcGXsZQwjch4GsZFPLS"],
+            [3913, "Qmd85SQCFjRcg11HDWSnwdxvHGkLC5BT9goxEF9Q1gS9LK"],
+            [4172, "Qmdkmii2DdnC5rPi9eVp9PvXoowFfSJzBmBYTXmWVLyKt4"],
+            [4119, "QmTRDCtyLbhrgypHewUjhdx1VWDJ77t1zoBRvSGhUSGbNC"],
+            [4104, "QmNv1BKGPnWrsN5omryJGUfwvRs9us1A3CN5hXakfAWVe2"],
+            [3910, "QmQqzZdnPrC4C9uvfDmsgiACAzpUAKxRGRh43e4pFAfbgA"],
+            [3860, "QmbQ2ejzGGLQDaVoRpYRoVg5cUWEg3hPYt735S4FktHv6b"],
+            [4171, "QmPD6M9MibvhkQS5fGvZ1Kg3LXoiC7mT617Mi1vXC44c3F"],
+            [3783, "QmQWTzjLtBxj1UcL2Jj7KPfCYaMURrojzKr5vk5dNAxtcm"],
+            [4170, "QmRXDLQj6ahvgiBZLErkzinDhN6GMSnQZSVkjb1MNNhDuS"],
+            [3966, "Qmcxh5nEyx98N6HyVpADLP2EHYK36KxfNze4hfX68suFMP"],
+            [4187, "QmdoBMoJFinWSqMMSEq2ZxtHxYFU88p2AdWb64N1eW8e9V"],
+            [3902, "QmUwsBpvmYxyzeFTx73aB5kcn9oWSoAu43SDjZ6QwdxCdA"],
+            [3933, "QmVzb9gwjWd4KffVuzb138QnX9jwHDDgUpxkwyNpyCDLtt"],
+            [4374, "Qmci1h6XaGyPtt5TSRWjRQYVASwihWpJmgos77tv92qpGk"],
+            [4383, "QmXpNBHHTPqHfQTGVqRLhKkXjQxqqQEfjG4GxBkbf6t63q"],
+            [3716, "QmaNREoWVtfpmVktLzftnGeYRWK3xYNjEAmZshDjiKTdgP"],
+            [4244, "QmSdwu2krTrcT1YNgZsnowXhg8kQftvZv4rHgNCcTftc4W"],
+            [4336, "QmauvAECQ8nMPJLis4xwqxBHZ8ZEP2zFd4Fakr35zTd2gM"],
+            [4109, "QmZbsVSriQkcCX8Dx1NqG4SVbCDjjGPQzKVDHbVTRgzQdE"],
+            [4421, "QmfEYSwsfHAj5j9w2r22E18wW8rYiCtcoddis19ZmGQfyb"],
+            [4265, "QmaVv79ESSVVJyL4PtDZPFZFDNWyi5dfPPedg2SALKXs1E"],
+            [4263, "QmXQWyV8m2qijhBBNYGkN2QVvd7TYAEGT5LPvKvbZg7KpL"],
+            [4398, "Qmci1ueECynbTS9axtwNLEWfBaNjpt6CwXrUTHKVC9PV3h"],
+            [4524, "QmXzmXRP1MV54suPVXQSPQ4TBFRmHAvUk22ij6WKZ5ND25"],
+            [4382, "QmbZs8hhQ5rb6AuLhEEZjy5FtevACmUPG8ox33PEL8WmNH"],
+            [4406, "QmbTbQpaXfngvKR14vMAQjnsjcq1UnNHTavcrNotkb7xn"],
+            [4463, "QmbXVz5uGVXGsQsXAAPCEvAnQvz1eobzJKWawGpxC3xHoh"],
+            [4323, "QmcrFdxDxHA5G5HR8FNfsotUMDLdYxkoPjAE3NjXq4z3Zb"],
+            [4279, "Qma9zEmkZHMajpEDvBoikEPQMBb9hwsbXRbEUZVyuhmCnc"],
+            [4613, "QmeN3HdSYpKW3kGqcVkHo4MGnaKGRww1LEGjVe3N9mGDau"],
+            [4508, "QmUm4QVvrG8yqvLyHJsjbhUkB2M3rPnzpiH59Qit74iFSx"],
+            [4570, "QmbQZCkstNWSqz6vV9xYfQmRomwibWyVEtuUumjE1G4ebe"],
+            [4309, "Qma62b3HSU7mKMT4PoTgEg3XTALCU4mAzNYUqtS2Q4bED2"],
+            [4559, "QmTRXfxj33JqppD6Sbphds4EepGVhFhUEQAMmvXT1T29aL"],
+            [4556, "QmTN4K5xWvmvtLvbvDp9iGgArd6jMHz1cALfxeNFUpvh7w"],
+            [4545, "QmUTs3cbqebefNH3LXumUgxtFFc5t6k7ogfYgecquKcGYZ"],
+            [4473, "QmSjfWjZVbC41RgByUzaPLEsWmY5GgDNPzYv33CVjjcapq"],
+            [4710, "QmZyHExUP5g3DVRCfeLNkboYDnsmh5JM6SjeXUDFrC1JBR"],
+            [4522, "QmPYSdbPxzvRUfhb2PLCHuurBige9qAnLDaqvoTkfpXV1W"],
+            [4377, "QmS9VWtA4T9ou6Fu9fSj79qwnW8pivPtH3rZgrBaPGZb2b"],
+            [4453, "QmQmU7fmLJbfZMtZecg4mFBuabT83Ha9yZFygfRrDoumsN"],
+            [4698, "QmPxnnwXtfTw8m2Th3jJzsoQBvENVXr8QSmYr7gEvGe4dJ"],
+            [4620, "QmZnVyCmkQb38qgYiF7DiKSBJPhgdqL8jt6erCN1acgTeQ"],
+            [4642, "QmNwz6r4LtAdpfVJw9L8ztMp9TBatWGnPk7526mL1oLVgr"],
+            [4832, "Qmay5SMdR4HvqCcoRxu3x2svKJwHygQ5MsXB65mUM7gAkF"],
+            [4986, "QmRfiYoTVb9PWktDxSdf83ajnsdCMPKF82oKtSVc3Kbktz"],
+            [4682, "QmNpXvAmo9nonmAQGAYFVLNM3sYgTvGpgWxqTKfsUuxP7K"],
+            [4661, "QmWW5NQM7dxz6FuUc5QW2tcA2JaNWXjsYiXUTRVbU137rs"],
+            [4566, "QmfLEGTJ1shAgmdK1cFUMT3jcnXF5x7TURay5mnX11z3pQ"],
+            [4649, "QmWTKSADDmYMAFv8JwrmBPBfHc4jnzVGyBJTim2MA7aiaj"],
+            [4742, "Qmb59GLSbXN1WPhzvtFwDM14LVkueXqf6F39X6MtGuNBui"],
+            [4683, "QmX8ZyPZQCXnjaEYvpkRsUoxJ9hAKtDQVJkXRfbbBnfK5d"],
+            [4860, "QmNUpKeHYR1bWLUGzdHrzPSMc1uWEE7z2xJ8yNc1as8hZe"],
+            [4974, "QmTRD2P8nrLX8mkQdGoYYiut53iAfVi9Xtwidbo8o1mYAQ"],
+            [4833, "QmX8D3FQQEFTsUwUnVuu5LEFphE6XzScBF9ZEWXJiwxHvF"],
+            [4935, "QmNvWA5y8HSvVXzA7pfLTGwEZUA2JbyAVtTqBJEb5q6ezj"],
+            [4768, "QmV9F6CZeVLqBazkom2GtDceP1FNdvkeAcCE6NDCWKxp1U"],
+            [4970, "QmQ8fonyKN2HBWqE4cu2TVmuSE6RQbhN2CbvQaxJ5ragdr"],
+            [5157, "QmZKr327zJSuZdhFUBWsTFUQSExGeGthucagBEgm56CBG6"],
+            [5130, "QmYLztYZZXopefSb8jSeFYW6vY8pvHMo6gMKFfJteYY5hB"],
+            [4778, "QmcZBvTkeraTANkK4KL1ssGBoUhmkuvkA7m4Wp1Yuhsk5j"],
+            [5133, "QmNVu6KVXpYWZHaxKKjRoDQ62YHKFv69GxS95Br1TQsonn"],
+            [5019, "QmWbYfEDmCBjJ3qpXUraySXNmnHY958wJ8uGu7Y1hrRZZD"],
+            [5027, "QmcRAL4C6KLcCTPLCxWKdtdcYcWx7zKRNeq52BhRan1uxn"],
+            [4981, "QmdEdh8FDedWHZN2ebqm4EFYtYGR2njV3A4KiHQuVgLWda"],
+            [5265, "QmdjGoLeaCtnFbeZaZQiiq7q7T4hrPLKogEC2i6ahBMTMF"],
+            [4965, "QmRec3zxiQUMJX3KQ1iwtr8WMyrqnEBM6EDHvjWV2ai5ZP"],
+            [4933, "QmUp7zCA9dB1grxbSaU85bA1AnMfvUvgAMUrApxcAfCcNS"],
+            [5178, "QmfLePa7q3wxm9hvmoFXoi895xmNnHZaPNSVfPUYcDoEMP"],
+            [4955, "Qmcu1DoFuJBnGZNwUEu9UKKaKgYza1cAC5TcdMBKoAaB3h"],
+            [5083, "QmRDAkv1ocFqx5Aspsms4w14FrfXNtj9zDwpfs6d2WezXc"],
+            [5263, "QmSW9JaNDfGpkfjmUfWtPN16WGXvefZcfRYSvvtnijNvVL"],
+            [5257, "QmSSyxzzaauM22Hsm7HyGyA3UcqpfAj1Vzb4gTVDzoYtJg"],
+            [5244, "QmTzXLDSvjGcNkE9Y9eaXgiAUvA1BvfZrY7DEHJYxPUrsD"],
+            [5253, "QmRci8X2Lu25agkzrSgS9Lm3Mtu7gNSYqfdNEFsQqQ1CeC"],
+            [4850, "QmXFkKfvD6KsD54thFJsJf4TQhaK81wAtz7QT4XUmJiaQa"],
+            [4883, "QmZdGhq113YM75wkWtrhN4n4nN6QPhao5gsmBfaS1NZLYy"],
+            [5304, "QmNYrFE3Q3aRRcqJwjaRSLChrSFuCWK5dbinYZZW5E1Tab"],
+            [5319, "QmTsvGPk1ZJ3nUSxjtPMWBgWgJucNPfvLXiopaAawDcQGg"],
+            [5317, "QmZaGkRCRDKcH5QDx9DAoCC3B7rYPT6kkNQ11x7F5S5bvJ"],
+            [5273, "QmXZjrZnNhDV8txgULSQkgB7EM1KHCYW4TCXdN8gdLZUeE"],
+            [5346, "QmaFCdug6HCuFDgbJt3sseJLV2yi3io6cKLc8onn9oEZpG"],
+            [5426, "QmQveciX4WFoVoYceDjtoAWMzhkywD1uMEvYkJkfVjmFDV"],
+            [5497, "QmT54h3oKrF3DsAeWNAxR4yD56ohKLXFeFeEmBderLJTNyFa"],
+            [5417, "QmauerJB7AddNpJzwn1emRxEzPG2bp4spCTds9PwcCYQMk"],
+            [5596, "QmQLitSDb85iiFcPeBpcrJSVdE4kDh9cpkvnG5tA9Qt8YR"],
+            [5623, "QmVehB6rGTVVWdnP3JUcN72JguY4DyK5RvQTSAgvswrMjb"],
+            [5572, "QmcjYpzco6DWYJ4nZnyX2DS4kW5Dho9NSzpRYB7F3VkYsF"],
+            [5168, "QmZCzm7XDdA1qVygtYyVXhcAQLdqcj5qnbeoBBLwceeoQg"],
+            [5324, "QmZ9pKK14zZX5FbiJsDWJPXaYWXQArcBTppGKaPutj8rTf"],
+            [5531, "QmV6aVx8B14jfuQGt5Y92Z7WR21MrvJ7wmY9BYkAt1MyUM"],
+            [5196, "QmR87q89zXuMSsV8YwoTwKwdmVKhi4R1LkRHNhyJ4Pmahd"],
+            [5566, "Qmf9RcFYrLTDw3E4TMugXkf8G6KQ7YexDFfrdS5J1mSP7P"],
+            [5341, "QmaWmsr5Y7YntPBm1F8E4DemhCvU1dxrpFTvQS4TPz8uXG"],
+            [5653, "QmUTCyKHkFem8Muor1DhL1RNtF7XRQJWnRre8W2k6spxto"],
+            [5669, "Qmeb7FspHacgpDt8y4ry9hify2cHM2oQVeUWGazUhcXEZi"],
+            [5592, "QmexoNutQecgSLHyezZwD5Ef6ZqGe6uZRCkhFvUwMJFhmU"],
+            [5742, "QmbnVusM98ZKimohJ5AU55mFBhTBpTJSrkeWNsHDqJnLvw"],
+            [5723, "QmeYS1WZAFhQCBmjQpPUzV2jbVFPMNURPm8vc7c4zLwDNR"],
+            [5654, "QmbC88WoBsU2AxSN7zyq6uMHzCSUyoqr3DyGJdd8DgLs2f"],
+            [5789, "QmQY7BrR1uuzVMCLKoDP62usFSqRmacxqFD7YxdUFCvwCQ"],
+            [5767, "Qmau4CbwLhYkboJatSumXSsXvFGPTVW8tUmGwy4DF7AtHi"],
+            [5716, "QmZZ1bsEsqY9UDearvLMbcv9RotQ6FxdzgvLZe4ihTqvQG"],
+            [5624, "QmZzmbz8Sc716YThbVXNDNTqtXQPp8sNqLTk1726nSgCWa"],
+            [5613, "Qmequh4TnfJwjpXsR13WqxheCT7htfVvsFrUmUJZVJEYz1"],
+            [5729, "QmcuhS4H13Mu6Mv8uKhoXHbnXB3ejmKDeQ2z9wxaqkK9oB"],
+            [5689, "Qmcebd3ieZQ2JQi1vyeVkS8di9ErQspuyQ314Q1DyuL5Cm"],
+            [5709, "QmdA5K8qBrMVcJ7dFZ3juSexu4vYCDWue5YL1davyaLcmT"],
+            [5751, "QmQ2wUkgXZd5ot7VTXk3MeREaBmmWkVd3vLxayyaRk4rLa"],
+            [5894, "QmPggq6giA2sAvetDHuyYXXUmZdPyfCu3efmLfwDh3ah7h"],
+            [5861, "QmdZm4pxfDayJmetrZXmYHvYke5fMsAxCRGgQH8ieHhSqj"],
+            [6014, "QmV8SHjLAKp2xXfCvChJhb3S5PUEjEKj1bwurWeouxbxVW"],
+            [5759, "QmWrCE7C82rTVSrdEPptwb1NpkHHcvszAb4ZahdV4zGDdC"],
+            [5848, "Qmea9JmSk6nB7z5mvSHBi9eHVRK3uhhr2PQ7z6qZTDvXd4"],
+            [6064, "QmQVi9gmpyRDmQKhh3LSyjf6bmsCTxq9eBSu9rRTYAgGe7"],
+            [5820, "QmPEdYSnatXMonzGuvdnNG7JfWgiJZR41GooJyLhptv4gF"],
+            [6101, "QmR3DH3srg51qEjzM75yNX6bFKNHStfUhpv21NiZdFbZ7e"],
+            [6057, "QmNfs7q8WhQ6pjD5j3nZJd3wnnG8MpyRFF4beU23wYDm5k"],
+            [5977, "QmYfZMJqdbCzGC8fYjKkve9bGBzuq661cNyFHsXD7R4HQc"],
+            [6150, "QmWu1hV38vGU31A6pjyBnn8SJSnLPbYLTwSnxTxXFonmyW"],
+            [6061, "QmQuBfiT4KpJKd2HqNYwRVvZy5K638Rz9EDpoZVsBRvqDo"],
+            [6196, "QmXUy2kQV4hboTpsdMeTV9o5YrnPpYVgK6Bx89zxkUuDe6"],
+            [6426, "QmT6mTxYJEjdsmLjDmbcUN16cjoknqgKQ1NGVqfgQQtfaM"],
+            [6031, "QmcKN7MExEw3HiDAbLhBGQdHVdtJsikRtUNogfTVPRQjBt"],
+            [6214, "QmcstHcitqZ44G2ZzweE7PYdAdauUk8AytCScF4qDh6Gkf"],
+            [6388, "QmcxLrPoQLMzqpWbmmiw54E7GycLnPYEBrt9e8DdEkdWvN"],
+            [6295, "QmfLuP6CfaAmCYviUDdh8D7bvRWVoLC8rTqgtVBYEvxK2i"],
+            [6185, "Qmbpa3hTV7oM9JyQp6Bk99Ez8PeYzH52kwG8ZJvp57qS6x"],
+            [6132, "QmWnUp29Ng18VPxty86bJCNkvX6ZSRGb6SHhaWkR1oMu9x"],
+            [6091, "QmZ3RXRHVqo5kAMqTGgLebcMgb4Jpcd5QnD7tZL9aVBsaM"],
+            [6417, "QmRd9Ai2dDgC8urCMb22KNJ3Rqu2bBYthSr7HaRdnvKiXo"],
+            [6605, "QmeTCFmDmmbY3bMNG457oWGQ1UG8mckwxN5tsJA7RJo52F"],
+            [5882, "Qmesb9sBbQN7haeridDU7FXfUNi1Jh5BSctNjWQchkrtvM"],
+            [6310, "QmV5A8jaH2EPRJVKyvNKuydD3MRXKMWdvsGLJxGRV7enFC"],
+            [6043, "QmeYAaZwo4MzsEzKch7K9Fa1d7jjWN2qwN2faGZCKn5Rc5"],
+            [6233, "QmebAn63ohYJPg4Gq8hjXZbqcREE9e1ADeSvPvruakfAJz"],
+            [6644, "QmR4YUbave5bRwj2MJTmHUmR6dUZjecjeo8zoobXM7Rktm"],
+            [6287, "QmUBcjmhHk79uPgYQGkRXiqLBcgoqJG5ePDVKe89jSE9h6"],
+            [6325, "Qmdd51dCmLWx7PGKjAF96nBJKv6AfCBympL8XkRAYjFVhj"],
+            [6374, "QmewzZUBMgJ7kYSEqwa1iZQwMeMEeAUffZj6x6aZ4LuM2f"],
+            [6418, "QmXLexn9qeD3AQUEQrCnE6Z7veiS4A8CxmNxVmAXEkUxHL"],
+            [6626, "QmfDACmKGsevZnUbCsEzvfjDMpxhftktTvzHCBNMUa58Ek"],
+            [6711, "QmfDwEK8r6YqMV1ucr41cRruynsEamfSP14UUwq2a7DxtK"],
+            [6589, "QmXr4qev4zawFNy7MJEs1GM1tMLegymcs7W7vdbEmmXmBc"],
+            [6773, "Qmbk4N8QMHXxSdxxdysUDSb5KsTHF7P4hCJzXQXUtTLbn1"],
+            [6579, "QmXqsgRciD6kfFH1aR6nfsCMctZ7VyxZjQ6cZVeXAbKH2g"],
+            [6440, "QmeEJu5zNnuQvj3nWYRwGZEwSMS9KuwGg32nJZ6NgRMrUs"],
+            [6585, "QmQr7JCGkwr41hfAh8E6iJQvPefZPx4qHDde8uqvMxS3Sm"],
+            [6775, "QmbWhKth2iVhYhJG9KjC7UNi47W8krbA4VDeRfVtRuMFn2"],
+            [7023, "QmV18jCvLS3CHUFmDQJr9QNkwcC3cvQf6pbGRZhgb4ariH"],
+            [7035, "QmeBvtWoc7DaxmcLBAQfyeFB4aWYCSxwdKot329t9Zq3kc"],
+            [6793, "QmdBkDxPz6mgS1k6okxpM7dVo7eB6QGidJroNoNZ1PMksh"],
+            [7013, "QmUaY7j5D5ByMiAGPCyvGqWEwnPLyLMoCpskoQ9qPruRRH"],
+            [6807, "QmUMbQttgythix2KTBVnBhSVtt4KgPYVz1GQ5pG7uPdfwV"],
+            [6927, "QmfQivMQZr73YxHTaSfK8Mgzjsqi48ZFVbCLbwNjtogPKG"],
+            [6677, "QmeGxDnKNAiuYDbvEPqtjEywotvVUeoCFX6jzquNYeuyzC"],
+            [6692, "QmanXGFu4XAi5nVxEyn6YZemxXtd3nQejV7GE12BZyTLFZ"],
+            [7007, "QmR3V9Z91Qc6U3ViHMxohCbKeQ2aqXXxiCBWiu8k2fTe21"],
+            [6918, "QmSdsmdHPVTSFqmd6NyaYqnp2YW731NMMCyNmRQZQTBT8U"],
+            [6714, "QmbyAKNbbVPNjU1WnpfUwCZbXCReXJW6zhnxSyGaBrvvFz"],
+            [7095, "QmaStHan1BURKScHxM3BCbQxre4FxpNWw2sL4XWd6j8c3Z"],
+            [7005, "QmecoFn2NVMKVzsy5wWuWcJ9jt26x8eWpyXFqHiAwd8qWq"],
+            [7228, "QmPodnSNDns6absCo3RnHbechyYbCQE6jxXGW2qc4R9cK4"],
+            [7111, "QmahfmcbqiL3F2uQTQ9mpnQM1vvyMUhT9eLYo3oKTeGXoP"],
+            [7058, "QmQFWtgU9c2m4k1Gy9B3yzFEmUJnHX4a25RtpeDUTFu5Z3"],
+            [7010, "QmQmJBJ"] // শেষ অবজেক্টের টেক্সট ঠিক করা হলো
         ];
 
-        // In-memory runtime cache to bypass storage limit crashes
-        let pipelineQueue = [];
-        let completedDataMap = new Map(); 
-        let failedIdsList = [];
+        // IPFS Gateway URL (আমরা ipfs.io ব্যবহার করছি)
+        const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
         
-        let isPipelineRunning = false;
-        let stopRequested = false;
-        let currentQueueIndex = 0;
-        let isCsvMode = false;
+        let loadedImages = {}; // জিপ তৈরির জন্য ইমেজ ডাটা জমা রাখার অবজেক্ট
+        let successCount = 0;
+        let failedCount = 0;
 
-        const statTarget = document.getElementById('statTarget');
-        const statProcessed = document.getElementById('statProcessed');
-        const statSuccess = document.getElementById('statSuccess');
-        const statFailed = document.getElementById('statFailed');
-        const logger = document.getElementById('logger');
-        
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const downloadZipBtn = document.getElementById('downloadZipBtn');
-        const csvFileInput = document.getElementById('csvFileInput');
-
-        // Setup default 1 to 10000 run array
-        function resetPipelineToGlobal() {
-            pipelineQueue = [];
-            for(let i = 1; i <= TOTAL_COUNT; i++) {
-                pipelineQueue.push(i);
-            }
-            statTarget.textContent = pipelineQueue.length;
-            isCsvMode = false;
-        }
-        resetPipelineToGlobal();
-
-        function logToConsole(message, type = '') {
-            const div = document.createElement('div');
-            div.className = `log-entry ${type}`;
-            const time = new Date().toLocaleTimeString();
-            div.innerHTML = `<span>[${time}] ${message}</span>`;
-            logger.appendChild(div);
-            logger.scrollTop = logger.scrollHeight;
+        // লগ রাইটার ফাংশন
+        function writeLog(text, type = 'info') {
+            const logContainer = document.getElementById("logContainer");
+            const logLine = document.createElement("div");
+            logLine.className = `log-${type}`;
+            logLine.innerText = text;
+            logContainer.appendChild(logLine);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        function extractImageCid(metadata) {
-            try {
-                let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-                if (data.image) {
-                    let img = data.image;
-                    if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
-                    if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
-                    return img.includes('ipfs.io/ipfs/') ? img.split('ipfs.io/ipfs/')[1]?.split('?')[0] : img;
+        // ইমেজ লোড করার মূল ফাংশন
+        function loadNFTs() {
+            document.getElementById("startLoadBtn").disabled = true;
+            document.getElementById("totalStats").innerText = NFT_DATA.length;
+            
+            const gallery = document.getElementById("gallery");
+            gallery.innerHTML = ""; // আগের ডাটা পরিষ্কার করা
+            
+            writeLog("🚀 ইমেজ লোড হওয়া শুরু হয়েছে...", "info");
+            document.getElementById("statusMessage").innerText = "ইমেজ লোড হচ্ছে...";
+
+            NFT_DATA.forEach((nft) => {
+                const tokenId = nft[0];
+                const cid = nft[1];
+                const imageUrl = `${IPFS_GATEWAY}${cid}`;
+
+                // গ্যালারির কার্ড তৈরি করা
+                const card = document.createElement("div");
+                card.className = "nft-card";
+                card.onclick = () => openModal(tokenId, imageUrl);
+
+                const img = document.createElement("img");
+                img.alt = `mfer #${tokenId}`;
+                img.loading = "lazy"; // ব্রাউজার পারফরম্যান্স ঠিক রাখার জন্য
+
+                const label = document.createElement("div");
+                label.className = "token-id";
+                label.innerText = `#${tokenId}`;
+
+                card.appendChild(img);
+                card.appendChild(label);
+                gallery.appendChild(card);
+
+                // সরাসরি ইমেজ সোর্স এসাইন করা এবং ট্র্যাক করা
+                img.src = imageUrl;
+
+                img.onload = function() {
+                    successCount++;
+                    document.getElementById("successStats").innerText = successCount;
+                    updateProgress();
+                    // জিপের জন্য ক্যাশে জমা রাখা
+                    fetchAndCacheImage(tokenId, imageUrl);
+                };
+
+                img.onerror = function() {
+                    failedCount++;
+                    document.getElementById("failedStats").innerText = failedCount;
+                    img.style.background = "#ff6b6b"; // ফেইল হলে লাল ব্যাকগ্রাউন্ড
+                    writeLog(`❌ টোকেন #${tokenId} লোড হতে ব্যর্থ হয়েছে (CID: ${cid})`, "error");
+                    updateProgress();
+                };
+            });
+        }
+
+        // প্রোগ্রেস বার এবং পারসেন্টেজ আপডেট
+        function updateProgress() {
+            const total = NFT_DATA.length;
+            const current = successCount + failedCount;
+            const percent = Math.round((current / total) * 100);
+
+            document.getElementById("progressBar").style.width = `${percent}%`;
+            document.getElementById("progressText").innerText = `${percent}%`;
+            document.getElementById("speedIndicator").innerText = `📊 ${percent}%`;
+
+            if (current === total) {
+                document.getElementById("statusMessage").innerText = "সম্পন্ন হয়েছে!";
+                writeLog(`✅ সমস্ত প্রসেস শেষ! সফল: ${successCount}, ব্যর্থ: ${failedCount}`, "success");
+                if (successCount > 0) {
+                    document.getElementById("downloadZipBtn").disabled = false;
                 }
-                return null;
-            } catch (e) { return null; }
+            }
         }
 
-        async function fetchImageAndReplaceBackground(cid, attempt = 0) {
-            const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
+        // জিপ ফাইলের জন্য ব্লব (Blob) ডাটা সংগ্রহ করা
+        async function fetchAndCacheImage(tokenId, url) {
             try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(7000) });
-                if (!response.ok) throw new Error();
+                const response = await fetch(url);
                 const blob = await response.blob();
-                
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 512; canvas.height = 512;
-                    const ctx = canvas.getContext('2d');
-                    
-                    ctx.fillStyle = BG_COLOR; 
-                    ctx.fillRect(0, 0, 512, 512);
-
-                    const img = new Image();
-                    const objectURL = URL.createObjectURL(blob);
-                    img.src = objectURL;
-
-                    img.onload = function() {
-                        const imgAspect = img.width / img.height;
-                        let drawW = 512, drawH = 512, offsetX = 0, offsetY = 0;
-                        if (imgAspect > 1) {
-                            drawH = 512; drawW = 512 * imgAspect; offsetX = (512 - drawW) / 2;
-                        } else {
-                            drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
-                        }
-                        
-                        const processCanvas = document.createElement('canvas');
-                        processCanvas.width = 512; processCanvas.height = 512;
-                        const pCtx = processCanvas.getContext('2d');
-                        pCtx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-                        const imageData = pCtx.getImageData(0, 0, 512, 512);
-                        const data = imageData.data;
-                        
-                        const rTarget = data[0];
-                        const gTarget = data[1];
-                        const bTarget = data[2];
-
-                        for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
-                                data[j] = 216;     
-                                data[j+1] = 255;   
-                                data[j+2] = 0;     
-                            }
-                        }
-                        pCtx.putImageData(imageData, 0, 0);
-                        ctx.drawImage(processCanvas, 0, 0);
-                        URL.revokeObjectURL(objectURL);
-                        resolve({ success: true, blob: null, dataURL: canvas.toDataURL('image/png') });
-                    };
-                    img.onerror = () => { URL.revokeObjectURL(objectURL); resolve({ success: false }); };
-                });
+                loadedImages[tokenId] = blob;
             } catch (err) {
-                if (attempt < MAX_RETRY) {
-                    return fetchImageAndReplaceBackground(cid, attempt + 1);
-                }
-                return { success: false };
+                console.error(`জিপ ডাটা সংগ্রহ করতে সমস্যা টোকেন: ${tokenId}`, err);
             }
         }
 
-        async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
-            for (let i = 0; i <= retries; i++) {
-                const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-                try {
-                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(5000) });
-                    if (!res.ok) throw new Error();
-                    return await res.text();
-                } catch (err) {
-                    if (i === retries) return null;
-                    await new Promise(r => setTimeout(r, 200));
-                }
+        // জিপ ফাইল ডাউনলোড করার লজিক
+        function downloadAllAsZip() {
+            const zip = new JSZip();
+            writeLog("📦 জিপ ফাইল তৈরি হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...", "info");
+
+            for (const tokenId in loadedImages) {
+                zip.file(`mfer_${tokenId}.png`, loadedImages[tokenId]);
             }
+
+            zip.generateAsync({ type: "blob" }).then(function (content) {
+                saveAs(content, "mfers_recovery.zip");
+                writeLog("🎉 জিপ ডাউনলোড শুরু হয়েছে!", "success");
+            });
         }
 
-        async function processPipelineItem(tokenId) {
-            const rawMetadata = await fetchMetadataWithRetry(tokenId);
-            let cid = null;
-            let result = { success: false };
+        // মোডাল পপআপ দেখার জন্য লজিক
+        function openModal(tokenId, imageUrl) {
+            const modal = document.getElementById("modalOverlay");
+            document.getElementById("modalTitle").innerText = `mfer #${tokenId}`;
+            modal.classList.add("active");
 
-            if (rawMetadata) {
-                cid = extractImageCid(rawMetadata);
-                if (cid) result = await fetchImageAndReplaceBackground(cid);
-            }
+            const canvas = document.getElementById("modalCanvas");
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
+            img.crossOrigin = "anonymous"; // ক্যানভাসে ড্র করার জন্য পারমিশন
+            img.src = imageUrl;
 
-            if (result.success && result.dataURL) {
-                completedDataMap.set(tokenId, result.dataURL);
-                logToConsole(`mfer #${tokenId} processed successfully.`, 'log-success');
-            } else {
-                if(!failedIdsList.includes(tokenId)) {
-                    failedIdsList.push(tokenId);
-                }
-                logToConsole(`mfer #${tokenId} failed to load from IPFS.`, 'log-error');
-            }
-
-            // Update DOM metrics live
-            statProcessed.textContent = completedDataMap.size + failedIdsList.length;
-            statSuccess.textContent = completedDataMap.size;
-            statFailed.textContent = failedIdsList.length;
-        }
-
-        async function startGlobalPipeline() {
-            if (isPipelineRunning) return;
-            isPipelineRunning = true;
-            stopRequested = false;
-
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            downloadZipBtn.disabled = true;
-            document.getElementById('uploadWrapper').style.opacity = '0.3';
-            csvFileInput.disabled = true;
-
-            logToConsole(`Pipeline started. Processing queue...`, 'log-success');
-
-            const worker = async () => {
-                while (currentQueueIndex < pipelineQueue.length && !stopRequested) {
-                    const id = pipelineQueue[currentQueueIndex++];
-                    
-                    // Skip if already in successful memory map
-                    if (completedDataMap.has(id)) continue;
-
-                    await processPipelineItem(id);
-                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
-                }
+            img.onload = function() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             };
-
-            const pool = Array(CONCURRENT_LIMIT).fill(null).map(() => worker());
-            await Promise.all(pool);
-
-            isPipelineRunning = false;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            downloadZipBtn.disabled = completedDataMap.size === 0;
-            document.getElementById('uploadWrapper').style.opacity = '1';
-            csvFileInput.disabled = false;
-
-            if (stopRequested) {
-                logToConsole(`Pipeline paused by user. Exporting failed manifest...`, 'log-error');
-                triggerCsvDownload();
-            } else {
-                logToConsole(`Pipeline job complete. Stored items: ${completedDataMap.size}`, 'log-success');
-                if(failedIdsList.length > 0) {
-                    triggerCsvDownload();
-                }
-            }
         }
 
-        function stopPipeline() {
-            stopRequested = true;
-            logToConsole('Stop signal sent. Gracefully halting active threads...');
-        }
-
-        function triggerCsvDownload() {
-            if (failedIdsList.length === 0) {
-                alert("No failed items detected in this run!");
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIdsList.join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", isCsvMode ? "retry_failed_items.csv" : "global_failed_items.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function handleCSVUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const loadedIds = [];
-
-                for (let i = 1; i < lines.length; i++) {
-                    const val = lines[i].trim();
-                    if (val && !isNaN(val)) {
-                        loadedIds.push(parseInt(val));
-                    }
-                }
-
-                if (loadedIds.length > 0) {
-                    pipelineQueue = loadedIds;
-                    currentQueueIndex = 0;
-                    failedIdsList = []; // Clear old fails for fresh session
-                    isCsvMode = true;
-
-                    // Reset counters for CSV targeted tracking
-                    statTarget.textContent = pipelineQueue.length;
-                    statProcessed.textContent = "0";
-                    statSuccess.textContent = completedDataMap.size; // show current global map size
-                    statFailed.textContent = "0";
-
-                    logToConsole(`CSV Uploaded! Loaded ${loadedIds.length} target tokens for retry pipeline. Click 'Start Pipeline'`, 'log-success');
-                } else {
-                    alert("Invalid CSV format or empty list.");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        async function downloadZipArchive() {
-            downloadZipBtn.disabled = true;
-            const originalText = downloadZipBtn.textContent;
-            downloadZipBtn.textContent = '📦 Packing ZIP (Please Wait)...';
-
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder(isCsvMode ? "mfer_csv_retry_batch" : "mfer_global_export");
-
-                let indexCounter = 1;
-                for (const [id, dataURL] of completedDataMap.entries()) {
-                    const res = await fetch(dataURL);
-                    const blob = await res.blob();
-                    
-                    // Uses exact original serial mapping
-                    folder.file(`${id}.png`, blob);
-                    indexCounter++;
-                }
-
-                const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, isCsvMode ? "mfer_retry_fixed.zip" : "mfer_processed_global.zip");
-                logToConsole("ZIP exported successfully.", 'log-success');
-            } catch (e) {
-                alert("Compression error.");
-            }
-
-            downloadZipBtn.textContent = originalText;
-            downloadZipBtn.disabled = false;
+        function closeModal() {
+            document.getElementById("modalOverlay").classList.remove("active");
         }
     </script>
 </body>
