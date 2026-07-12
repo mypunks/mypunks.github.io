@@ -222,24 +222,46 @@ function fetchWithTimeout(url, ms){
   return fetch(url, {signal: controller.signal}).finally(() => clearTimeout(timer));
 }
 
-async function fetchImageViaGateways(cid, path=''){
-  let lastErr;
-  for (let pass = 0; pass < 2; pass++){
-    for (const gw of GATEWAYS){
-      try{
-        const url = gw + cid + (path || '');
-        const res = await fetchWithTimeout(url, 15000);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const blob = await res.blob();
-        if (blob && blob.size > 0) return {blob, source: gw.replace('https://','').split('/')[0]};
-      }catch(e){ lastErr = e; continue; }
-    }
-  }
-  throw lastErr || new Error('সব গেটওয়ে ব্যর্থ');
+function fetchImageViaGateways(cid, path=''){
+  // Race ALL gateways at once — whichever responds first wins, instead of
+  // waiting through a slow/dead gateway before trying the next one.
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let remaining = GATEWAYS.length;
+    const controllers = GATEWAYS.map(() => new AbortController());
+    const globalTimer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      controllers.forEach(c => c.abort());
+      reject(new Error('টাইমআউট — কোনো গেটওয়ে সময়মতো সাড়া দেয়নি'));
+    }, 12000);
+
+    GATEWAYS.forEach((gw, i) => {
+      const url = gw + cid + (path || '');
+      fetch(url, {signal: controllers[i].signal})
+        .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.blob(); })
+        .then(blob => {
+          if (settled) return;
+          if (blob && blob.size > 0){
+            settled = true;
+            clearTimeout(globalTimer);
+            controllers.forEach((c, j) => { if (j !== i) c.abort(); });
+            resolve({blob, source: gw.replace('https://','').split('/')[0]});
+          } else {
+            remaining--;
+            if (remaining === 0 && !settled){ settled = true; clearTimeout(globalTimer); reject(new Error('সব গেটওয়ে ব্যর্থ')); }
+          }
+        })
+        .catch(() => {
+          remaining--;
+          if (remaining === 0 && !settled){ settled = true; clearTimeout(globalTimer); reject(new Error('সব গেটওয়ে ব্যর্থ')); }
+        });
+    });
+  });
 }
 
 async function fetchDirectUrl(url){
-  const res = await fetchWithTimeout(url, 15000);
+  const res = await fetchWithTimeout(url, 10000);
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const blob = await res.blob();
   return {blob, source: 'direct'};
@@ -283,7 +305,7 @@ async function resolveTokenImage(tokenId, contract, rpcUrl){
   }
   const cidInfoMeta = extractCidFromUri(uri);
   let metaUrl = cidInfoMeta ? (GATEWAYS[0] + cidInfoMeta.cid + cidInfoMeta.path) : uri;
-  const metaRes = await fetchWithTimeout(metaUrl, 15000);
+  const metaRes = await fetchWithTimeout(metaUrl, 10000);
   const meta = await metaRes.json();
   const imgRaw = meta.image || meta.image_url;
   const cidInfo = extractCidFromUri(imgRaw);
@@ -327,7 +349,15 @@ function updateSelCount(){
   $('selCount').textContent = `${checked} টি নির্বাচিত`;
 }
 
+let cancelRequested = false;
+let isRunning = false;
+
 $('loadBtn').addEventListener('click', async () => {
+  if (isRunning){
+    cancelRequested = true;
+    return;
+  }
+  isRunning = true;
   refreshCsvMap();
   const contract = $('contract').value.trim();
   const rpcUrl = $('rpcUrl').value.trim();
@@ -340,16 +370,17 @@ $('loadBtn').addEventListener('click', async () => {
   $('grid').innerHTML = '';
   loadedItems.length = 0;
   $('toolbar').classList.remove('hidden');
-  $('loadBtn').disabled = true;
+  cancelRequested = false;
+  $('loadBtn').textContent = 'থামান';
   $('statusLine').textContent = `০ / ${ids.length} লোড হয়েছে…`;
 
   ids.forEach(id => $('grid').appendChild(makeCard(id)));
 
   let done = 0;
-  const CONCURRENCY = 4;
+  const CONCURRENCY = 8; // requests race across gateways in parallel now, so this can be higher
   let idx = 0;
   async function worker(){
-    while (idx < ids.length){
+    while (idx < ids.length && !cancelRequested){
       const myId = ids[idx++];
       await loadToken(myId, contract, rpcUrl);
       done++;
@@ -357,11 +388,16 @@ $('loadBtn').addEventListener('click', async () => {
     }
   }
   await Promise.all(Array.from({length: Math.min(CONCURRENCY, ids.length)}, worker));
-  $('loadBtn').disabled = false;
+  $('loadBtn').textContent = 'টোকেনগুলো লোড করুন';
+  isRunning = false;
   const failed = document.querySelectorAll('.card.error').length;
-  $('statusLine').textContent = failed
-    ? `সম্পন্ন — ${ids.length - failed}/${ids.length} সফল, ${failed} টি ব্যর্থ (ব্যর্থ কার্ডে "আবার চেষ্টা করুন" চাপুন)।`
-    : `সম্পন্ন — সবগুলো (${ids.length}) সফলভাবে লোড হয়েছে।`;
+  if (cancelRequested){
+    $('statusLine').textContent = `থামানো হয়েছে — ${done}/${ids.length} প্রসেস হয়েছিল।`;
+  } else {
+    $('statusLine').textContent = failed
+      ? `সম্পন্ন — ${ids.length - failed}/${ids.length} সফল, ${failed} টি ব্যর্থ (ব্যর্থ কার্ডে "আবার চেষ্টা করুন" চাপুন)।`
+      : `সম্পন্ন — সবগুলো (${ids.length}) সফলভাবে লোড হয়েছে।`;
+  }
 });
 
 $('selectAll').addEventListener('change', (e) => {
