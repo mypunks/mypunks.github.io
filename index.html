@@ -55,15 +55,28 @@
         .nft-card {
             background: #242424; border-radius: 12px; padding: 10px;
             text-align: center; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease;
         }
+        
+        /* লোড হওয়া ছবির নতুন নির্দিষ্ট ব্যাকগ্রাউন্ড কালার */
+        .nft-card.loaded-success {
+            background-color: #d4ff00; /* আপনার দেওয়া কালার কোড */
+            border-color: #b5db00;
+        }
+        
+        /* সফল কার্ডের টেক্সট কালার অ্যাডজাস্টমেন্ট যাতে বোঝা যায় */
+        .nft-card.loaded-success .id {
+            color: #000 !important;
+        }
+
         .nft-card img { 
             width: 100%; aspect-ratio: 1; object-fit: cover; 
-            border-radius: 8px; background: #242424; display: block; 
+            border-radius: 8px; display: block; 
         }
         .nft-card .id { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.95rem; }
         .nft-card .status { font-size: 0.8rem; margin-top: 4px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
         .status.waiting { background: #333; color: #aaa; }
-        .status.success { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .status.success { background: rgba(0, 0, 0, 0.15); color: #000; font-weight: bold; }
         .status.fail { background: rgba(244, 67, 54, 0.2); color: #f44336; }
     </style>
 </head>
@@ -91,7 +104,6 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
-        // মূল ৫১৭টি টোকেন আইডির প্রাথমিক লিস্ট
         let TARGET_IDS = [
             465, 439, 432, 414, 473, 397, 204, 583, 564, 71, 268, 237, 682, 505, 796, 736, 625, 697, 979, 546, 
             866, 576, 726, 1025, 1077, 1059, 1170, 920, 966, 1218, 1290, 1145, 1374, 1372, 1370, 1307, 1354, 1317, 1406, 1419, 
@@ -121,7 +133,7 @@
 
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
         const GATEWAY = 'https://ipfs.io/ipfs';
-        const CONCURRENT_LIMIT = 25; // নেটওয়ার্ক স্টেবল রাখতে ২৫টি করে ফেচ হবে
+        const CONCURRENT_LIMIT = 25;
 
         const zip = new JSZip();
         let failedIds = [];
@@ -148,7 +160,6 @@
         }
 
         async function processToken(id) {
-            // পূর্বের ডামি বা কার্ড থাকলে তা ক্লিয়ার বা নতুন কার্ড তৈরি
             let card = document.getElementById(`card-${id}`);
             if (!card) {
                 card = document.createElement('div');
@@ -156,6 +167,7 @@
                 card.id = `card-${id}`;
                 document.getElementById('gallery').appendChild(card);
             }
+            card.className = 'nft-card'; // রিসেট করা
             card.innerHTML = `<div class="id">#${id}</div><div class="status waiting" id="status-${id}">⏳ মেটাডাটা...</div>`;
 
             try {
@@ -169,10 +181,10 @@
                 document.getElementById(`status-${id}`).innerText = "⏳ ইমেজ লোড...";
                 const imageBlob = await fetchImageBlob(cid);
                 
-                // জিপে যুক্ত করা (নামকরণ টোকেন আইডি অনুযায়ী)
                 zip.file(`mfer_${id}.png`, imageBlob);
 
-                // UI সাকসেস স্টেট ও ব্যাকগ্রাউন্ড সিঙ্ক
+                // সফল হলে লাইম গ্রিন ব্যাকগ্রাউন্ডের ক্লাস অ্যাড করা
+                card.classList.add('loaded-success');
                 document.getElementById(`status-${id}`).innerText = "✅ সম্পন্ন";
                 document.getElementById(`status-${id}`).className = "status success";
                 
@@ -209,7 +221,6 @@
             successCount = 0;
             failedIds = [];
             
-            // নতুন প্রসেসের জন্য জিপ অবজেক্ট খালি করা
             Object.keys(zip.files).forEach(filename => delete zip.files[filename]);
 
             const pool = [];
@@ -231,7 +242,6 @@
             document.getElementById('btnStart').disabled = false;
         }
 
-        // জিপ ফাইল ডাউনলোড
         function downloadZip() {
             document.getElementById('progressText').innerText = "⏳ জিপ ফাইল জেনারেট হচ্ছে...";
             zip.generateAsync({ type: "blob" }).then(function(content) {
@@ -243,7 +253,6 @@
             });
         }
 
-        // ব্যর্থ হওয়া টোকেন আইডিগুলোর CSV ডাউনলোড
         function downloadFailedCSV() {
             if (failedIds.length === 0) return;
             let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIds.join("\n");
@@ -256,7 +265,6 @@
             document.body.removeChild(link);
         }
 
-        // CSV ফাইল আপলোড হ্যান্ডলার (পরবর্তীতে রান করার জন্য)
         function handleCSVUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -276,7 +284,7 @@
                 
                 if (newIds.length > 0) {
                     TARGET_IDS = newIds;
-                    document.getElementById('gallery').innerHTML = ''; // পূর্বের গ্যালারি রিসেট
+                    document.getElementById('gallery').innerHTML = '';
                     document.getElementById('progressText').innerText = `📂 CSV থেকে ${TARGET_IDS.length}টি ব্যর্থ আইডি আপলোড হয়েছে! রেডি টু রান।`;
                     document.getElementById('btnStart').disabled = false;
                 } else {
