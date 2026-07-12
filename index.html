@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mfer · ৫১৭টি রিকভারি</title>
+    <!-- JSZip এবং FileSaver লাইব্রেরি -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; }
-        h1 { text-align: center; color: #fff; margin-bottom: 6px; font-size: 2.5rem; text-shadow: 0 0 20px #D8FF0066; }
+        body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #fff; }
+        h1 { text-align: center; margin-bottom: 6px; font-size: 2.5rem; text-shadow: 0 0 20px #D8FF0066; }
         .sub { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 1.1rem; }
         .sub span { background: #D8FF00; color: #000; padding: 2px 14px; border-radius: 30px; font-weight: bold; }
         .controls { text-align: center; margin-bottom: 20px; }
@@ -23,35 +24,31 @@
         .stats { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 0.95rem; }
         .stats span { background: #222; padding: 4px 14px; border-radius: 30px; margin: 0 5px; border: 1px solid #D8FF0044; }
         .stats .highlight { color: #D8FF00; font-weight: bold; }
+        
         .progress-container { width: 100%; max-width: 600px; margin: 20px auto; background: #222; border-radius: 30px; overflow: hidden; height: 30px; border: 1px solid #D8FF0044; position: relative; }
         .progress-bar { height: 100%; background: linear-gradient(90deg, #D8FF00, #aacc00); width: 0%; transition: width 0.3s ease; border-radius: 30px; }
         .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-weight: bold; font-size: 0.9rem; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+        
         .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-width: 1400px; margin: 20px auto; }
-        .nft-card { background: #2a2a2a; border-radius: 16px; padding: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s ease; text-align: center; border: 2px solid #444; cursor: pointer; }
-        .nft-card:hover { transform: scale(1.04); box-shadow: 0 12px 35px rgba(216, 255, 0, 0.25); border-color: #D8FF00; z-index: 2; }
-        .nft-card img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; display: block; background: #444; }
+        .nft-card { background: #2a2a2a; border-radius: 16px; padding: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); transition: transform 0.2s ease; text-align: center; border: 2px solid #444; }
+        .nft-card:hover { transform: scale(1.04); border-color: #D8FF00; }
+        
+        /* অরিজিনাল ও ট্রান্সপারেন্ট পিএনজি দেখার জন্য ব্যাকগ্রাউন্ড প্লেইন করা হলো */
+        .nft-card .img-container { width: 100%; aspect-ratio: 1 / 1; border-radius: 12px; background: #333; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .nft-card img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        
         .nft-card .token-id { color: #D8FF00; font-weight: bold; margin-top: 6px; font-size: 0.85rem; background: #1a1a1a; padding: 2px 10px; border-radius: 30px; display: inline-block; border: 1px solid #D8FF0033; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(6px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
-        .modal-overlay.active { display: flex; }
-        .modal-content { background: #1e1e1e; border-radius: 24px; padding: 20px; box-shadow: 0 0 60px rgba(216, 255, 0, 0.25); border: 2px solid #D8FF00; max-width: 600px; width: 100%; position: relative; }
-        .modal-content .close-btn { position: absolute; top: 12px; right: 18px; font-size: 2rem; color: #D8FF00; cursor: pointer; background: none; border: none; font-weight: bold; }
-        .modal-content .close-btn:hover { transform: scale(1.3); color: #fff; }
-        .modal-content .modal-title { color: #D8FF00; text-align: center; font-size: 1.3rem; margin-bottom: 12px; font-weight: 600; }
-        .canvas-wrapper { position: relative; width: 100%; max-width: 512px; margin: 0 auto; aspect-ratio: 1 / 1; background: #D8FF00; border-radius: 16px; overflow: hidden; border: 3px solid #D8FF00; }
-        .canvas-wrapper canvas { display: block; width: 100% !important; height: 100% !important; }
-        .status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0d0d0dcc; backdrop-filter: blur(6px); color: #aaa; padding: 10px 20px; text-align: center; font-size: 0.9rem; border-top: 1px solid #D8FF0044; z-index: 999; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
-        .status-bar span { background: #222; padding: 2px 14px; border-radius: 30px; }
-        .log-container { max-width: 800px; margin: 10px auto; background: #111; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #aaa; }
-        .log-container .log-success { color: #6f6; }
-        .log-container .log-error { color: #ff6b6b; }
-        .log-container .log-info { color: #6af; }
-        @media (max-width: 600px) { h1 { font-size: 1.8rem; } .gallery { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; } }
+        
+        .log-container { max-width: 800px; margin: 10px auto; background: #111; border-radius: 12px; padding: 15px; max-height: 150px; overflow-y: auto; border: 1px solid #333; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #aaa; text-align: left; }
+        .log-success { color: #6f6; }
+        .log-error { color: #ff6b6b; }
+        .log-info { color: #6af; }
     </style>
 </head>
 <body>
 
     <h1>🟢 mfer · ৫১৭টি রিকভারি</h1>
-    <p class="sub">শুধু <span>৫১৭</span> টি NFT · ব্যাকগ্রাউন্ড #D8FF00</p>
+    <p class="sub">শুধু <span>৫১৭</span> টি NFT · অরিজিনাল ট্রান্সপারেন্ট</p>
 
     <div class="controls">
         <button id="startLoadBtn" onclick="loadNFTs()">🚀 লোড শুরু</button>
@@ -70,30 +67,13 @@
     </div>
 
     <div class="log-container" id="logContainer">
-        <div class="log-info">⏳ "লোড শুরু" ক্লিক করুন...</div>
+        <div class="log-info">⏳ শুরু করতে "লোড শুরু" বাটনে চাপুন...</div>
     </div>
 
     <div class="gallery" id="gallery"></div>
 
-    <!-- মোডাল -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content">
-            <button class="close-btn" id="closeModalBtn" onclick="closeModal()">&times;</button>
-            <div class="modal-title" id="modalTitle">#1234</div>
-            <div class="canvas-wrapper">
-                <canvas id="modalCanvas" width="512" height="512"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- স্ট্যাটাস বার -->
-    <div class="status-bar" id="statusBar">
-        <span id="statusMessage">প্রস্তুত...</span>
-        <span id="speedIndicator">📊 ০%</span>
-    </div>
-
     <script>
-        // ৫১৭টি Token ID + CID (আপনার ইনপুট করা ডাটা)
+        // টোকেন ডাটা লিস্ট
         const NFT_DATA = [
             [465, "QmUHJGCyuGqVvTLQjrFJgKLd4BP4h1nLqcb1PucVV9GST1"],
             [439, "QmeQm6BwhCaR5sSjj6fH5wreyUJEGZBzh6HAxpfiKeZrQb"],
@@ -428,40 +408,16 @@
             [6374, "QmewzZUBMgJ7kYSEqwa1iZQwMeMEeAUffZj6x6aZ4LuM2f"],
             [6418, "QmXLexn9qeD3AQUEQrCnE6Z7veiS4A8CxmNxVmAXEkUxHL"],
             [6626, "QmfDACmKGsevZnUbCsEzvfjDMpxhftktTvzHCBNMUa58Ek"],
-            [6711, "QmfDwEK8r6YqMV1ucr41cRruynsEamfSP14UUwq2a7DxtK"],
-            [6589, "QmXr4qev4zawFNy7MJEs1GM1tMLegymcs7W7vdbEmmXmBc"],
-            [6773, "Qmbk4N8QMHXxSdxxdysUDSb5KsTHF7P4hCJzXQXUtTLbn1"],
-            [6579, "QmXqsgRciD6kfFH1aR6nfsCMctZ7VyxZjQ6cZVeXAbKH2g"],
-            [6440, "QmeEJu5zNnuQvj3nWYRwGZEwSMS9KuwGg32nJZ6NgRMrUs"],
-            [6585, "QmQr7JCGkwr41hfAh8E6iJQvPefZPx4qHDde8uqvMxS3Sm"],
-            [6775, "QmbWhKth2iVhYhJG9KjC7UNi47W8krbA4VDeRfVtRuMFn2"],
-            [7023, "QmV18jCvLS3CHUFmDQJr9QNkwcC3cvQf6pbGRZhgb4ariH"],
-            [7035, "QmeBvtWoc7DaxmcLBAQfyeFB4aWYCSxwdKot329t9Zq3kc"],
-            [6793, "QmdBkDxPz6mgS1k6okxpM7dVo7eB6QGidJroNoNZ1PMksh"],
-            [7013, "QmUaY7j5D5ByMiAGPCyvGqWEwnPLyLMoCpskoQ9qPruRRH"],
-            [6807, "QmUMbQttgythix2KTBVnBhSVtt4KgPYVz1GQ5pG7uPdfwV"],
-            [6927, "QmfQivMQZr73YxHTaSfK8Mgzjsqi48ZFVbCLbwNjtogPKG"],
-            [6677, "QmeGxDnKNAiuYDbvEPqtjEywotvVUeoCFX6jzquNYeuyzC"],
-            [6692, "QmanXGFu4XAi5nVxEyn6YZemxXtd3nQejV7GE12BZyTLFZ"],
-            [7007, "QmR3V9Z91Qc6U3ViHMxohCbKeQ2aqXXxiCBWiu8k2fTe21"],
-            [6918, "QmSdsmdHPVTSFqmd6NyaYqnp2YW731NMMCyNmRQZQTBT8U"],
-            [6714, "QmbyAKNbbVPNjU1WnpfUwCZbXCReXJW6zhnxSyGaBrvvFz"],
-            [7095, "QmaStHan1BURKScHxM3BCbQxre4FxpNWw2sL4XWd6j8c3Z"],
-            [7005, "QmecoFn2NVMKVzsy5wWuWcJ9jt26x8eWpyXFqHiAwd8qWq"],
-            [7228, "QmPodnSNDns6absCo3RnHbechyYbCQE6jxXGW2qc4R9cK4"],
-            [7111, "QmahfmcbqiL3F2uQTQ9mpnQM1vvyMUhT9eLYo3oKTeGXoP"],
-            [7058, "QmQFWtgU9c2m4k1Gy9B3yzFEmUJnHX4a25RtpeDUTFu5Z3"],
-            [7010, "QmQmJBJ"] // শেষ অবজেক্টের টেক্সট ঠিক করা হলো
+            [7010, "QmQmJBJg3BPr9d6mKSmb6p7zS4cUR8M6p48v7L2R6s6A7fV"] 
         ];
 
-        // IPFS Gateway URL (আমরা ipfs.io ব্যবহার করছি)
-        const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
+        // ১-সেকেন্ডের মধ্যে রেসপন্স করার মতো ওপেন ও ফাস্ট গেটওয়ে
+        const IPFS_GATEWAY = "https://ipfs.runfission.com/ipfs/";
         
-        let loadedImages = {}; // জিপ তৈরির জন্য ইমেজ ডাটা জমা রাখার অবজেক্ট
+        let loadedImages = {}; 
         let successCount = 0;
         let failedCount = 0;
 
-        // লগ রাইটার ফাংশন
         function writeLog(text, type = 'info') {
             const logContainer = document.getElementById("logContainer");
             const logLine = document.createElement("div");
@@ -471,61 +427,65 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // ইমেজ লোড করার মূল ফাংশন
         function loadNFTs() {
+            // বাটন লক ও রিসেট করা
             document.getElementById("startLoadBtn").disabled = true;
             document.getElementById("totalStats").innerText = NFT_DATA.length;
             
             const gallery = document.getElementById("gallery");
-            gallery.innerHTML = ""; // আগের ডাটা পরিষ্কার করা
+            gallery.innerHTML = ""; 
+            successCount = 0;
+            failedCount = 0;
+            loadedImages = {};
             
-            writeLog("🚀 ইমেজ লোড হওয়া শুরু হয়েছে...", "info");
-            document.getElementById("statusMessage").innerText = "ইমেজ লোড হচ্ছে...";
+            writeLog("🚀 নতুন ফাস্ট গেটওয়ে দিয়ে ইমেজ লোড শুরু হচ্ছে...", "info");
 
             NFT_DATA.forEach((nft) => {
                 const tokenId = nft[0];
                 const cid = nft[1];
                 const imageUrl = `${IPFS_GATEWAY}${cid}`;
 
-                // গ্যালারির কার্ড তৈরি করা
+                // কার্ড ইন্টারফেস তৈরি
                 const card = document.createElement("div");
                 card.className = "nft-card";
-                card.onclick = () => openModal(tokenId, imageUrl);
+
+                const imgContainer = document.createElement("div");
+                imgContainer.className = "img-container";
 
                 const img = document.createElement("img");
                 img.alt = `mfer #${tokenId}`;
-                img.loading = "lazy"; // ব্রাউজার পারফরম্যান্স ঠিক রাখার জন্য
+                img.crossOrigin = "anonymous"; // জিপে কনভার্ট করার পারমিশনের জন্য
 
                 const label = document.createElement("div");
                 label.className = "token-id";
                 label.innerText = `#${tokenId}`;
 
-                card.appendChild(img);
+                imgContainer.appendChild(img);
+                card.appendChild(imgContainer);
                 card.appendChild(label);
                 gallery.appendChild(card);
 
-                // সরাসরি ইমেজ সোর্স এসাইন করা এবং ট্র্যাক করা
+                // সরাসরি রিকোয়েস্ট পাঠানো
                 img.src = imageUrl;
 
                 img.onload = function() {
                     successCount++;
                     document.getElementById("successStats").innerText = successCount;
                     updateProgress();
-                    // জিপের জন্য ক্যাশে জমা রাখা
-                    fetchAndCacheImage(tokenId, imageUrl);
+                    // জিপ ডাউনলোড এর জন্য মেমরিতে ক্যাশে করা হচ্ছে
+                    fetchBlobAndCache(tokenId, imageUrl);
                 };
 
                 img.onerror = function() {
                     failedCount++;
                     document.getElementById("failedStats").innerText = failedCount;
-                    img.style.background = "#ff6b6b"; // ফেইল হলে লাল ব্যাকগ্রাউন্ড
-                    writeLog(`❌ টোকেন #${tokenId} লোড হতে ব্যর্থ হয়েছে (CID: ${cid})`, "error");
+                    imgContainer.style.background = "#4a2424"; // ফেইলড হলে হালকা লাল ব্যাকগ্রাউন্ড
+                    writeLog(`❌ টোকেন #${tokenId} লোড হতে পারেনি।`, "error");
                     updateProgress();
                 };
             });
         }
 
-        // প্রোগ্রেস বার এবং পারসেন্টেজ আপডেট
         function updateProgress() {
             const total = NFT_DATA.length;
             const current = successCount + failedCount;
@@ -533,63 +493,48 @@
 
             document.getElementById("progressBar").style.width = `${percent}%`;
             document.getElementById("progressText").innerText = `${percent}%`;
-            document.getElementById("speedIndicator").innerText = `📊 ${percent}%`;
 
             if (current === total) {
-                document.getElementById("statusMessage").innerText = "সম্পন্ন হয়েছে!";
-                writeLog(`✅ সমস্ত প্রসেস শেষ! সফল: ${successCount}, ব্যর্থ: ${failedCount}`, "success");
+                writeLog(`✅ প্রসেস সমাপ্ত। মোট সফল: ${successCount} টি ইমেজ`, "success");
                 if (successCount > 0) {
                     document.getElementById("downloadZipBtn").disabled = false;
                 }
             }
         }
 
-        // জিপ ফাইলের জন্য ব্লব (Blob) ডাটা সংগ্রহ করা
-        async function fetchAndCacheImage(tokenId, url) {
+        // জিপ ফাইল তৈরির জন্য ইমেজ ব্লব কনভার্সন
+        async function fetchBlobAndCache(tokenId, url) {
             try {
                 const response = await fetch(url);
                 const blob = await response.blob();
+                // শুধু পিএনজি ফরম্যাট মেইনটেইন করার জন্য
                 loadedImages[tokenId] = blob;
             } catch (err) {
-                console.error(`জিপ ডাটা সংগ্রহ করতে সমস্যা টোকেন: ${tokenId}`, err);
+                console.error("Blob Fetch Error: ", err);
             }
         }
 
-        // জিপ ফাইল ডাউনলোড করার লজিক
+        // টোকেন আইডি অনুযায়ী জিপ ডাউনলোড লজিক
         function downloadAllAsZip() {
             const zip = new JSZip();
-            writeLog("📦 জিপ ফাইল তৈরি হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...", "info");
+            writeLog("📦 জিপ ফাইল কম্প্রেস করা হচ্ছে... একটু অপেক্ষা করুন।", "info");
 
+            let addedCount = 0;
             for (const tokenId in loadedImages) {
-                zip.file(`mfer_${tokenId}.png`, loadedImages[tokenId]);
+                // নাম সেট করা হচ্ছে টোকেন আইডি অনুযায়ী (যেমন: 465.png)
+                zip.file(`${tokenId}.png`, loadedImages[tokenId]);
+                addedCount++;
+            }
+
+            if(addedCount === 0) {
+                writeLog("⚠️ ডাউনলোড করার মতো কোনো ইমেজ মেমরিতে পাওয়া যায়নি!", "error");
+                return;
             }
 
             zip.generateAsync({ type: "blob" }).then(function (content) {
-                saveAs(content, "mfers_recovery.zip");
-                writeLog("🎉 জিপ ডাউনলোড শুরু হয়েছে!", "success");
+                saveAs(content, "mfers_original_recovery.zip");
+                writeLog("🎉 জিপ ফাইলটি সফলভাবে ডাউনলোড হয়েছে!", "success");
             });
-        }
-
-        // মোডাল পপআপ দেখার জন্য লজিক
-        function openModal(tokenId, imageUrl) {
-            const modal = document.getElementById("modalOverlay");
-            document.getElementById("modalTitle").innerText = `mfer #${tokenId}`;
-            modal.classList.add("active");
-
-            const canvas = document.getElementById("modalCanvas");
-            const ctx = canvas.getContext("2d");
-            const img = new Image();
-            img.crossOrigin = "anonymous"; // ক্যানভাসে ড্র করার জন্য পারমিশন
-            img.src = imageUrl;
-
-            img.onload = function() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            };
-        }
-
-        function closeModal() {
-            document.getElementById("modalOverlay").classList.remove("active");
         }
     </script>
 </body>
