@@ -3,35 +3,45 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer NFT জিপ ডাউনলোডার</title>
-    <!-- JSZip লাইব্রেরি জিপ তৈরি করার জন্য -->
+    <title>mfer NFT অ্যাডভান্সড ডাউনলোডার</title>
+    <!-- JSZip লাইব্রেরি -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #121212; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #fff; }
+        body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #fff; }
         h1 { text-align: center; margin-bottom: 5px; font-size: 2.2rem; color: #4caf50; }
         .sub { text-align: center; color: #aaa; margin-bottom: 25px; font-size: 1rem; }
         
         .control-panel {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto 30px;
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 12px;
+            background: #242424;
+            padding: 25px;
+            border-radius: 14px;
             border: 1px solid #333;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .btn {
             background: #4caf50; border: none; color: #000; font-weight: bold;
-            padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;
-            margin: 10px 5px; transition: 0.2s;
+            padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem;
+            margin: 8px 4px; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px;
         }
-        .btn:hover { background: #66bb6a; transform: translateY(-2px); }
+        .btn:hover { background: #66bb6a; transform: translateY(-1px); }
         .btn:disabled { background: #444; color: #777; cursor: not-allowed; transform: none; }
         .btn-zip { background: #ff9800; }
         .btn-zip:hover { background: #ffa726; }
+        .btn-csv { background: #e91e63; color: #fff; }
+        .btn-csv:hover { background: #ec407a; }
+        
+        .upload-box {
+            margin-top: 15px; padding: 12px; background: #151515; 
+            border: 2px dashed #444; border-radius: 8px; display: block; cursor: pointer;
+        }
+        .upload-box:hover { border-color: #4caf50; }
+        #fileInput { display: none; }
 
-        .progress-box { margin-top: 15px; font-size: 1.1rem; }
+        .progress-box { margin-top: 15px; font-size: 1.05rem; font-weight: 500; }
         .progress-bar-container {
             width: 100%; background: #333; height: 10px; border-radius: 5px;
             margin-top: 10px; overflow: hidden; display: none;
@@ -43,25 +53,35 @@
             gap: 15px; max-width: 1400px; margin: 0 auto; padding-bottom: 60px;
         }
         .nft-card {
-            background: #1e1e1e; border-radius: 10px; padding: 8px;
-            text-align: center; border: 1px solid #222; font-size: 0.85rem;
+            background: #242424; border-radius: 12px; padding: 10px;
+            text-align: center; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .nft-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: #000; }
-        .nft-card .id { color: #4caf50; font-weight: bold; margin-top: 5px; }
-        .nft-card .status { font-size: 0.75rem; color: #888; }
-        .status.success { color: #4caf50; }
-        .status.fail { color: #f44336; }
+        .nft-card img { 
+            width: 100%; aspect-ratio: 1; object-fit: cover; 
+            border-radius: 8px; background: #242424; display: block; 
+        }
+        .nft-card .id { color: #fff; font-weight: bold; margin-top: 8px; font-size: 0.95rem; }
+        .nft-card .status { font-size: 0.8rem; margin-top: 4px; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .status.waiting { background: #333; color: #aaa; }
+        .status.success { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .status.fail { background: rgba(244, 67, 54, 0.2); color: #f44336; }
     </style>
 </head>
 <body>
 
-    <h1>📦 mfer NFT বাল্ক জিপ ডাউনলোডার</h1>
-    <p class="sub">৫১৭টি নির্দিষ্ট টোকেন আইডির ডাটা ও ইমেজ লোড করে জিপ ফাইল তৈরি করুন</p>
+    <h1>📦 mfer NFT বাল্ক ডাউনলোডার ও রিট্রাই সিস্টেম</h1>
+    <p class="sub">ডাটা লোড, জিপ তৈরি এবং ব্যর্থ টোকেনের CSV ডাউনলোডের অ্যাডভান্সড টুল</p>
     
     <div class="control-panel">
         <button class="btn" id="btnStart" onclick="startProcess()">🚀 প্রসেস শুরু করুন</button>
-        <button class="btn btn-zip" id="btnDownload" onclick="downloadZip()" disabled>📥 জিপ ডাউনলোড করুন</button>
+        <button class="btn btn-zip" id="btnDownload" onclick="downloadZip()" disabled>📥 জিপ ডাউনলোড</button>
+        <button class="btn btn-csv" id="btnCSV" onclick="downloadFailedCSV()" disabled>📄 ব্যর্থ CSV ডাউনলোড</button>
         
+        <label class="upload-box" for="fileInput">
+            📂 এখানে ফেইল হওয়া CSV আপলোড করে আবার ট্রাই করুন
+            <input type="file" id="fileInput" accept=".csv" onchange="handleCSVUpload(event)" />
+        </label>
+
         <div class="progress-box" id="progressText">স্ট্যাটাস: অপেক্ষমান...</div>
         <div class="progress-bar-container" id="progressContainer">
             <div class="progress-bar" id="progressBar"></div>
@@ -71,8 +91,8 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
-        // আপনার রিট্রাই ফাইল থেকে প্রাপ্ত সম্পূর্ণ ৫১৭টি টোকেন আইডি নিশ্চিত করা হলো
-        const TARGET_IDS = [
+        // মূল ৫১৭টি টোকেন আইডির প্রাথমিক লিস্ট
+        let TARGET_IDS = [
             465, 439, 432, 414, 473, 397, 204, 583, 564, 71, 268, 237, 682, 505, 796, 736, 625, 697, 979, 546, 
             866, 576, 726, 1025, 1077, 1059, 1170, 920, 966, 1218, 1290, 1145, 1374, 1372, 1370, 1307, 1354, 1317, 1406, 1419, 
             1599, 1474, 1693, 1667, 1675, 1618, 1787, 1756, 1740, 1876, 1928, 1982, 1815, 1824, 2191, 2108, 2061, 2008, 2044, 2056, 
@@ -101,15 +121,13 @@
 
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
         const GATEWAY = 'https://ipfs.io/ipfs';
-        
-        // নেটওয়ার্ক ক্র্যাশ এড়াতে এক সাথে ২০টি করে ফাইল প্রসেস হবে
-        const CONCURRENT_LIMIT = 20; 
-        
+        const CONCURRENT_LIMIT = 25; // নেটওয়ার্ক স্টেবল রাখতে ২৫টি করে ফেচ হবে
+
         const zip = new JSZip();
+        let failedIds = [];
         let processedCount = 0;
         let successCount = 0;
 
-        // মেটাডাটা থেকে CID খুঁজে বের করার ফাংশন
         function extractCid(text) {
             try {
                 const data = JSON.parse(text);
@@ -122,55 +140,53 @@
             } catch (e) { return null; }
         }
 
-        // ছবি ডাউনলোড করে Blob ডেটাতে কনভার্ট করার ফাংশন
         async function fetchImageBlob(cid) {
             const url = `${GATEWAY}/${cid}`;
             const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-            if (!res.ok) throw new Error("Image download failed");
+            if (!res.ok) throw new Error("Image error");
             return res.blob();
         }
 
-        // একক টোকেন আইডি সম্পূর্ণ প্রসেস করার মেইন লজিক
         async function processToken(id) {
-            // ১. গ্যালারিতে কার্ড তৈরি
-            const card = document.createElement('div');
-            card.className = 'nft-card';
-            card.id = `card-${id}`;
-            card.innerHTML = `<div class="id">#${id}</div><div class="status" id="status-${id}">⏳ মেটাডাটা...</div>`;
-            document.getElementById('gallery').appendChild(card);
+            // পূর্বের ডামি বা কার্ড থাকলে তা ক্লিয়ার বা নতুন কার্ড তৈরি
+            let card = document.getElementById(`card-${id}`);
+            if (!card) {
+                card = document.createElement('div');
+                card.className = 'nft-card';
+                card.id = `card-${id}`;
+                document.getElementById('gallery').appendChild(card);
+            }
+            card.innerHTML = `<div class="id">#${id}</div><div class="status waiting" id="status-${id}">⏳ মেটাডাটা...</div>`;
 
             try {
-                // ২. মেটাডাটা ফেচ
                 const metaRes = await fetch(`${BASE_URL}/${id}`, { signal: AbortSignal.timeout(10000) });
                 if (!metaRes.ok) throw new Error("Metadata failed");
                 const text = await metaRes.text();
                 
-                // ৩. সিআইডি বের করা
                 const cid = extractCid(text);
-                if (!cid) throw new Error("No CID found");
+                if (!cid) throw new Error("No CID");
 
-                document.getElementById(`status-${id}`).innerText = "⏳ ইমেজ ফেচ...";
-                
-                // ৪. ইমেজ ব্লব ডেটা আনা
+                document.getElementById(`status-${id}`).innerText = "⏳ ইমেজ লোড...";
                 const imageBlob = await fetchImageBlob(cid);
                 
-                // ৫. জিপ ফাইলে টোকেন আইডি অনুযায়ী পুশ করা
+                // জিপে যুক্ত করা (নামকরণ টোকেন আইডি অনুযায়ী)
                 zip.file(`mfer_${id}.png`, imageBlob);
 
-                // ৬. সাকসেস UI আপডেট
+                // UI সাকসেস স্টেট ও ব্যাকগ্রাউন্ড সিঙ্ক
                 document.getElementById(`status-${id}`).innerText = "✅ সম্পন্ন";
                 document.getElementById(`status-${id}`).className = "status success";
                 
-                // লাইভ প্রিভিউ দেখানো
                 const imgEl = document.createElement('img');
                 imgEl.src = URL.createObjectURL(imageBlob);
                 card.insertBefore(imgEl, card.firstChild);
                 
                 successCount++;
             } catch (err) {
-                // ফেইলড UI আপডেট
                 document.getElementById(`status-${id}`).innerText = "❌ ব্যর্থ";
                 document.getElementById(`status-${id}`).className = "status fail";
+                if (!failedIds.includes(id)) {
+                    failedIds.push(id);
+                }
             } finally {
                 processedCount++;
                 updateProgressBar();
@@ -180,20 +196,22 @@
         function updateProgressBar() {
             const pct = ((processedCount / TARGET_IDS.length) * 100).toFixed(1);
             document.getElementById('progressBar').style.width = `${pct}%`;
-            document.getElementById('progressText').innerText = `অগ্রগতি: ${processedCount} / ${TARGET_IDS.length} (${pct}%) | সফল: ${successCount}`;
+            document.getElementById('progressText').innerText = `অগ্রগতি: ${processedCount} / ${TARGET_IDS.length} (${pct}%) | সফল: ${successCount} | ব্যর্থ: ${failedIds.length}`;
         }
 
-        // চেইন প্রসেস রানার
         async function startProcess() {
             document.getElementById('btnStart').disabled = true;
-            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('btnDownload').disabled = true;
+            document.getElementById('btnCSV').disabled = true;
             document.getElementById('progressContainer').style.display = 'block';
             
             processedCount = 0;
             successCount = 0;
-            zip.files = {}; // জিপ ক্লিয়ার
+            failedIds = [];
+            
+            // নতুন প্রসেসের জন্য জিপ অবজেক্ট খালি করা
+            Object.keys(zip.files).forEach(filename => delete zip.files[filename]);
 
-            // ব্যাচ ওয়াইজ প্রসেসিং (Pool Execution)
             const pool = [];
             for (let id of TARGET_IDS) {
                 if (pool.length >= CONCURRENT_LIMIT) {
@@ -206,22 +224,66 @@
             }
             await Promise.all(pool);
 
-            document.getElementById('progressText').innerText = `🎉 প্রসেস সমাপ্ত! মোট সফল: ${successCount}টি। এখন জিপ ডাউনলোড করুন।`;
-            document.getElementById('btnDownload').disabled = false;
+            document.getElementById('progressText').innerText = `🎉 রান শেষ! সফল: ${successCount}টি, ব্যর্থ: ${failedIds.length}টি।`;
+            
+            if (successCount > 0) document.getElementById('btnDownload').disabled = false;
+            if (failedIds.length > 0) document.getElementById('btnCSV').disabled = false;
+            document.getElementById('btnStart').disabled = false;
         }
 
-        // জিপ ফাইল লোকাল পিসিতে সেভ করার ফাংশন
+        // জিপ ফাইল ডাউনলোড
         function downloadZip() {
-            document.getElementById('progressText').innerText = "⏳ জিপ ফাইল তৈরি হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...";
+            document.getElementById('progressText').innerText = "⏳ জিপ ফাইল জেনারেট হচ্ছে...";
             zip.generateAsync({ type: "blob" }).then(function(content) {
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(content);
-                link.download = "mfers_retry_failed_collection.zip";
-                document.body.appendChild(link);
+                link.download = "mfers_loaded_tokens.zip";
                 link.click();
-                document.body.removeChild(link);
                 document.getElementById('progressText').innerText = "✅ জিপ ফাইল সাকসেসফুলি ডাউনলোড হয়েছে!";
             });
+        }
+
+        // ব্যর্থ হওয়া টোকেন আইডিগুলোর CSV ডাউনলোড
+        function downloadFailedCSV() {
+            if (failedIds.length === 0) return;
+            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIds.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `failed_tokens_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // CSV ফাইল আপলোড হ্যান্ডলার (পরবর্তীতে রান করার জন্য)
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split("\n");
+                const newIds = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const idStr = lines[i].trim();
+                    if (idStr && !isNaN(idStr)) {
+                        newIds.push(parseInt(idStr, 10));
+                    }
+                }
+                
+                if (newIds.length > 0) {
+                    TARGET_IDS = newIds;
+                    document.getElementById('gallery').innerHTML = ''; // পূর্বের গ্যালারি রিসেট
+                    document.getElementById('progressText').innerText = `📂 CSV থেকে ${TARGET_IDS.length}টি ব্যর্থ আইডি আপলোড হয়েছে! রেডি টু রান।`;
+                    document.getElementById('btnStart').disabled = false;
+                } else {
+                    alert("সঠিক CSV ফাইল পাওয়া যায়নি বা ফাইলটি খালি!");
+                }
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
