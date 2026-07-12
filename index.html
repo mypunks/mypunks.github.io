@@ -3,151 +3,75 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer NFT গ্যালারি (নির্দিষ্ট আইটেম)</title>
+    <title>mfer NFT জিপ ডাউনলোডার</title>
+    <!-- JSZip লাইব্রেরি জিপ তৈরি করার জন্য -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #1a1a1a;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #121212; font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #fff; }
+        h1 { text-align: center; margin-bottom: 5px; font-size: 2.2rem; color: #4caf50; }
+        .sub { text-align: center; color: #aaa; margin-bottom: 25px; font-size: 1rem; }
+        
+        .control-panel {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            background: #1e1e1e;
             padding: 20px;
-        }
-        h1 {
+            border-radius: 12px;
+            border: 1px solid #333;
             text-align: center;
-            color: #fff;
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-            letter-spacing: 2px;
         }
-        .sub {
-            text-align: center;
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
+        .btn {
+            background: #4caf50; border: none; color: #000; font-weight: bold;
+            padding: 12px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;
+            margin: 10px 5px; transition: 0.2s;
         }
+        .btn:hover { background: #66bb6a; transform: translateY(-2px); }
+        .btn:disabled { background: #444; color: #777; cursor: not-allowed; transform: none; }
+        .btn-zip { background: #ff9800; }
+        .btn-zip:hover { background: #ffa726; }
+
+        .progress-box { margin-top: 15px; font-size: 1.1rem; }
+        .progress-bar-container {
+            width: 100%; background: #333; height: 10px; border-radius: 5px;
+            margin-top: 10px; overflow: hidden; display: none;
+        }
+        .progress-bar { width: 0%; height: 100%; background: #4caf50; transition: width 0.1s; }
+
         .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px; max-width: 1400px; margin: 0 auto; padding-bottom: 60px;
         }
         .nft-card {
-            background: #2a2a2a;
-            border-radius: 16px;
-            padding: 15px 15px 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: center;
-            border: 1px solid #444;
+            background: #1e1e1e; border-radius: 10px; padding: 8px;
+            text-align: center; border: 1px solid #222; font-size: 0.85rem;
         }
-        .nft-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.8);
-            border-color: #6f6;
-        }
-        .nft-card img {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            border-radius: 12px;
-            background: #111;
-            display: block;
-        }
-        .nft-card .token-id {
-            color: #cfc;
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 1rem;
-            background: #333;
-            padding: 4px 10px;
-            border-radius: 30px;
-            display: inline-block;
-        }
-        .nft-card .cid {
-            color: #999;
-            font-size: 0.65rem;
-            word-break: break-all;
-            margin-top: 5px;
-            background: #222;
-            padding: 3px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            max-width: 100%;
-        }
-        .loading, .error {
-            color: #fff;
-            text-align: center;
-            font-size: 1.5rem;
-            padding: 60px 20px;
-            grid-column: 1 / -1;
-        }
-        .status-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #0d0d0dcc;
-            backdrop-filter: blur(6px);
-            color: #aaa;
-            padding: 12px 20px;
-            text-align: center;
-            font-size: 0.95rem;
-            border-top: 1px solid #444;
-            z-index: 999;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .status-bar span {
-            background: #222;
-            padding: 2px 14px;
-            border-radius: 30px;
-        }
-        .btn-reload {
-            background: #3a6;
-            border: none;
-            color: #000;
-            font-weight: bold;
-            padding: 4px 18px;
-            border-radius: 30px;
-            cursor: pointer;
-        }
-        .btn-reload:hover {
-            background: #4d7;
-        }
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            .gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-        }
+        .nft-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: #000; }
+        .nft-card .id { color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .nft-card .status { font-size: 0.75rem; color: #888; }
+        .status.success { color: #4caf50; }
+        .status.fail { color: #f44336; }
     </style>
 </head>
 <body>
-    <h1>🟢 mfer রিট্রাই গ্যালারি</h1>
-    <p class="sub">ব্যর্থ হওয়া টোকেন আইডিগুলো পুনরায় লোড করা হচ্ছে</p>
+
+    <h1>📦 mfer NFT বাল্ক জিপ ডাউনলোডার</h1>
+    <p class="sub">৫১৭টি নির্দিষ্ট টোকেন আইডির ডাটা ও ইমেজ লোড করে জিপ ফাইল তৈরি করুন</p>
     
-    <div class="gallery" id="gallery">
-        <div class="loading">⏳ লোড হচ্ছে...</div>
+    <div class="control-panel">
+        <button class="btn" id="btnStart" onclick="startProcess()">🚀 প্রসেস শুরু করুন</button>
+        <button class="btn btn-zip" id="btnDownload" onclick="downloadZip()" disabled>📥 জিপ ডাউনলোড করুন</button>
+        
+        <div class="progress-box" id="progressText">স্ট্যাটাস: অপেক্ষমান...</div>
+        <div class="progress-bar-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
     </div>
 
-    <div class="status-bar" id="statusBar">
-        <span id="loadedCount">০</span>
-        <span id="totalCount">০</span>
-        <span id="statusMessage">প্রস্তুত হচ্ছে...</span>
-        <button class="btn-reload" onclick="loadAllNFTs()">🔄 রিলোড</button>
-    </div>
+    <div class="gallery" id="gallery"></div>
 
     <script>
-        // ===== কনফিগারেশন =====
-        const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-        const GATEWAY = 'https://ipfs.io/ipfs';
-        const CONCURRENT_LIMIT = 50; 
-
-        // CSV থেকে পাওয়া নির্দিষ্ট টোকেন আইডিগুলোর অ্যারে (মোট ৫১৭টি)
+        // আপনার রিট্রাই ফাইল থেকে প্রাপ্ত সম্পূর্ণ ৫১৭টি টোকেন আইডি নিশ্চিত করা হলো
         const TARGET_IDS = [
             465, 439, 432, 414, 473, 397, 204, 583, 564, 71, 268, 237, 682, 505, 796, 736, 625, 697, 979, 546, 
             866, 576, 726, 1025, 1077, 1059, 1170, 920, 966, 1218, 1290, 1145, 1374, 1372, 1370, 1307, 1354, 1317, 1406, 1419, 
@@ -175,163 +99,130 @@
             9722, 9779, 9713, 9741, 9744, 9736, 9879, 9866, 9845, 9811, 9831, 9801, 9856, 9928, 9965, 9979, 9911
         ];
 
-        const TOTAL = TARGET_IDS.length;
-
-        // ===== DOM রেফারেন্স =====
-        const gallery = document.getElementById('gallery');
-        const loadedSpan = document.getElementById('loadedCount');
-        const totalSpan = document.getElementById('totalCount');
-        const statusMsg = document.getElementById('statusMessage');
+        const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
+        const GATEWAY = 'https://ipfs.io/ipfs';
         
-        let loaded = 0;
-        let failed = 0;
-        let isRunning = false;
+        // নেটওয়ার্ক ক্র্যাশ এড়াতে এক সাথে ২০টি করে ফাইল প্রসেস হবে
+        const CONCURRENT_LIMIT = 20; 
+        
+        const zip = new JSZip();
+        let processedCount = 0;
+        let successCount = 0;
 
-        // ===== হেল্পার: মেটাডাটা থেকে ইমেজ CID বের করা =====
-        function extractImageCid(metadata) {
+        // মেটাডাটা থেকে CID খুঁজে বের করার ফাংশন
+        function extractCid(text) {
             try {
-                let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
-                if (data.image) {
-                    let img = data.image;
-                    if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
-                    if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
-                    if (img.includes('ipfs.io/ipfs/')) return img.split('ipfs.io/ipfs/')[1]?.split('?')[0] || img;
-                    return img;
-                }
-                if (data.image_data) return data.image_data;
-                if (data.animation_url) return data.animation_url;
-                
-                for (let key of Object.keys(data)) {
-                    let val = data[key];
-                    if (typeof val === 'string' && (val.includes('ipfs://') || val.includes('/ipfs/'))) {
-                        if (val.startsWith('ipfs://')) return val.replace('ipfs://', '');
-                        if (val.startsWith('/ipfs/')) return val.replace('/ipfs/', '');
-                        return val;
-                    }
-                }
-                return null;
-            } catch (e) {
-                return null;
-            }
+                const data = JSON.parse(text);
+                let img = data.image || data.image_data;
+                if (!img) return null;
+                if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
+                if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
+                if (img.includes('ipfs.io/ipfs/')) return img.split('ipfs.io/ipfs/')[1].split('?')[0];
+                return img;
+            } catch (e) { return null; }
         }
 
-        // ===== একক NFT কার্ড তৈরি =====
-        function createNFTCard(tokenId, cid) {
+        // ছবি ডাউনলোড করে Blob ডেটাতে কনভার্ট করার ফাংশন
+        async function fetchImageBlob(cid) {
+            const url = `${GATEWAY}/${cid}`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+            if (!res.ok) throw new Error("Image download failed");
+            return res.blob();
+        }
+
+        // একক টোকেন আইডি সম্পূর্ণ প্রসেস করার মেইন লজিক
+        async function processToken(id) {
+            // ১. গ্যালারিতে কার্ড তৈরি
             const card = document.createElement('div');
             card.className = 'nft-card';
-            
-            const img = document.createElement('img');
-            img.loading = 'lazy';
-            img.alt = `mfer #${tokenId}`;
-            img.src = `${GATEWAY}/${cid}`;
-            img.onerror = () => {
-                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23333"/%3E%3Ctext x="50%" y="50%" font-family="Arial" font-size="16" fill="%23666" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-            };
-            
-            const idSpan = document.createElement('div');
-            idSpan.className = 'token-id';
-            idSpan.textContent = `#${tokenId}`;
-            
-            const cidSpan = document.createElement('span');
-            cidSpan.className = 'cid';
-            cidSpan.textContent = cid.substring(0, 12) + '...';
-            cidSpan.title = cid;
-            
-            card.appendChild(img);
-            card.appendChild(idSpan);
-            card.appendChild(card.appendChild(cidSpan));
-            return card;
+            card.id = `card-${id}`;
+            card.innerHTML = `<div class="id">#${id}</div><div class="status" id="status-${id}">⏳ মেটাডাটা...</div>`;
+            document.getElementById('gallery').appendChild(card);
+
+            try {
+                // ২. মেটাডাটা ফেচ
+                const metaRes = await fetch(`${BASE_URL}/${id}`, { signal: AbortSignal.timeout(10000) });
+                if (!metaRes.ok) throw new Error("Metadata failed");
+                const text = await metaRes.text();
+                
+                // ৩. সিআইডি বের করা
+                const cid = extractCid(text);
+                if (!cid) throw new Error("No CID found");
+
+                document.getElementById(`status-${id}`).innerText = "⏳ ইমেজ ফেচ...";
+                
+                // ৪. ইমেজ ব্লব ডেটা আনা
+                const imageBlob = await fetchImageBlob(cid);
+                
+                // ৫. জিপ ফাইলে টোকেন আইডি অনুযায়ী পুশ করা
+                zip.file(`mfer_${id}.png`, imageBlob);
+
+                // ৬. সাকসেস UI আপডেট
+                document.getElementById(`status-${id}`).innerText = "✅ সম্পন্ন";
+                document.getElementById(`status-${id}`).className = "status success";
+                
+                // লাইভ প্রিভিউ দেখানো
+                const imgEl = document.createElement('img');
+                imgEl.src = URL.createObjectURL(imageBlob);
+                card.insertBefore(imgEl, card.firstChild);
+                
+                successCount++;
+            } catch (err) {
+                // ফেইলড UI আপডেট
+                document.getElementById(`status-${id}`).innerText = "❌ ব্যর্থ";
+                document.getElementById(`status-${id}`).className = "status fail";
+            } finally {
+                processedCount++;
+                updateProgressBar();
+            }
         }
 
-        // ===== ব্যাচ আকারে ফেচ করা =====
-        async function fetchBatch(idSubSet) {
-            const promises = [];
-            for (let id of idSubSet) {
-                const url = `${BASE_URL}/${id}`;
-                promises.push(
-                    fetch(url, { signal: AbortSignal.timeout(8000) })
-                        .then(res => {
-                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                            return res.text();
-                        })
-                        .then(text => ({ tokenId: id, text }))
-                        .catch(err => ({ tokenId: id, error: err.message }))
-                );
-            }
-            return Promise.all(promises);
+        function updateProgressBar() {
+            const pct = ((processedCount / TARGET_IDS.length) * 100).toFixed(1);
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('progressText').innerText = `অগ্রগতি: ${processedCount} / ${TARGET_IDS.length} (${pct}%) | সফল: ${successCount}`;
         }
 
-        // ===== সব লোড করা =====
-        async function loadAllNFTs() {
-            if (isRunning) return;
-            isRunning = true;
+        // চেইন প্রসেস রানার
+        async function startProcess() {
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('gallery').innerHTML = '';
+            document.getElementById('progressContainer').style.display = 'block';
             
-            gallery.innerHTML = '';
-            loaded = 0;
-            failed = 0;
-            updateStatus('লোড শুরু হচ্ছে...', 0);
-            
-            // ডামি কঙ্কাল বা স্কেলেটন দেখানো
-            for (let i = 0; i < Math.min(TOTAL, 15); i++) {
-                const skeleton = document.createElement('div');
-                skeleton.className = 'nft-card';
-                skeleton.style.opacity = '0.3';
-                skeleton.innerHTML = `<div style="aspect-ratio:1; background:#2a2a2a; border-radius:12px;"></div><div style="color:#555; margin-top:10px;">#${TARGET_IDS[i]}</div>`;
-                skeleton.dataset.skeleton = 'true';
-                gallery.appendChild(skeleton);
-            }
+            processedCount = 0;
+            successCount = 0;
+            zip.files = {}; // জিপ ক্লিয়ার
 
-            // ব্যাচ প্রসেসিং
-            let processed = 0;
-            for (let start = 0; start < TOTAL; start += CONCURRENT_LIMIT) {
-                const idSubSet = TARGET_IDS.slice(start, start + CONCURRENT_LIMIT);
-                const results = await fetchBatch(idSubSet);
-                
-                // স্কেলেটন সরানো
-                document.querySelectorAll('[data-skeleton="true"]').forEach(el => el.remove());
-                
-                // রেজাল্ট প্রসেস
-                for (const res of results) {
-                    if (res.error) {
-                        failed++;
-                        const fallbackCard = createNFTCard(res.tokenId, 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2');
-                        fallbackCard.style.opacity = '0.5';
-                        gallery.appendChild(fallbackCard);
-                    } else {
-                        const cid = extractImageCid(res.text);
-                        if (cid) {
-                            const card = createNFTCard(res.tokenId, cid);
-                            gallery.appendChild(card);
-                        } else {
-                            failed++;
-                            const fallbackCard = createNFTCard(res.tokenId, 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2');
-                            fallbackCard.style.opacity = '0.4';
-                            gallery.appendChild(fallbackCard);
-                        }
-                    }
-                    loaded++;
+            // ব্যাচ ওয়াইজ প্রসেসিং (Pool Execution)
+            const pool = [];
+            for (let id of TARGET_IDS) {
+                if (pool.length >= CONCURRENT_LIMIT) {
+                    await Promise.race(pool);
                 }
-                
-                processed += results.length;
-                updateStatus(`প্রসেস করা হয়েছে ${processed} টি`, processed);
-                await new Promise(r => setTimeout(r, 50));
+                const p = processToken(id).then(() => {
+                    pool.splice(pool.indexOf(p), 1);
+                });
+                pool.push(p);
             }
-            
-            updateStatus(`সমাপ্ত! সফল: ${loaded - failed}, ব্যর্থ: ${failed}`, loaded);
-            isRunning = false;
+            await Promise.all(pool);
+
+            document.getElementById('progressText').innerText = `🎉 প্রসেস সমাপ্ত! মোট সফল: ${successCount}টি। এখন জিপ ডাউনলোড করুন।`;
+            document.getElementById('btnDownload').disabled = false;
         }
 
-        // ===== স্ট্যাটাস আপডেট =====
-        function updateStatus(msg, count) {
-            loadedSpan.textContent = count || loaded;
-            totalSpan.textContent = TOTAL;
-            statusMsg.textContent = msg;
+        // জিপ ফাইল লোকাল পিসিতে সেভ করার ফাংশন
+        function downloadZip() {
+            document.getElementById('progressText').innerText = "⏳ জিপ ফাইল তৈরি হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...";
+            zip.generateAsync({ type: "blob" }).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = "mfers_retry_failed_collection.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                document.getElementById('progressText').innerText = "✅ জিপ ফাইল সাকসেসফুলি ডাউনলোড হয়েছে!";
+            });
         }
-
-        // ===== শুরু করো =====
-        window.addEventListener('DOMContentLoaded', () => {
-            loadAllNFTs();
-        });
     </script>
 </body>
 </html>
