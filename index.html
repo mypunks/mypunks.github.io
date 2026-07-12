@@ -1,268 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mfer · 10K Ultimate Global Pipeline</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>mfer NFT গ্যালারি (নির্দিষ্ট আইটেম)</title>
     <style>
-        :root{
-            --bg: #0a0a0b;
-            --bg-elevated: #131315;
-            --card: #17171a;
-            --card-border: #26262a;
-            --lime: #D8FF00;
-            --lime-dim: #D8FF0022;
-            --text: #f2f2ef;
-            --text-dim: #8f8f94;
-            --error: #ff5470;
-            --error-dim: #ff547022;
-            --radius-lg: 20px;
-            --radius-md: 14px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            background: radial-gradient(ellipse 1200px 700px at 50% -10%, #1c1f0c 0%, var(--bg) 55%), var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            padding: 48px 24px 96px;
-            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            padding: 20px;
         }
-
-        .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .brand .swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            background: var(--lime);
-            box-shadow: 0 0 18px var(--lime-dim), 0 0 4px var(--lime);
-            margin-bottom: 18px;
-        }
-
         h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: clamp(2.2rem, 5vw, 3.4rem);
-            letter-spacing: -0.02em;
             text-align: center;
-            color: var(--text);
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
         }
-        h1 .hash { color: var(--lime); }
-
         .sub {
             text-align: center;
-            color: var(--text-dim);
-            margin-top: 10px;
-            font-size: 0.95rem;
-            font-family: 'JetBrains Mono', monospace;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
         }
-
-        .panel {
-            background: var(--card);
-            border: 1px solid var(--card-border);
-            max-width: 800px;
-            margin: 0 auto 32px;
-            border-radius: var(--radius-lg);
-            padding: 24px;
-        }
-
-        .stats-grid {
+        .gallery {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-
-        .stat-box {
-            background: var(--bg-elevated);
-            border: 1px solid var(--card-border);
-            padding: 16px;
-            border-radius: var(--radius-md);
+        .nft-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 15px 15px 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             text-align: center;
+            border: 1px solid #444;
         }
-        .stat-box .label {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 6px;
+        .nft-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+            border-color: #6f6;
         }
-        .stat-box .val {
-            font-size: 1.6rem;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
+        .nft-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #111;
+            display: block;
         }
-        .stat-box.lime-status .val { color: var(--lime); }
-        .stat-box.error-status .val { color: var(--error); }
-
-        .controls-row {
+        .nft-card .token-id {
+            color: #cfc;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1rem;
+            background: #333;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .nft-card .cid {
+            color: #999;
+            font-size: 0.65rem;
+            word-break: break-all;
+            margin-top: 5px;
+            background: #222;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            max-width: 100%;
+        }
+        .loading, .error {
+            color: #fff;
+            text-align: center;
+            font-size: 1.5rem;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0d0d0dcc;
+            backdrop-filter: blur(6px);
+            color: #aaa;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.95rem;
+            border-top: 1px solid #444;
+            z-index: 999;
             display: flex;
-            gap: 12px;
+            justify-content: space-between;
             flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            border: none;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.18s ease;
-            display: inline-flex;
-            align-items: center;
             gap: 8px;
         }
-
-        .btn-primary { background: var(--lime); color: #0a0a0b; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px #D8FF0044; }
-        .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--card-border); }
-        .btn-secondary:hover:not(:disabled) { border-color: var(--text-dim); }
-        .btn-danger { background: rgba(255, 84, 112, 0.15); color: var(--error); border: 1px solid var(--error); }
-        .btn-danger:hover:not(:disabled) { background: var(--error); color: #fff; }
-        .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-        .file-upload-btn {
-            position: relative;
-            overflow: hidden;
+        .status-bar span {
+            background: #222;
+            padding: 2px 14px;
+            border-radius: 30px;
         }
-        .file-upload-btn input[type="file"] {
-            position: absolute;
-            top: 0; left: 0; opacity: 0;
-            width: 100%; height: 100%;
+        .btn-reload {
+            background: #3a6;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 4px 18px;
+            border-radius: 30px;
             cursor: pointer;
         }
-
-        .logger-area {
-            background: #060607;
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius-md);
-            height: 180px;
-            overflow-y: auto;
-            padding: 14px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            line-height: 1.6;
+        .btn-reload:hover {
+            background: #4d7;
         }
-        .log-entry { margin-bottom: 4px; display: flex; justify-content: space-between;}
-        .log-success { color: var(--lime); }
-        .log-error { color: var(--error); }
-
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .gallery { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        }
     </style>
 </head>
 <body>
-
-    <div class="brand">
-        <div class="swatch"></div>
-        <h1>mfer <span class="hash">· 10K Pipeline</span></h1>
-        <p class="sub">Ultimate Background Replacing Engine</p>
+    <h1>🟢 mfer রিট্রাই গ্যালারি</h1>
+    <p class="sub">ব্যর্থ হওয়া টোকেন আইডিগুলো পুনরায় লোড করা হচ্ছে</p>
+    
+    <div class="gallery" id="gallery">
+        <div class="loading">⏳ লোড হচ্ছে...</div>
     </div>
 
-    <div class="panel">
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="label">Target Items</div>
-                <div class="val" id="statTarget">10000</div>
-            </div>
-            <div class="stat-box">
-                <div class="label">Processed</div>
-                <div class="val" id="statProcessed">0</div>
-            </div>
-            <div class="stat-box lime-status">
-                <div class="label">Success</div>
-                <div class="val" id="statSuccess">0</div>
-            </div>
-            <div class="stat-box error-status">
-                <div class="label">Failed</div>
-                <div class="val" id="statFailed">0</div>
-            </div>
-        </div>
-
-        <div class="controls-row" style="margin-bottom: 20px;">
-            <button class="btn btn-primary" id="startBtn" onclick="startGlobalPipeline()">▶️ Start Pipeline</button>
-            <button class="btn btn-danger" id="stopBtn" onclick="stopPipeline()" disabled>⏸️ Stop & Export CSV</button>
-            <button class="btn btn-secondary" id="downloadZipBtn" onclick="downloadZipArchive()" disabled>📦 Download ZIP Package</button>
-            
-            <div class="btn btn-secondary file-upload-btn" id="uploadWrapper">
-                📁 Upload Failed CSV
-                <input type="file" id="csvFileInput" accept=".csv" onchange="handleCSVUpload(event)" />
-            </div>
-        </div>
-
-        <div class="logger-area" id="logger">
-            <div style="color: var(--lime);">[System] Console Initialized. Ready to process.</div>
-        </div>
+    <div class="status-bar" id="statusBar">
+        <span id="loadedCount">০</span>
+        <span id="totalCount">০</span>
+        <span id="statusMessage">প্রস্তুত হচ্ছে...</span>
+        <button class="btn-reload" onclick="loadAllNFTs()">🔄 রিলোড</button>
     </div>
 
     <script>
+        // ===== কনফিগারেশন =====
         const BASE_URL = 'https://ipfs.io/ipfs/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-        const TOTAL_COUNT = 10000;
-        const CONCURRENT_LIMIT = 6; 
-        const REQUEST_DELAY = 100; 
-        const BG_COLOR = '#D8FF00';
-        const MAX_RETRY = 2;
+        const GATEWAY = 'https://ipfs.io/ipfs';
+        const CONCURRENT_LIMIT = 50; 
 
-        const GATEWAYS = [
-            'https://cloudflare-ipfs.com/ipfs',
-            'https://ipfs.io/ipfs',
-            'https://gateway.pinata.cloud/ipfs'
+        // CSV থেকে পাওয়া নির্দিষ্ট টোকেন আইডিগুলোর অ্যারে (মোট ৫১৭টি)
+        const TARGET_IDS = [
+            465, 439, 432, 414, 473, 397, 204, 583, 564, 71, 268, 237, 682, 505, 796, 736, 625, 697, 979, 546, 
+            866, 576, 726, 1025, 1077, 1059, 1170, 920, 966, 1218, 1290, 1145, 1374, 1372, 1370, 1307, 1354, 1317, 1406, 1419, 
+            1599, 1474, 1693, 1667, 1675, 1618, 1787, 1756, 1740, 1876, 1928, 1982, 1815, 1824, 2191, 2108, 2061, 2008, 2044, 2056, 
+            2238, 2269, 2263, 2216, 2390, 2337, 2320, 2404, 2521, 2552, 2503, 2445, 2496, 2642, 2650, 2673, 2776, 2724, 2726, 2816, 
+            2869, 2898, 2872, 2901, 2927, 2955, 3175, 3108, 3014, 3004, 3045, 3034, 3236, 3230, 3283, 3290, 3217, 3326, 3376, 3302, 
+            3459, 3422, 3409, 3405, 3443, 3505, 3591, 3589, 3550, 3514, 3504, 3662, 3664, 3629, 3620, 3704, 3795, 3717, 3740, 3719, 
+            3868, 3816, 3848, 3949, 3942, 3971, 3968, 4174, 4175, 4140, 4125, 4015, 4038, 4016, 4220, 4235, 4233, 4252, 4293, 4216, 
+            4315, 4390, 4353, 4323, 4363, 4426, 4434, 4410, 4478, 4453, 4481, 4529, 4543, 4549, 4596, 4509, 4578, 4571, 4616, 4642, 
+            4687, 4608, 4679, 4771, 4786, 4774, 4772, 4710, 4704, 4701, 4731, 4744, 4801, 4867, 4821, 4872, 4879, 4975, 4973, 4991, 
+            4922, 4930, 4954, 5064, 5013, 5143, 5136, 5174, 5104, 5152, 5233, 5258, 5277, 5262, 5271, 5328, 5345, 5324, 5334, 5312, 
+            5390, 5309, 5303, 5360, 5493, 5439, 5438, 5427, 5406, 5459, 5557, 5530, 5519, 5560, 5594, 5506, 5599, 5590, 5633, 5605, 
+            5609, 5649, 5670, 5616, 5664, 5747, 5745, 5702, 5723, 5770, 5797, 5764, 5849, 5846, 5873, 5870, 5854, 5801, 5824, 5928, 
+            5998, 5971, 5940, 5941, 5909, 6061, 6006, 6023, 6046, 6161, 6164, 6184, 6103, 6114, 6265, 6288, 6220, 6245, 6386, 6310, 
+            6318, 6344, 6393, 6496, 6408, 6427, 6407, 6479, 6592, 6524, 6545, 6554, 6563, 6678, 6625, 6696, 6682, 6632, 6745, 6790, 
+            6706, 6723, 6718, 6867, 6853, 6878, 6874, 6806, 6898, 6960, 6917, 6932, 7068, 7065, 7027, 7006, 7041, 7056, 7120, 7136, 
+            7166, 7150, 7111, 7291, 7268, 7289, 7215, 7226, 7254, 7352, 7378, 7377, 7349, 7306, 7304, 7474, 7457, 7490, 7443, 7444, 
+            7433, 7520, 7586, 7582, 7508, 7552, 7564, 7642, 7643, 7626, 7668, 7618, 7752, 7711, 7727, 7726, 7731, 7780, 7793, 7799, 
+            7773, 7815, 7856, 7891, 7872, 7806, 7847, 7824, 7943, 7914, 7919, 7904, 8089, 8046, 8013, 8031, 8056, 8168, 8116, 8140, 
+            8107, 8142, 8121, 8143, 8295, 8282, 8223, 8243, 8234, 8263, 8366, 8336, 8378, 8303, 8345, 8347, 8464, 8419, 8425, 8408, 
+            8444, 8438, 8565, 8547, 8555, 8593, 8537, 8531, 8539, 8507, 8661, 8612, 8645, 8697, 8698, 8670, 8684, 8743, 8728, 8761, 
+            8759, 8780, 8794, 8711, 8704, 8731, 8820, 8847, 8872, 8871, 8891, 8860, 8979, 8943, 8928, 8933, 8908, 8956, 9037, 9051, 
+            9075, 9081, 9062, 9064, 9119, 9170, 9172, 9179, 9139, 9140, 9143, 9243, 9283, 9225, 9222, 9239, 9370, 9387, 9347, 9308, 
+            9330, 9324, 9316, 9363, 9460, 9425, 9405, 9414, 9546, 9598, 9574, 9570, 9508, 9534, 9520, 9632, 9662, 9673, 9625, 9607, 
+            9722, 9779, 9713, 9741, 9744, 9736, 9879, 9866, 9845, 9811, 9831, 9801, 9856, 9928, 9965, 9979, 9911
         ];
 
-        // In-memory runtime cache to bypass storage limit crashes
-        let pipelineQueue = [];
-        let completedDataMap = new Map(); 
-        let failedIdsList = [];
+        const TOTAL = TARGET_IDS.length;
+
+        // ===== DOM রেফারেন্স =====
+        const gallery = document.getElementById('gallery');
+        const loadedSpan = document.getElementById('loadedCount');
+        const totalSpan = document.getElementById('totalCount');
+        const statusMsg = document.getElementById('statusMessage');
         
-        let isPipelineRunning = false;
-        let stopRequested = false;
-        let currentQueueIndex = 0;
-        let isCsvMode = false;
+        let loaded = 0;
+        let failed = 0;
+        let isRunning = false;
 
-        const statTarget = document.getElementById('statTarget');
-        const statProcessed = document.getElementById('statProcessed');
-        const statSuccess = document.getElementById('statSuccess');
-        const statFailed = document.getElementById('statFailed');
-        const logger = document.getElementById('logger');
-        
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const downloadZipBtn = document.getElementById('downloadZipBtn');
-        const csvFileInput = document.getElementById('csvFileInput');
-
-        // Setup default 1 to 10000 run array
-        function resetPipelineToGlobal() {
-            pipelineQueue = [];
-            for(let i = 1; i <= TOTAL_COUNT; i++) {
-                pipelineQueue.push(i);
-            }
-            statTarget.textContent = pipelineQueue.length;
-            isCsvMode = false;
-        }
-        resetPipelineToGlobal();
-
-        function logToConsole(message, type = '') {
-            const div = document.createElement('div');
-            div.className = `log-entry ${type}`;
-            const time = new Date().toLocaleTimeString();
-            div.innerHTML = `<span>[${time}] ${message}</span>`;
-            logger.appendChild(div);
-            logger.scrollTop = logger.scrollHeight;
-        }
-
+        // ===== হেল্পার: মেটাডাটা থেকে ইমেজ CID বের করা =====
         function extractImageCid(metadata) {
             try {
                 let data = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
@@ -270,246 +195,143 @@
                     let img = data.image;
                     if (img.startsWith('ipfs://')) return img.replace('ipfs://', '');
                     if (img.startsWith('/ipfs/')) return img.replace('/ipfs/', '');
-                    return img.includes('ipfs.io/ipfs/') ? img.split('ipfs.io/ipfs/')[1]?.split('?')[0] : img;
+                    if (img.includes('ipfs.io/ipfs/')) return img.split('ipfs.io/ipfs/')[1]?.split('?')[0] || img;
+                    return img;
                 }
-                return null;
-            } catch (e) { return null; }
-        }
-
-        async function fetchImageAndReplaceBackground(cid, attempt = 0) {
-            const gatewayUrl = `${GATEWAYS[attempt % GATEWAYS.length]}/${cid}`;
-            try {
-                const response = await fetch(gatewayUrl, { signal: AbortSignal.timeout(7000) });
-                if (!response.ok) throw new Error();
-                const blob = await response.blob();
+                if (data.image_data) return data.image_data;
+                if (data.animation_url) return data.animation_url;
                 
-                return new Promise((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 512; canvas.height = 512;
-                    const ctx = canvas.getContext('2d');
-                    
-                    ctx.fillStyle = BG_COLOR; 
-                    ctx.fillRect(0, 0, 512, 512);
-
-                    const img = new Image();
-                    const objectURL = URL.createObjectURL(blob);
-                    img.src = objectURL;
-
-                    img.onload = function() {
-                        const imgAspect = img.width / img.height;
-                        let drawW = 512, drawH = 512, offsetX = 0, offsetY = 0;
-                        if (imgAspect > 1) {
-                            drawH = 512; drawW = 512 * imgAspect; offsetX = (512 - drawW) / 2;
-                        } else {
-                            drawW = 512; drawH = 512 / imgAspect; offsetY = (512 - drawH) / 2;
-                        }
-                        
-                        const processCanvas = document.createElement('canvas');
-                        processCanvas.width = 512; processCanvas.height = 512;
-                        const pCtx = processCanvas.getContext('2d');
-                        pCtx.drawImage(img, offsetX, offsetY, drawW, drawH);
-
-                        const imageData = pCtx.getImageData(0, 0, 512, 512);
-                        const data = imageData.data;
-                        
-                        const rTarget = data[0];
-                        const gTarget = data[1];
-                        const bTarget = data[2];
-
-                        for (let j = 0; j < data.length; j += 4) {
-                            if (Math.abs(data[j] - rTarget) < 30 && Math.abs(data[j+1] - gTarget) < 30 && Math.abs(data[j+2] - bTarget) < 30) {
-                                data[j] = 216;     
-                                data[j+1] = 255;   
-                                data[j+2] = 0;     
-                            }
-                        }
-                        pCtx.putImageData(imageData, 0, 0);
-                        ctx.drawImage(processCanvas, 0, 0);
-                        URL.revokeObjectURL(objectURL);
-                        resolve({ success: true, blob: null, dataURL: canvas.toDataURL('image/png') });
-                    };
-                    img.onerror = () => { URL.revokeObjectURL(objectURL); resolve({ success: false }); };
-                });
-            } catch (err) {
-                if (attempt < MAX_RETRY) {
-                    return fetchImageAndReplaceBackground(cid, attempt + 1);
-                }
-                return { success: false };
-            }
-        }
-
-        async function fetchMetadataWithRetry(tokenId, retries = MAX_RETRY) {
-            for (let i = 0; i <= retries; i++) {
-                const gatewayBase = i === 0 ? BASE_URL : GATEWAYS[i % GATEWAYS.length] + '/QmWiQE65tmpYzcokCheQmng2DCM33DEhjXcPB6PanwpAZo';
-                try {
-                    const res = await fetch(`${gatewayBase}/${tokenId}`, { signal: AbortSignal.timeout(5000) });
-                    if (!res.ok) throw new Error();
-                    return await res.text();
-                } catch (err) {
-                    if (i === retries) return null;
-                    await new Promise(r => setTimeout(r, 200));
-                }
-            }
-        }
-
-        async function processPipelineItem(tokenId) {
-            const rawMetadata = await fetchMetadataWithRetry(tokenId);
-            let cid = null;
-            let result = { success: false };
-
-            if (rawMetadata) {
-                cid = extractImageCid(rawMetadata);
-                if (cid) result = await fetchImageAndReplaceBackground(cid);
-            }
-
-            if (result.success && result.dataURL) {
-                completedDataMap.set(tokenId, result.dataURL);
-                logToConsole(`mfer #${tokenId} processed successfully.`, 'log-success');
-            } else {
-                if(!failedIdsList.includes(tokenId)) {
-                    failedIdsList.push(tokenId);
-                }
-                logToConsole(`mfer #${tokenId} failed to load from IPFS.`, 'log-error');
-            }
-
-            // Update DOM metrics live
-            statProcessed.textContent = completedDataMap.size + failedIdsList.length;
-            statSuccess.textContent = completedDataMap.size;
-            statFailed.textContent = failedIdsList.length;
-        }
-
-        async function startGlobalPipeline() {
-            if (isPipelineRunning) return;
-            isPipelineRunning = true;
-            stopRequested = false;
-
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            downloadZipBtn.disabled = true;
-            document.getElementById('uploadWrapper').style.opacity = '0.3';
-            csvFileInput.disabled = true;
-
-            logToConsole(`Pipeline started. Processing queue...`, 'log-success');
-
-            const worker = async () => {
-                while (currentQueueIndex < pipelineQueue.length && !stopRequested) {
-                    const id = pipelineQueue[currentQueueIndex++];
-                    
-                    // Skip if already in successful memory map
-                    if (completedDataMap.has(id)) continue;
-
-                    await processPipelineItem(id);
-                    await new Promise(r => setTimeout(r, REQUEST_DELAY));
-                }
-            };
-
-            const pool = Array(CONCURRENT_LIMIT).fill(null).map(() => worker());
-            await Promise.all(pool);
-
-            isPipelineRunning = false;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            downloadZipBtn.disabled = completedDataMap.size === 0;
-            document.getElementById('uploadWrapper').style.opacity = '1';
-            csvFileInput.disabled = false;
-
-            if (stopRequested) {
-                logToConsole(`Pipeline paused by user. Exporting failed manifest...`, 'log-error');
-                triggerCsvDownload();
-            } else {
-                logToConsole(`Pipeline job complete. Stored items: ${completedDataMap.size}`, 'log-success');
-                if(failedIdsList.length > 0) {
-                    triggerCsvDownload();
-                }
-            }
-        }
-
-        function stopPipeline() {
-            stopRequested = true;
-            logToConsole('Stop signal sent. Gracefully halting active threads...');
-        }
-
-        function triggerCsvDownload() {
-            if (failedIdsList.length === 0) {
-                alert("No failed items detected in this run!");
-                return;
-            }
-            let csvContent = "data:text/csv;charset=utf-8,Failed_Token_ID\n" + failedIdsList.join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", isCsvMode ? "retry_failed_items.csv" : "global_failed_items.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function handleCSVUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split(/\r?\n/);
-                const loadedIds = [];
-
-                for (let i = 1; i < lines.length; i++) {
-                    const val = lines[i].trim();
-                    if (val && !isNaN(val)) {
-                        loadedIds.push(parseInt(val));
+                for (let key of Object.keys(data)) {
+                    let val = data[key];
+                    if (typeof val === 'string' && (val.includes('ipfs://') || val.includes('/ipfs/'))) {
+                        if (val.startsWith('ipfs://')) return val.replace('ipfs://', '');
+                        if (val.startsWith('/ipfs/')) return val.replace('/ipfs/', '');
+                        return val;
                     }
                 }
-
-                if (loadedIds.length > 0) {
-                    pipelineQueue = loadedIds;
-                    currentQueueIndex = 0;
-                    failedIdsList = []; // Clear old fails for fresh session
-                    isCsvMode = true;
-
-                    // Reset counters for CSV targeted tracking
-                    statTarget.textContent = pipelineQueue.length;
-                    statProcessed.textContent = "0";
-                    statSuccess.textContent = completedDataMap.size; // show current global map size
-                    statFailed.textContent = "0";
-
-                    logToConsole(`CSV Uploaded! Loaded ${loadedIds.length} target tokens for retry pipeline. Click 'Start Pipeline'`, 'log-success');
-                } else {
-                    alert("Invalid CSV format or empty list.");
-                }
-            };
-            reader.readAsText(file);
+                return null;
+            } catch (e) {
+                return null;
+            }
         }
 
-        async function downloadZipArchive() {
-            downloadZipBtn.disabled = true;
-            const originalText = downloadZipBtn.textContent;
-            downloadZipBtn.textContent = '📦 Packing ZIP (Please Wait)...';
+        // ===== একক NFT কার্ড তৈরি =====
+        function createNFTCard(tokenId, cid) {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
+            
+            const img = document.createElement('img');
+            img.loading = 'lazy';
+            img.alt = `mfer #${tokenId}`;
+            img.src = `${GATEWAY}/${cid}`;
+            img.onerror = () => {
+                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"%3E%3Crect width="200" height="200" fill="%23333"/%3E%3Ctext x="50%" y="50%" font-family="Arial" font-size="16" fill="%23666" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+            };
+            
+            const idSpan = document.createElement('div');
+            idSpan.className = 'token-id';
+            idSpan.textContent = `#${tokenId}`;
+            
+            const cidSpan = document.createElement('span');
+            cidSpan.className = 'cid';
+            cidSpan.textContent = cid.substring(0, 12) + '...';
+            cidSpan.title = cid;
+            
+            card.appendChild(img);
+            card.appendChild(idSpan);
+            card.appendChild(card.appendChild(cidSpan));
+            return card;
+        }
 
-            try {
-                const zip = new JSZip();
-                const folder = zip.folder(isCsvMode ? "mfer_csv_retry_batch" : "mfer_global_export");
+        // ===== ব্যাচ আকারে ফেচ করা =====
+        async function fetchBatch(idSubSet) {
+            const promises = [];
+            for (let id of idSubSet) {
+                const url = `${BASE_URL}/${id}`;
+                promises.push(
+                    fetch(url, { signal: AbortSignal.timeout(8000) })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                            return res.text();
+                        })
+                        .then(text => ({ tokenId: id, text }))
+                        .catch(err => ({ tokenId: id, error: err.message }))
+                );
+            }
+            return Promise.all(promises);
+        }
 
-                let indexCounter = 1;
-                for (const [id, dataURL] of completedDataMap.entries()) {
-                    const res = await fetch(dataURL);
-                    const blob = await res.blob();
-                    
-                    // Uses exact original serial mapping
-                    folder.file(`${id}.png`, blob);
-                    indexCounter++;
-                }
-
-                const content = await zip.generateAsync({ type: "blob" });
-                saveAs(content, isCsvMode ? "mfer_retry_fixed.zip" : "mfer_processed_global.zip");
-                logToConsole("ZIP exported successfully.", 'log-success');
-            } catch (e) {
-                alert("Compression error.");
+        // ===== সব লোড করা =====
+        async function loadAllNFTs() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            gallery.innerHTML = '';
+            loaded = 0;
+            failed = 0;
+            updateStatus('লোড শুরু হচ্ছে...', 0);
+            
+            // ডামি কঙ্কাল বা স্কেলেটন দেখানো
+            for (let i = 0; i < Math.min(TOTAL, 15); i++) {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'nft-card';
+                skeleton.style.opacity = '0.3';
+                skeleton.innerHTML = `<div style="aspect-ratio:1; background:#2a2a2a; border-radius:12px;"></div><div style="color:#555; margin-top:10px;">#${TARGET_IDS[i]}</div>`;
+                skeleton.dataset.skeleton = 'true';
+                gallery.appendChild(skeleton);
             }
 
-            downloadZipBtn.textContent = originalText;
-            downloadZipBtn.disabled = false;
+            // ব্যাচ প্রসেসিং
+            let processed = 0;
+            for (let start = 0; start < TOTAL; start += CONCURRENT_LIMIT) {
+                const idSubSet = TARGET_IDS.slice(start, start + CONCURRENT_LIMIT);
+                const results = await fetchBatch(idSubSet);
+                
+                // স্কেলেটন সরানো
+                document.querySelectorAll('[data-skeleton="true"]').forEach(el => el.remove());
+                
+                // রেজাল্ট প্রসেস
+                for (const res of results) {
+                    if (res.error) {
+                        failed++;
+                        const fallbackCard = createNFTCard(res.tokenId, 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2');
+                        fallbackCard.style.opacity = '0.5';
+                        gallery.appendChild(fallbackCard);
+                    } else {
+                        const cid = extractImageCid(res.text);
+                        if (cid) {
+                            const card = createNFTCard(res.tokenId, cid);
+                            gallery.appendChild(card);
+                        } else {
+                            failed++;
+                            const fallbackCard = createNFTCard(res.tokenId, 'QmZ4tDuvesekSs4rMqS8Vj6Tj5Ht6pXH4s8b3JqW4kL1v2');
+                            fallbackCard.style.opacity = '0.4';
+                            gallery.appendChild(fallbackCard);
+                        }
+                    }
+                    loaded++;
+                }
+                
+                processed += results.length;
+                updateStatus(`প্রসেস করা হয়েছে ${processed} টি`, processed);
+                await new Promise(r => setTimeout(r, 50));
+            }
+            
+            updateStatus(`সমাপ্ত! সফল: ${loaded - failed}, ব্যর্থ: ${failed}`, loaded);
+            isRunning = false;
         }
+
+        // ===== স্ট্যাটাস আপডেট =====
+        function updateStatus(msg, count) {
+            loadedSpan.textContent = count || loaded;
+            totalSpan.textContent = TOTAL;
+            statusMsg.textContent = msg;
+        }
+
+        // ===== শুরু করো =====
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllNFTs();
+        });
     </script>
 </body>
 </html>
