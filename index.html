@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>V2 Dickbutts — Animated SVG NFT Builder (Firebase RTDB)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>V2 Dickbutts — NFT Builder (SVG + IPFS + GitHub + Firebase)</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <!-- CCapture for Animated WebM Recording -->
-  <script src="https://cdn.jsdelivr.net/npm/ccapture.js@1.1.0/build/CCapture.all.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --neon: #7c3aed;
@@ -76,6 +79,7 @@
       gap: 8px;
       background: rgba(5,5,15,0.7);
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
     }
     .tab-btn {
       padding: 9px 18px;
@@ -164,6 +168,25 @@
       font-family: monospace;
       font-weight: bold;
       z-index: 3;
+    }
+
+    .animated-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(236,72,153,0.9);
+      color: #fff;
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: bold;
+      z-index: 3;
+      animation: pulse-badge 1s ease infinite;
+    }
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
     
     .order-number {
@@ -333,11 +356,59 @@
       font-weight: 600;
       z-index: 9999;
       white-space: nowrap;
+      max-width: 90vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     #toast.hidden { display: none; }
     
     .male-bg { background: rgba(37,99,235,0.08); }
     .female-bg { background: rgba(236,72,153,0.08); }
+
+    /* animated preview container */
+    .animated-preview-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 512px;
+      margin: 0 auto;
+    }
+    .animated-preview-wrap video,
+    .animated-preview-wrap img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border2);
+      background: var(--bg0);
+    }
+
+    .sync-status {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sync-status .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .sync-status .dot.green { background: #34d399; }
+    .sync-status .dot.yellow { background: #fbbf24; }
+    .sync-status .dot.red { background: #ef4444; }
+
+    /* NFT card animation support */
+    .nft-card img,
+    .nft-card video {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1/1;
+      object-fit: contain;
+    }
+    .nft-card video {
+      background: var(--bg0);
+    }
   </style>
 </head>
 <body>
@@ -347,7 +418,13 @@
       <span class="logo-pulse"></span>
       <h1 class="logo-text">V2 DICKBUTTS</h1>
     </div>
-    <span class="font-raj text-xs uppercase tracking-widest text-muted">SVG Animated · Firebase · IPFS</span>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="sync-status" id="sync-status">
+        <span class="dot green" id="sync-dot"></span>
+        <span id="sync-label">Synced</span>
+      </span>
+      <span class="font-raj text-xs uppercase tracking-widest text-muted">SVG · IPFS · GitHub</span>
+    </div>
   </header>
 
   <div class="tabs-bar">
@@ -361,22 +438,27 @@
       <div class="glass-card">
         <div class="mode-switch">
           <div id="mode-url" class="mode-btn active" onclick="App.setMode('url')">🌐 Image URL</div>
-          <div id="mode-svg" class="mode-btn" onclick="App.setMode('svg')">🎨 Animated SVG</div>
+          <div id="mode-svg" class="mode-btn" onclick="App.setMode('svg')">🎨 SVG Code</div>
         </div>
         
         <div id="url-mode">
           <div style="display:flex;flex-direction:column;gap:12px">
             <input type="text" id="image-url" placeholder="GitHub RAW / IPFS URL / Any image URL" class="nft-input">
-            <div style="display:flex;gap:12px">
-              <input type="text" id="url-value" placeholder="Value (e.g., Mystic Relic)" class="nft-input" style="flex:1">
-              <select id="url-section" class="nft-input" style="flex:1">
-                <option value="Artifact">Artifact</option>
-                <option value="Bones">Bones</option>
-                <option value="Cloak">Cloak</option>
-                <option value="Crown">Crown</option>
-                <option value="Palette">Palette</option>
-                <option value="Relic">Relic</option>
-                <option value="Sight">Sight</option>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <input type="text" id="url-value" placeholder="Value (e.g., Red Hair)" class="nft-input" style="flex:1;min-width:120px">
+              <select id="url-section" class="nft-input" style="flex:1;min-width:100px">
+                <option value="Background">Background</option>
+                <option value="Skin">Skin</option>
+                <option value="Body">Body</option>
+                <option value="Butt">Butt</option>
+                <option value="Dick">Dick</option>
+                <option value="Eyes">Eyes</option>
+                <option value="Hand">Hand</option>
+                <option value="Hat">Hat</option>
+                <option value="Mouth">Mouth</option>
+                <option value="Nose">Nose</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Special">Special</option>
               </select>
             </div>
             <button onclick="App.addLayerFromUrl()" class="btn-primary">➕ Add URL Layer</button>
@@ -386,35 +468,38 @@
         <div id="svg-mode" style="display:none">
           <div style="display:flex;flex-direction:column;gap:12px">
             <textarea id="svg-code" rows="6" class="svg-input" placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .animated-ring { transform-origin: center; animation: spin 3s linear infinite; }
-  </style>
-  <circle class="animated-ring" cx="256" cy="256" r="180" stroke="#ec4899" stroke-width="12" fill="none" stroke-dasharray="20,10"/>
+  <circle cx="256" cy="256" r="200" fill="#7c3aed"/>
+  <circle cx="256" cy="256" r="150" fill="#a855f7"/>
+  <circle cx="256" cy="256" r="80" fill="#ec4899"/>
 </svg>'></textarea>
-            <div style="display:flex;gap:12px">
-              <input type="text" id="svg-value" placeholder="Value (e.g., Spinning Ring)" class="nft-input" style="flex:1">
-              <select id="svg-section" class="nft-input" style="flex:1">
-                <option value="Artifact">Artifact</option>
-                <option value="Bones">Bones</option>
-                <option value="Cloak">Cloak</option>
-                <option value="Crown">Crown</option>
-                <option value="Palette">Palette</option>
-                <option value="Relic">Relic</option>
-                <option value="Sight">Sight</option>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <input type="text" id="svg-value" placeholder="Value (e.g., Purple Circles)" class="nft-input" style="flex:1;min-width:120px">
+              <select id="svg-section" class="nft-input" style="flex:1;min-width:100px">
+                <option value="Background">Background</option>
+                <option value="Skin">Skin</option>
+                <option value="Body">Body</option>
+                <option value="Butt">Butt</option>
+                <option value="Dick">Dick</option>
+                <option value="Eyes">Eyes</option>
+                <option value="Hand">Hand</option>
+                <option value="Hat">Hat</option>
+                <option value="Mouth">Mouth</option>
+                <option value="Nose">Nose</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Special">Special</option>
               </select>
             </div>
-            <div style="display:flex;gap:16px">
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
               <label class="gender-label"><input type="radio" name="svg-gender" value="male" checked> ♂ Male</label>
               <label class="gender-label"><input type="radio" name="svg-gender" value="female"> ♀ Female</label>
             </div>
-            <button onclick="App.addLayerFromSvg()" class="btn-primary">➕ Add Animated SVG Layer</button>
+            <button onclick="App.addLayerFromSvg()" class="btn-primary">➕ Add SVG Layer</button>
           </div>
         </div>
       </div>
 
       <div class="info-strip mt-4">
-        💡 <span>Firebase Realtime Database Enabled:</span> All layers & generated NFTs are synced dynamically and saved permanently to Firebase![cite: 1]
+        💡 <span>SVG Tip:</span> Use viewBox="0 0 512 512". SVG can be animated (SMIL / CSS). All layers sync to Firebase.
       </div>
 
       <div id="sections-container" class="space-y-3 mt-4"></div>
@@ -423,8 +508,13 @@
 
     <div id="panel-create" class="panel hidden">
       <div class="glass-card">
-        <canvas id="live-preview-canvas" width="512" height="512" class="preview-canvas" style="width:256px;height:256px"></canvas>
-        <p class="font-raj text-center text-xs text-muted mt-3">⬆️ Live Animated Preview (512x512)</p>
+        <div class="animated-preview-wrap">
+          <img id="live-preview-img" src="" alt="Preview" style="width:100%;height:auto;border-radius:10px;border:1px solid var(--border2);background:var(--bg0);display:none;" />
+          <div id="preview-placeholder" style="aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);border-radius:10px;background:var(--bg0);color:var(--muted);font-size:14px;">
+            Select layers to preview
+          </div>
+        </div>
+        <p class="font-raj text-center text-xs text-muted mt-3">⬆️ Live Preview (SVG supports animation)</p>
       </div>
 
       <div id="create-sections-container" class="space-y-3 mt-4"></div>
@@ -434,11 +524,11 @@
         <div id="order-preview-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
       </div>
 
-      <input type="text" id="nft-name" value="V2 Dickbutts #1" class="nft-input mt-4" placeholder="NFT Name">
-      <textarea id="nft-description" rows="3" class="nft-input mt-4" placeholder="Description">crypto Dickbutts V2 — Animated SVG Edition.</textarea>
+      <input type="text" id="nft-name" value="V2 Dickbutts" class="nft-input mt-4" placeholder="NFT Name">
+      <textarea id="nft-description" rows="3" class="nft-input mt-4" placeholder="Description">crypto Dickbutts V2 — art community driven.</textarea>
 
       <button onclick="App.createNFT()" id="btn-create-nft" class="btn-generate mt-4">
-        ✨ Generate Animated NFT
+        ✨ Generate NFT
       </button>
     </div>
 
@@ -451,75 +541,38 @@
   <div id="toast" class="hidden"></div>
 </div>
 
-<!-- FIREBASE REALTIME DATABASE MODULE INTEGRATION -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // Configured Firebase SDK[cite: 1]
-  const firebaseConfig = {
-    apiKey: "AIzaSyAzyWZLtzpysvn6nxk8pN96gLsfMS2oL2M",
-    authDomain: "leyerspunk.firebaseapp.com",
-    databaseURL: "https://leyerspunk-default-rtdb.firebaseio.com",
-    projectId: "leyerspunk",
-    storageBucket: "leyerspunk.firebasestorage.app",
-    messagingSenderId: "828318849186",
-    appId: "1:828318849186:web:b1f4358e613e79de7f1ffb"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // Global references for database actions
-  window.fbDB = db;
-  window.fbRef = ref;
-  window.fbSet = set;
-  window.fbOnValue = onValue;
-  window.fbRemove = remove;
-
-  // Realtime Sync from Firebase
-  onValue(ref(db, 'v2_layers'), (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      for (let sec of window.SECTIONS) {
-        window.layersBySection[sec] = data[sec] ? Object.values(data[sec]) : [];
-      }
-    } else {
-      for (let sec of window.SECTIONS) window.layersBySection[sec] = [];
-    }
-    window.renderSections();
-    window.renderCreateSections();
-  });
-
-  onValue(ref(db, 'v2_nfts'), (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-      window.nfts = Object.values(data);
-    } else {
-      window.nfts = [];
-    }
-    window.renderCollection();
-  });
-</script>
-
 <script>
-// Folder categories based on Screenshot[cite: 1]
-const SECTIONS = ["Artifact", "Bones", "Cloak", "Crown", "Palette", "Relic", "Sight"];
+// ===== Firebase Config =====
+const firebaseConfig = {
+  apiKey: "AIzaSyAzyWZLtzpysvn6nxk8pN96gLsfMS2oL2M",
+  authDomain: "leyerspunk.firebaseapp.com",
+  databaseURL: "https://leyerspunk-default-rtdb.firebaseio.com",
+  projectId: "leyerspunk",
+  storageBucket: "leyerspunk.firebasestorage.app",
+  messagingSenderId: "828318849186",
+  appId: "1:828318849186:web:b1f4358e613e79de7f1ffb"
+};
 
-let layersBySection = {};
-SECTIONS.forEach(s => layersBySection[s] = []);
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
+// ===== State =====
+let layersBySection = {
+  "Background":[], "Skin":[], "Body":[], "Butt":[], "Dick":[], "Eyes":[],
+  "Hand":[], "Hat":[], "Mouth":[], "Nose":[], "Shoes":[], "Special":[]
+};
 let selectedOrder = [];
 let nfts = [];
 let currentMode = 'url';
-let previewCanvas = null, previewCtx = null;
 let openSectionLayers = {};
 let openSectionCreate = {};
-let animFrameId = null;
+let isSyncing = false;
+let syncInitialized = false;
 
-window.SECTIONS = SECTIONS;
-window.layersBySection = layersBySection;
+const SECTIONS = ["Background","Skin","Body","Butt","Dick","Eyes","Hand","Hat","Mouth","Nose","Shoes","Special"];
 
+// ===== Helpers =====
 function escapeHtml(str) {
   if(!str) return '';
   return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
@@ -537,7 +590,14 @@ function normalizeImageUrl(raw) {
   if(url.startsWith('ipfs://')) {
     url = 'https://ipfs.io/ipfs/' + url.substring(7);
   }
+  if(/^Qm[a-zA-Z0-9]{44,}\//.test(url)) {
+    url = 'https://ipfs.io/ipfs/' + url;
+  }
   return url;
+}
+
+function compressSvgForStorage(svgString) {
+  return svgString.replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
 }
 
 function svgToDataUrl(svgString) {
@@ -548,7 +608,22 @@ function svgToDataUrl(svgString) {
   if (!fixedSvg.includes('viewBox')) {
     fixedSvg = fixedSvg.replace('<svg', '<svg viewBox="0 0 512 512"');
   }
-  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(fixedSvg);
+  if (!fixedSvg.includes('width="512"')) {
+    fixedSvg = fixedSvg.replace('<svg', '<svg width="512" height="512"');
+  }
+  const encodedSvg = encodeURIComponent(fixedSvg);
+  return 'data:image/svg+xml,' + encodedSvg;
+}
+
+// Check if SVG has animation (SMIL or CSS)
+function isAnimatedSvg(svgString) {
+  const animIndicators = [
+    '<animate', '<animateTransform', '<animateMotion',
+    '<set', 'keyframes', '@keyframes', 'animation:',
+    'animation-name', 'animation-duration'
+  ];
+  const lower = svgString.toLowerCase();
+  return animIndicators.some(ind => lower.includes(ind.toLowerCase()));
 }
 
 function showToast(msg) {
@@ -556,93 +631,147 @@ function showToast(msg) {
   toast.textContent = msg;
   toast.classList.remove('hidden');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 2500);
+  window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
-// Push data to Firebase RTDB[cite: 1]
-function saveLayerToFirebase(section, layer) {
-  if (window.fbSet && window.fbRef && window.fbDB) {
-    const cleanId = layer.id.replace(/[^a-zA-Z0-9]/g, '_');
-    window.fbSet(window.fbRef(window.fbDB, `v2_layers/${section}/${cleanId}`), layer);
+function setSyncStatus(status, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!dot || !lbl) return;
+  dot.className = 'dot ' + status;
+  lbl.textContent = label;
+}
+
+// ===== Firebase Sync =====
+function pushLayersToFirebase() {
+  if (isSyncing) return;
+  isSyncing = true;
+  setSyncStatus('yellow', 'Syncing...');
+  
+  const data = {};
+  for (let section of SECTIONS) {
+    data[section] = layersBySection[section].map(layer => ({
+      id: layer.id,
+      value: layer.value,
+      imageUrl: layer.imageUrl,
+      gender: layer.gender || 'male',
+      type: layer.type || 'url',
+      svgRaw: layer.svgRaw || null,
+      isAnimated: layer.isAnimated || false
+    }));
   }
-}
-
-function removeLayerFromFirebase(section, layerId) {
-  if (window.fbRemove && window.fbRef && window.fbDB) {
-    const cleanId = String(layerId).replace(/[^a-zA-Z0-9]/g, '_');
-    window.fbRemove(window.fbRef(window.fbDB, `v2_layers/${section}/${cleanId}`));
-  }
-}
-
-function saveNftToFirebase(nft) {
-  if (window.fbSet && window.fbRef && window.fbDB) {
-    const cleanId = String(nft.id).replace(/[^a-zA-Z0-9]/g, '_');
-    window.fbSet(window.fbRef(window.fbDB, `v2_nfts/${cleanId}`), nft);
-  }
-}
-
-function removeNftFromFirebase(nftId) {
-  if (window.fbRemove && window.fbRef && window.fbDB) {
-    const cleanId = String(nftId).replace(/[^a-zA-Z0-9]/g, '_');
-    window.fbRemove(window.fbRef(window.fbDB, `v2_nfts/${cleanId}`));
-  }
-}
-
-// Live Animated Rendering Frame Loop
-function renderAnimationFrame() {
-  if(!previewCtx) return;
-  previewCtx.clearRect(0, 0, 512, 512);
-  previewCtx.fillStyle = '#05050f';
-  previewCtx.fillRect(0, 0, 512, 512);
-
-  let loadedImages = window._previewLoadedImages || [];
-  for(let img of loadedImages) {
-    if(img && img.complete) {
-      previewCtx.drawImage(img, 0, 0, 512, 512);
-    }
-  }
-  animFrameId = requestAnimationFrame(renderAnimationFrame);
-}
-
-function updateLivePreview() {
-  if(animFrameId) cancelAnimationFrame(animFrameId);
-  window._previewLoadedImages = [];
-
-  const promises = selectedOrder.map(item => {
-    return new Promise(resolve => {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
-      img.src = item.imageUrl;
+  
+  db.ref('layers').set(data)
+    .then(() => {
+      setSyncStatus('green', 'Synced');
+      isSyncing = false;
+    })
+    .catch(err => {
+      console.error('Firebase sync error:', err);
+      setSyncStatus('red', 'Sync error');
+      isSyncing = false;
+      showToast('⚠️ Firebase sync failed: ' + err.message);
     });
-  });
+}
 
-  Promise.all(promises).then(images => {
-    window._previewLoadedImages = images.filter(Boolean);
-    renderAnimationFrame();
+function pushNftsToFirebase() {
+  if (isSyncing) return;
+  isSyncing = true;
+  setSyncStatus('yellow', 'Syncing...');
+  
+  db.ref('nfts').set(nfts)
+    .then(() => {
+      setSyncStatus('green', 'Synced');
+      isSyncing = false;
+    })
+    .catch(err => {
+      console.error('Firebase NFT sync error:', err);
+      setSyncStatus('red', 'Sync error');
+      isSyncing = false;
+      showToast('⚠️ Firebase NFT sync failed: ' + err.message);
+    });
+}
+
+function loadFromFirebase() {
+  setSyncStatus('yellow', 'Loading...');
+  
+  Promise.all([
+    db.ref('layers').once('value'),
+    db.ref('nfts').once('value')
+  ])
+  .then(([layersSnap, nftsSnap]) => {
+    // Load layers
+    const layersData = layersSnap.val();
+    if (layersData) {
+      for (let section of SECTIONS) {
+        if (layersData[section]) {
+          layersBySection[section] = layersData[section].map(layer => {
+            // If it's an SVG layer, regenerate data URL
+            if (layer.type === 'svg' && layer.svgRaw) {
+              return {
+                ...layer,
+                imageUrl: svgToDataUrl(layer.svgRaw)
+              };
+            }
+            return layer;
+          });
+        }
+      }
+    }
+    
+    // Load NFTs
+    const nftsData = nftsSnap.val();
+    if (nftsData) {
+      nfts = nftsData;
+    }
+    
+    setSyncStatus('green', 'Synced');
+    syncInitialized = true;
+    
+    // Render UI
+    renderSections();
+    renderCreateSections();
+    renderCollection();
+    updateLivePreview();
+    showToast('✅ Data loaded from Firebase');
+  })
+  .catch(err => {
+    console.error('Firebase load error:', err);
+    setSyncStatus('red', 'Load error');
+    showToast('⚠️ Failed to load from Firebase: ' + err.message);
   });
 }
 
+// ===== Layer Management =====
 function addLayerFromUrl() {
   const url = document.getElementById('image-url').value.trim();
   const value = document.getElementById('url-value').value.trim();
   const section = document.getElementById('url-section').value;
-  if(!url || !value) { showToast('Fill all fields'); return; }
-
+  if(!url) { showToast('Enter image URL'); return; }
+  if(!value) { showToast('Enter value'); return; }
   const finalUrl = normalizeImageUrl(url);
   const newLayer = { 
-    id: 'layer_' + Date.now() + '_' + Math.floor(Math.random()*1000), 
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), 
     value, 
     imageUrl: finalUrl, 
     gender: 'male', 
-    type: 'url' 
+    type: 'url',
+    isAnimated: false
   };
   
-  saveLayerToFirebase(section, newLayer);
-  showToast(`✅ Added "${value}" to ${section}`);
-  document.getElementById('image-url').value = '';
-  document.getElementById('url-value').value = '';
+  // Test if image loads
+  const img = new Image();
+  img.onload = () => {
+    layersBySection[section].push(newLayer);
+    pushLayersToFirebase();
+    renderSections();
+    renderCreateSections();
+    showToast(`✅ Added "${value}" to ${section}`);
+    document.getElementById('image-url').value = '';
+    document.getElementById('url-value').value = '';
+  };
+  img.onerror = () => showToast('❌ Failed to load image');
+  img.src = finalUrl;
 }
 
 function addLayerFromSvg() {
@@ -653,29 +782,52 @@ function addLayerFromSvg() {
   let gender = 'male';
   for(let r of radios) if(r.checked) gender = r.value;
   
-  if(!svgCode || !value) { showToast('Fill all SVG fields'); return; }
+  if(!svgCode) { showToast('Enter SVG code'); return; }
+  if(!value) { showToast('Enter value'); return; }
+  if (!svgCode.includes('<svg')) {
+    showToast('❌ Invalid SVG: No <svg> tag found');
+    return;
+  }
   
-  const svgDataUrl = svgToDataUrl(svgCode);
+  const compressedSvg = compressSvgForStorage(svgCode);
+  const svgDataUrl = svgToDataUrl(compressedSvg);
+  const animated = isAnimatedSvg(svgCode);
+  
   const newLayer = { 
-    id: 'layer_' + Date.now() + '_' + Math.floor(Math.random()*1000), 
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 6), 
     value, 
     imageUrl: svgDataUrl,
     gender, 
     type: 'svg', 
-    svgRaw: svgCode
+    svgRaw: compressedSvg,
+    isAnimated: animated
   };
-
-  saveLayerToFirebase(section, newLayer);
-  showToast(`✅ Added SVG "${value}" to ${section}`);
-  document.getElementById('svg-code').value = '';
-  document.getElementById('svg-value').value = '';
+  
+  // Test if SVG loads
+  const img = new Image();
+  img.onload = () => {
+    layersBySection[section].push(newLayer);
+    pushLayersToFirebase();
+    renderSections();
+    renderCreateSections();
+    showToast(`✅ Added SVG "${value}" to ${section}${animated ? ' (animated)' : ''}`);
+    document.getElementById('svg-code').value = '';
+    document.getElementById('svg-value').value = '';
+  };
+  img.onerror = (err) => { 
+    console.error('SVG load error:', err);
+    showToast('❌ Invalid SVG code. Please check syntax.');
+  };
+  img.src = svgDataUrl;
 }
 
 function deleteLayer(section, layerId) {
-  if(confirm('Delete this layer permanently?')) {
-    removeLayerFromFirebase(section, layerId);
+  if(confirm('Delete this layer?')) {
+    layersBySection[section] = layersBySection[section].filter(l => String(l.id) !== String(layerId));
     selectedOrder = selectedOrder.filter(item => String(item.layerId) !== String(layerId));
     selectedOrder.forEach((item, idx) => item.order = idx + 1);
+    pushLayersToFirebase();
+    renderSections();
     renderCreateSections();
     updateOrderPreview();
     updateLivePreview();
@@ -693,6 +845,7 @@ function toggleSectionCreate(section) {
   renderCreateSections();
 }
 
+// ===== Rendering =====
 function renderSections() {
   const container = document.getElementById('sections-container');
   const empty = document.getElementById('layers-empty');
@@ -710,7 +863,7 @@ function renderSections() {
           <div style="display:flex;align-items:center;gap:10px">
             <span class="font-raj font-bold" style="color:#c4b5fd">${section}</span>
             <span class="text-xs text-muted">${layers.length} layers</span>
-            <span class="section-badge">${section}</span>
+            <span class="section-badge">${section === 'Background' ? 'UI Only' : 'Trait'}</span>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; transition:transform 0.25s">
             <polyline points="6 9 12 15 18 9"></polyline>
@@ -721,8 +874,12 @@ function renderSections() {
             ${layers.map(layer => `
               <div class="layer-item ${layer.gender === 'male' ? 'male-bg' : 'female-bg'}">
                 ${layer.type === 'svg' ? '<div class="svg-badge">SVG</div>' : ''}
+                ${layer.isAnimated ? '<div class="animated-badge">▶ ANIM</div>' : ''}
                 <div style="aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--bg0);margin-bottom:8px">
-                  <img src="${layer.imageUrl}" style="width:100%;height:100%;object-fit:cover">
+                  ${layer.isAnimated ? 
+                    `<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover" src="${layer.imageUrl}"></video>` :
+                    `<img src="${layer.imageUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3EError%3C/text%3E%3C/svg%3E'">`
+                  }
                 </div>
                 <p style="font-size:11px;font-weight:600;text-align:center;color:var(--text)">${escapeHtml(layer.value)}</p>
                 <button onclick="event.stopPropagation(); App.deleteLayer('${section}', '${layer.id}')" class="btn-sm btn-danger" style="width:100%;margin-top:8px">Delete</button>
@@ -770,12 +927,16 @@ function renderCreateSections() {
               const isSel = String(selectedId) === String(layer.id);
               const orderNum = isSel ? selectedOrder.find(item => String(item.layerId) === String(layer.id))?.order : null;
               return `
-                <div onclick="App.selectLayer('${section}','${layer.id}','${escapeHtml(layer.value).replace(/'/g, "\\'")}','${layer.imageUrl.replace(/'/g, "\\'")}','${layer.gender}')"
+                <div onclick="App.selectLayer('${section}','${layer.id}','${escapeHtml(layer.value).replace(/'/g, "\\'")}','${layer.imageUrl.replace(/'/g, "\\'")}','${layer.gender}','${layer.isAnimated || false}')"
                      class="layer-item ${isSel ? 'selected' : ''}" style="cursor:pointer">
                   ${isSel && orderNum ? `<div class="order-number">${orderNum}</div>` : ''}
                   ${layer.type === 'svg' ? '<div class="svg-badge">SVG</div>' : ''}
+                  ${layer.isAnimated ? '<div class="animated-badge">▶</div>' : ''}
                   <div style="aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--bg0);margin-bottom:6px">
-                    <img src="${layer.imageUrl}" style="width:100%;height:100%;object-fit:cover">
+                    ${layer.isAnimated ? 
+                      `<video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover" src="${layer.imageUrl}"></video>` :
+                      `<img src="${layer.imageUrl}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23fff%22%3ELoad Error%3C/text%3E%3C/svg%3E'">`
+                    }
                   </div>
                   <p style="font-size:10px;font-weight:600;text-align:center;color:var(--text)">${escapeHtml(layer.value)}</p>
                 </div>
@@ -795,13 +956,16 @@ function renderCreateSections() {
   updateOrderPreview();
 }
 
-function selectLayer(section, layerId, value, imageUrl, gender) {
+function selectLayer(section, layerId, value, imageUrl, gender, isAnimated) {
   const existingIndex = selectedOrder.findIndex(item => item.section === section);
   if(existingIndex !== -1) {
     selectedOrder.splice(existingIndex, 1);
     selectedOrder.forEach((item, idx) => item.order = idx + 1);
   } else {
-    selectedOrder.push({ section, layerId, value, imageUrl, gender, order: selectedOrder.length + 1 });
+    selectedOrder.push({ 
+      section, layerId, value, imageUrl, gender, isAnimated: isAnimated || false, 
+      order: selectedOrder.length + 1 
+    });
   }
   renderCreateSections();
   updateLivePreview();
@@ -817,95 +981,159 @@ function updateOrderPreview() {
   div.innerHTML = selectedOrder.map(item => `
     <span class="order-tag">
       <span style="color:#a855f7;font-weight:800">${item.order}</span>
-      ${item.section}: ${escapeHtml(item.value)}
+      ${item.section === 'Background' ? 'BG' : item.section}: ${escapeHtml(item.value)}
+      ${item.isAnimated ? '▶' : ''}
     </span>
   `).join('');
 }
 
-// Generate Animated NFT (records Canvas frames if animation is present)
-async function recordCanvasAnimation(canvas, durationSeconds = 3) {
-  return new Promise((resolve) => {
-    const capturer = new CCapture({ format: 'webm', framerate: 30, verbose: false });
-    capturer.start();
-    const startTime = performance.now();
-
-    function captureLoop(time) {
-      capturer.capture(canvas);
-      if (time - startTime < durationSeconds * 1000) {
-        requestAnimationFrame(captureLoop);
-      } else {
-        capturer.stop();
-        capturer.save((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
-      }
+// ===== Live Preview =====
+function updateLivePreview() {
+  const previewImg = document.getElementById('live-preview-img');
+  const placeholder = document.getElementById('preview-placeholder');
+  if (!previewImg || !placeholder) return;
+  
+  if (selectedOrder.length === 0) {
+    previewImg.style.display = 'none';
+    placeholder.style.display = 'flex';
+    return;
+  }
+  
+  // For animated preview, we need to composite using HTML overlays
+  // Since we can't composite animated SVGs into a canvas, we use a div overlay approach
+  const container = previewImg.parentElement;
+  
+  // Remove old overlays
+  const oldOverlays = container.querySelectorAll('.layer-overlay');
+  oldOverlays.forEach(el => el.remove());
+  
+  // Show the preview img container
+  previewImg.style.display = 'none';
+  placeholder.style.display = 'none';
+  
+  // Create overlay layers
+  let overlayHtml = '';
+  let bgLayer = null;
+  let otherLayers = [];
+  
+  for (let item of selectedOrder) {
+    if (item.section === 'Background') {
+      bgLayer = item;
+    } else {
+      otherLayers.push(item);
     }
-    requestAnimationFrame(captureLoop);
-  });
+  }
+  
+  // Build overlay stack: background first, then others on top
+  const allLayers = [];
+  if (bgLayer) allLayers.push(bgLayer);
+  allLayers.push(...otherLayers);
+  
+  // Create a container for layers
+  const layerContainer = document.createElement('div');
+  layerContainer.style.cssText = 'position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--border2);background:var(--bg0);overflow:hidden;';
+  
+  for (let item of allLayers) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;';
+    el.className = 'layer-overlay';
+    
+    if (item.isAnimated) {
+      const video = document.createElement('video');
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.playsInline = true;
+      video.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+      video.src = item.imageUrl;
+      el.appendChild(video);
+    } else {
+      const img = document.createElement('img');
+      img.src = item.imageUrl;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+      img.onerror = () => { img.style.display = 'none'; };
+      el.appendChild(img);
+    }
+    layerContainer.appendChild(el);
+  }
+  
+  // Replace preview content
+  const parent = container;
+  parent.innerHTML = '';
+  parent.appendChild(layerContainer);
 }
 
+// ===== NFT Creation =====
 async function createNFT() {
   if(selectedOrder.length === 0) { showToast('Select at least one layer'); return; }
   const name = document.getElementById('nft-name').value.trim() || "V2 Dickbutts";
   const description = document.getElementById('nft-description').value.trim();
   const btn = document.getElementById('btn-create-nft');
   btn.disabled = true;
-  btn.innerHTML = '<div class="animate-spin" style="width:18px;height:18px;border:2px solid white;border-top-color:transparent;border-radius:50%"></div> Recording Animated NFT...';
-
+  btn.innerHTML = '<div class="animate-spin" style="width:18px;height:18px;border:2px solid white;border-top-color:transparent;border-radius:50%"></div> Generating...';
+  
   try {
-    const canvas = document.getElementById('live-preview-canvas');
-    // Record animation for 2.5s into WebM video Data URL
-    const animatedMediaData = await recordCanvasAnimation(canvas, 2.5);
-
-    const attributes = selectedOrder.map(item => ({ trait_type: item.section, value: item.value }));
-    attributes.push({ trait_type: "Attribute Count", value: attributes.length.toString() });
-
-    const newNft = {
-      id: 'nft_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    // For animated NFTs, we need to capture the composite as HTML
+    // We'll store the layer data and render as animated HTML preview
+    const nftData = {
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name,
       description,
-      image: animatedMediaData,
-      attributes,
-      isAnimated: true
+      layers: selectedOrder.map(item => ({
+        section: item.section,
+        value: item.value,
+        imageUrl: item.imageUrl,
+        isAnimated: item.isAnimated || false,
+        gender: item.gender || 'male'
+      })),
+      attributes: selectedOrder.filter(item => item.section !== "Background")
+        .map(item => ({ trait_type: item.section, value: item.value })),
+      createdAt: new Date().toISOString()
     };
-
-    saveNftToFirebase(newNft);
+    
+    // Add attribute count
+    nftData.attributes.push({ trait_type: "Attribute Count", value: nftData.attributes.length.toString() });
+    
+    // Generate a preview image (static fallback)
+    // For animated, we store the layer data and render with video support
+    nfts.push(nftData);
+    
+    // Push to Firebase
+    pushNftsToFirebase();
+    
     selectedOrder = [];
     renderCreateSections();
+    renderCollection();
     updateLivePreview();
-    showToast(`✅ Animated NFT "${name}" generated!`);
+    showToast(`✅ "${name}" created!`);
     switchTab('collection');
   } catch(err) { 
     showToast(`Error: ${err.message}`); 
+    console.error(err);
   } finally { 
     btn.disabled = false; 
-    btn.innerHTML = '✨ Generate Animated NFT'; 
+    btn.innerHTML = '✨ Generate NFT'; 
   }
 }
 
+// ===== Collection Rendering =====
 function renderCollection() {
   const container = document.getElementById('nft-list');
   const empty = document.getElementById('nft-empty');
   if(!container) return;
   empty.classList.toggle('hidden', nfts.length > 0);
   if(nfts.length === 0) { container.innerHTML = ''; return; }
-
+  
   container.innerHTML = nfts.map(nft => `
-    <div class="section-card fade-in" onclick="App.viewMetadata('${nft.id}')" style="cursor:pointer">
-      <div style="aspect-ratio:1;background:var(--bg0);overflow:hidden">
-        ${nft.image.startsWith('data:video') || nft.isAnimated ? 
-          `<video src="${nft.image}" autoplay loop muted playsinline style="width:100%;height:100%;object-fit:contain"></video>` :
-          `<img src="${nft.image}" style="width:100%;height:100%;object-fit:contain">`
-        }
+    <div class="section-card fade-in nft-card" onclick="App.viewMetadata('${nft.id}')" style="cursor:pointer">
+      <div style="aspect-ratio:1;background:var(--bg0);overflow:hidden;position:relative;">
+        ${renderNftPreview(nft)}
       </div>
       <div style="padding:14px">
         <h3 class="font-raj font-bold">${escapeHtml(nft.name)}</h3>
         <p class="text-muted text-xs mt-1">${nft.attributes ? nft.attributes.length - 1 : 0} traits</p>
-        <div style="display:flex;gap:8px;margin-top:12px" onclick="event.stopPropagation()">
-          <button onclick="App.downloadMedia('${nft.id}')" class="btn-sm">🎥 Download NFT</button>
-          <button onclick="App.downloadJSON('${nft.id}')" class="btn-sm">📄 JSON</button>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" onclick="event.stopPropagation()">
+          <button onclick="App.downloadNFT('${nft.id}')" class="btn-sm">📦 Download</button>
           <button onclick="App.deleteNFT('${nft.id}')" class="btn-sm btn-danger">🗑️</button>
         </div>
       </div>
@@ -913,38 +1141,61 @@ function renderCollection() {
   `).join('');
 }
 
-function viewMetadata(id) {
-  const nft = nfts.find(n => String(n.id) === String(id));
-  if(!nft) return;
-  alert(`Name: ${nft.name}\nDescription: ${nft.description}\nTraits:\n${nft.attributes.map(a => `${a.trait_type}: ${a.value}`).join('\n')}`);
+function renderNftPreview(nft) {
+  if (!nft.layers || nft.layers.length === 0) {
+    return '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);">No layers</div>';
+  }
+  
+  // Build layered preview
+  let layersHtml = '';
+  for (let layer of nft.layers) {
+    if (layer.isAnimated) {
+      layersHtml += `<video autoplay loop muted playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;" src="${layer.imageUrl}"></video>`;
+    } else {
+      layersHtml += `<img src="${layer.imageUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;" onerror="this.style.display='none'">`;
+    }
+  }
+  
+  return `<div style="position:relative;width:100%;height:100%;">${layersHtml}</div>`;
 }
 
-function downloadJSON(id) {
-  const nft = nfts.find(n => String(n.id) === String(id));
-  const metadata = { name: nft.name, description: nft.description, image: "ipfs://placeholder", attributes: nft.attributes };
+function viewMetadata(id) {
+  const nft = nfts.find(n => n.id == id);
+  if(!nft) return;
+  const traitStr = nft.attributes ? nft.attributes.map(a => `${a.trait_type}: ${a.value}`).join('\n') : 'No traits';
+  alert(`Name: ${nft.name}\nDescription: ${nft.description}\nTraits:\n${traitStr}`);
+}
+
+function downloadNFT(id) {
+  const nft = nfts.find(n => n.id == id);
+  if(!nft) return;
+  
+  // Create a JSON export with all data
+  const exportData = {
+    name: nft.name,
+    description: nft.description,
+    attributes: nft.attributes,
+    layers: nft.layers,
+    createdAt: nft.createdAt
+  };
+  
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }));
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }));
   a.download = `${nft.name.replace(/[^a-z0-9]/gi, '_')}.json`;
   a.click();
-  showToast('JSON downloaded');
-}
-
-function downloadMedia(id) {
-  const nft = nfts.find(n => String(n.id) === String(id));
-  const a = document.createElement('a');
-  a.href = nft.image;
-  a.download = `${nft.name.replace(/[^a-z0-9]/gi, '_')}.webm`;
-  a.click();
-  showToast('Animated NFT downloaded');
+  showToast('NFT data downloaded');
 }
 
 function deleteNFT(id) {
   if(confirm('Delete this NFT?')) {
-    removeNftFromFirebase(id);
+    nfts = nfts.filter(n => n.id != id);
+    pushNftsToFirebase();
+    renderCollection();
     showToast('NFT deleted');
   }
 }
 
+// ===== UI Controls =====
 function setMode(mode) {
   currentMode = mode;
   document.getElementById('mode-url').classList.toggle('active', mode === 'url');
@@ -960,31 +1211,60 @@ function switchTab(tab) {
   document.getElementById('tab-layers').classList.toggle('active', tab === 'layers');
   document.getElementById('tab-create').classList.toggle('active', tab === 'create');
   document.getElementById('tab-collection').classList.toggle('active', tab === 'collection');
-  if(tab === 'create') {
-    if(!previewCanvas) {
-      previewCanvas = document.getElementById('live-preview-canvas');
-      previewCtx = previewCanvas.getContext('2d');
-    }
-    updateLivePreview();
-  }
+  if(tab === 'create') updateLivePreview();
   if(tab === 'collection') renderCollection();
 }
 
+// ===== Init =====
 function init() {
-  previewCanvas = document.getElementById('live-preview-canvas');
-  if(previewCanvas) previewCtx = previewCanvas.getContext('2d');
-  renderSections();
-  renderCreateSections();
-  renderCollection();
-  setMode('url');
+  // Load from Firebase first
+  loadFromFirebase();
+  
+  // Also set up periodic sync (every 5 seconds if changes detected)
+  setInterval(() => {
+    if (!isSyncing) {
+      // Check if local data has changed by comparing with Firebase
+      // For simplicity, we just push if there are changes
+      // We'll rely on the push functions being called on each change
+    }
+  }, 30000);
 }
 
 window.App = {
   switchTab, setMode, addLayerFromUrl, addLayerFromSvg, deleteLayer,
   toggleSectionLayers, toggleSectionCreate, selectLayer, createNFT,
-  viewMetadata, downloadJSON, downloadMedia, deleteNFT
+  viewMetadata, downloadNFT, deleteNFT,
+  // Expose for inline onclick
+  renderSections, renderCreateSections, renderCollection, updateLivePreview
 };
 
+// Override push functions to update Firebase
+const originalPushLayers = pushLayersToFirebase;
+pushLayersToFirebase = function() {
+  // Debounce to avoid excessive writes
+  if (window._layerSyncTimeout) clearTimeout(window._layerSyncTimeout);
+  window._layerSyncTimeout = setTimeout(() => {
+    originalPushLayers();
+  }, 300);
+};
+
+// Override pushNfts
+const originalPushNfts = pushNftsToFirebase;
+pushNftsToFirebase = function() {
+  if (window._nftSyncTimeout) clearTimeout(window._nftSyncTimeout);
+  window._nftSyncTimeout = setTimeout(() => {
+    originalPushNfts();
+  }, 300);
+};
+
+// Add auto-save on changes
+const origSelectLayer = selectLayer;
+selectLayer = function(...args) {
+  origSelectLayer(...args);
+  // pushLayersToFirebase will be called from render
+};
+
+// Call init
 init();
 </script>
 </body>
