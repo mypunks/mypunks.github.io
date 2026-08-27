@@ -448,17 +448,12 @@
               <input type="text" id="url-value" placeholder="Value (e.g., Red Hair)" class="nft-input" style="flex:1;min-width:120px">
               <select id="url-section" class="nft-input" style="flex:1;min-width:100px">
                 <option value="Background">Background</option>
-                <option value="Skin">Skin</option>
-                <option value="Body">Body</option>
-                <option value="Butt">Butt</option>
-                <option value="Dick">Dick</option>
-                <option value="Eyes">Eyes</option>
-                <option value="Hand">Hand</option>
-                <option value="Hat">Hat</option>
-                <option value="Mouth">Mouth</option>
-                <option value="Nose">Nose</option>
-                <option value="Shoes">Shoes</option>
-                <option value="Special">Special</option>
+                <option value="Bones">Bones</option>
+                <option value="Cloak">Cloak</option>
+                <option value="Crown">Crown</option>
+                <option value="Palette">Palette</option>
+                <option value="Relic">Relic</option>
+                <option value="Sight">Sight</option>
               </select>
             </div>
             <button onclick="App.addLayerFromUrl()" class="btn-primary">➕ Add URL Layer</button>
@@ -476,17 +471,12 @@
               <input type="text" id="svg-value" placeholder="Value (e.g., Purple Circles)" class="nft-input" style="flex:1;min-width:120px">
               <select id="svg-section" class="nft-input" style="flex:1;min-width:100px">
                 <option value="Background">Background</option>
-                <option value="Skin">Skin</option>
-                <option value="Body">Body</option>
-                <option value="Butt">Butt</option>
-                <option value="Dick">Dick</option>
-                <option value="Eyes">Eyes</option>
-                <option value="Hand">Hand</option>
-                <option value="Hat">Hat</option>
-                <option value="Mouth">Mouth</option>
-                <option value="Nose">Nose</option>
-                <option value="Shoes">Shoes</option>
-                <option value="Special">Special</option>
+                <option value="Bones">Bones</option>
+                <option value="Cloak">Cloak</option>
+                <option value="Crown">Crown</option>
+                <option value="Palette">Palette</option>
+                <option value="Relic">Relic</option>
+                <option value="Sight">Sight</option>
               </select>
             </div>
             <div style="display:flex;gap:16px;flex-wrap:wrap">
@@ -558,10 +548,12 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ===== State =====
-let layersBySection = {
-  "Background":[], "Skin":[], "Body":[], "Butt":[], "Dick":[], "Eyes":[],
-  "Hand":[], "Hat":[], "Mouth":[], "Nose":[], "Shoes":[], "Special":[]
-};
+// Updated sections based on your folder structure
+const SECTIONS = ["Background", "Bones", "Cloak", "Crown", "Palette", "Relic", "Sight"];
+
+let layersBySection = {};
+SECTIONS.forEach(s => layersBySection[s] = []);
+
 let selectedOrder = [];
 let nfts = [];
 let currentMode = 'url';
@@ -569,8 +561,6 @@ let openSectionLayers = {};
 let openSectionCreate = {};
 let isSyncing = false;
 let syncInitialized = false;
-
-const SECTIONS = ["Background","Skin","Body","Butt","Dick","Eyes","Hand","Hat","Mouth","Nose","Shoes","Special"];
 
 // ===== Helpers =====
 function escapeHtml(str) {
@@ -615,7 +605,6 @@ function svgToDataUrl(svgString) {
   return 'data:image/svg+xml,' + encodedSvg;
 }
 
-// Check if SVG has animation (SMIL or CSS)
 function isAnimatedSvg(svgString) {
   const animIndicators = [
     '<animate', '<animateTransform', '<animateMotion',
@@ -700,13 +689,11 @@ function loadFromFirebase() {
     db.ref('nfts').once('value')
   ])
   .then(([layersSnap, nftsSnap]) => {
-    // Load layers
     const layersData = layersSnap.val();
     if (layersData) {
       for (let section of SECTIONS) {
         if (layersData[section]) {
           layersBySection[section] = layersData[section].map(layer => {
-            // If it's an SVG layer, regenerate data URL
             if (layer.type === 'svg' && layer.svgRaw) {
               return {
                 ...layer,
@@ -719,7 +706,6 @@ function loadFromFirebase() {
       }
     }
     
-    // Load NFTs
     const nftsData = nftsSnap.val();
     if (nftsData) {
       nfts = nftsData;
@@ -728,7 +714,6 @@ function loadFromFirebase() {
     setSyncStatus('green', 'Synced');
     syncInitialized = true;
     
-    // Render UI
     renderSections();
     renderCreateSections();
     renderCollection();
@@ -759,7 +744,6 @@ function addLayerFromUrl() {
     isAnimated: false
   };
   
-  // Test if image loads
   const img = new Image();
   img.onload = () => {
     layersBySection[section].push(newLayer);
@@ -803,7 +787,6 @@ function addLayerFromSvg() {
     isAnimated: animated
   };
   
-  // Test if SVG loads
   const img = new Image();
   img.onload = () => {
     layersBySection[section].push(newLayer);
@@ -999,20 +982,13 @@ function updateLivePreview() {
     return;
   }
   
-  // For animated preview, we need to composite using HTML overlays
-  // Since we can't composite animated SVGs into a canvas, we use a div overlay approach
   const container = previewImg.parentElement;
-  
-  // Remove old overlays
   const oldOverlays = container.querySelectorAll('.layer-overlay');
   oldOverlays.forEach(el => el.remove());
   
-  // Show the preview img container
   previewImg.style.display = 'none';
   placeholder.style.display = 'none';
   
-  // Create overlay layers
-  let overlayHtml = '';
   let bgLayer = null;
   let otherLayers = [];
   
@@ -1024,12 +1000,10 @@ function updateLivePreview() {
     }
   }
   
-  // Build overlay stack: background first, then others on top
   const allLayers = [];
   if (bgLayer) allLayers.push(bgLayer);
   allLayers.push(...otherLayers);
   
-  // Create a container for layers
   const layerContainer = document.createElement('div');
   layerContainer.style.cssText = 'position:relative;width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--border2);background:var(--bg0);overflow:hidden;';
   
@@ -1057,7 +1031,6 @@ function updateLivePreview() {
     layerContainer.appendChild(el);
   }
   
-  // Replace preview content
   const parent = container;
   parent.innerHTML = '';
   parent.appendChild(layerContainer);
@@ -1073,8 +1046,6 @@ async function createNFT() {
   btn.innerHTML = '<div class="animate-spin" style="width:18px;height:18px;border:2px solid white;border-top-color:transparent;border-radius:50%"></div> Generating...';
   
   try {
-    // For animated NFTs, we need to capture the composite as HTML
-    // We'll store the layer data and render as animated HTML preview
     const nftData = {
       id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name,
@@ -1091,14 +1062,9 @@ async function createNFT() {
       createdAt: new Date().toISOString()
     };
     
-    // Add attribute count
     nftData.attributes.push({ trait_type: "Attribute Count", value: nftData.attributes.length.toString() });
     
-    // Generate a preview image (static fallback)
-    // For animated, we store the layer data and render with video support
     nfts.push(nftData);
-    
-    // Push to Firebase
     pushNftsToFirebase();
     
     selectedOrder = [];
@@ -1146,7 +1112,6 @@ function renderNftPreview(nft) {
     return '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);">No layers</div>';
   }
   
-  // Build layered preview
   let layersHtml = '';
   for (let layer of nft.layers) {
     if (layer.isAnimated) {
@@ -1170,7 +1135,6 @@ function downloadNFT(id) {
   const nft = nfts.find(n => n.id == id);
   if(!nft) return;
   
-  // Create a JSON export with all data
   const exportData = {
     name: nft.name,
     description: nft.description,
@@ -1217,38 +1181,30 @@ function switchTab(tab) {
 
 // ===== Init =====
 function init() {
-  // Load from Firebase first
-  loadFromFirebase();
+  // Initialize sections
+  SECTIONS.forEach(s => {
+    if (!layersBySection[s]) layersBySection[s] = [];
+  });
   
-  // Also set up periodic sync (every 5 seconds if changes detected)
-  setInterval(() => {
-    if (!isSyncing) {
-      // Check if local data has changed by comparing with Firebase
-      // For simplicity, we just push if there are changes
-      // We'll rely on the push functions being called on each change
-    }
-  }, 30000);
+  loadFromFirebase();
 }
 
 window.App = {
   switchTab, setMode, addLayerFromUrl, addLayerFromSvg, deleteLayer,
   toggleSectionLayers, toggleSectionCreate, selectLayer, createNFT,
   viewMetadata, downloadNFT, deleteNFT,
-  // Expose for inline onclick
   renderSections, renderCreateSections, renderCollection, updateLivePreview
 };
 
-// Override push functions to update Firebase
+// Debounced sync
 const originalPushLayers = pushLayersToFirebase;
 pushLayersToFirebase = function() {
-  // Debounce to avoid excessive writes
   if (window._layerSyncTimeout) clearTimeout(window._layerSyncTimeout);
   window._layerSyncTimeout = setTimeout(() => {
     originalPushLayers();
   }, 300);
 };
 
-// Override pushNfts
 const originalPushNfts = pushNftsToFirebase;
 pushNftsToFirebase = function() {
   if (window._nftSyncTimeout) clearTimeout(window._nftSyncTimeout);
@@ -1257,14 +1213,6 @@ pushNftsToFirebase = function() {
   }, 300);
 };
 
-// Add auto-save on changes
-const origSelectLayer = selectLayer;
-selectLayer = function(...args) {
-  origSelectLayer(...args);
-  // pushLayersToFirebase will be called from render
-};
-
-// Call init
 init();
 </script>
 </body>
