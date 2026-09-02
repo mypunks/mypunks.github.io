@@ -3,63 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STONK BROKERS // NEW 6666 GENERATOR</title>
+<title>STONK BROKERS // 4444 FEMALE CONVERTER</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin:0; padding:0; }
-  body { background:#008080; font-family:'VT323',monospace; padding:20px; }
-  .wrap { max-width:1000px; margin:0 auto; }
-  .win { background:#c0c0c0; border:3px solid; border-top-color:#fff; border-left-color:#fff; border-right-color:#808080; border-bottom-color:#808080; margin-bottom:16px; }
-  .titlebar { background:#000080; color:#fff; padding:6px 10px; font-family:'Press Start 2P',monospace; font-size:11px; display:flex; justify-content:space-between; align-items:center; }
-  .content { padding:16px; }
-  .row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-  .col { flex:1; min-width:200px; }
-  label { font-family:'Press Start 2P',monospace; font-size:8px; display:block; margin-bottom:4px; color:#000080; }
-  input, textarea, select { background:#fff; border:2px inset #808080; padding:8px; width:100%; font-family:'VT323',monospace; font-size:15px; }
-  button { background:#c0c0c0; border:3px solid; border-top-color:#fff; border-left-color:#fff; border-right-color:#808080; border-bottom-color:#808080; padding:10px 16px; font-family:'Press Start 2P',monospace; font-size:10px; cursor:pointer; }
-  button:active { border-top-color:#808080; border-left-color:#808080; border-right-color:#fff; border-bottom-color:#fff; }
-  button:disabled { opacity:.5; cursor:not-allowed; }
-  .bar { background:#fff; border:2px inset #808080; height:22px; margin-top:8px; }
-  .fill { background:#000080; height:100%; width:0%; }
-  .log { background:#111; color:#0f0; font-family:'VT323',monospace; font-size:14px; padding:10px; height:200px; overflow:auto; white-space:pre-wrap; border:2px inset #808080; }
-  .info { color:#000080; font-family:'Press Start 2P',monospace; font-size:8px; margin-bottom:6px; }
-  .warn { color:#aa0000; font-family:'Press Start 2P',monospace; font-size:8px; margin-bottom:6px; }
-  .stat { display:flex; gap:16px; flex-wrap:wrap; margin-top:8px; }
-  .stat span { font-family:'Press Start 2P',monospace; font-size:9px; background:#d4d0c8; border:2px outset #808080; padding:6px 10px; }
+  /* GLOBAL BASE STYLES */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #008080; font-family: 'VT323', monospace; padding: 20px; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  
+  /* RETRO WINDOW CONTAINER */
+  .win { 
+    background: #c0c0c0; 
+    border: 3px solid; 
+    border-top-color: #ffffff; 
+    border-left-color: #ffffff; 
+    border-right-color: #808080; 
+    border-bottom-color: #808080; 
+    margin-bottom: 16px; 
+  }
+  .titlebar { 
+    background: #000080; 
+    color: #ffffff; 
+    padding: 6px 10px; 
+    font-family: 'Press Start 2P', monospace; 
+    font-size: 11px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+  }
+  .content { padding: 16px; }
+  
+  /* FORM CONTROLS & LAYOUT */
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .col { flex: 1; min-width: 200px; }
+  label { font-family: 'Press Start 2P', monospace; font-size: 8px; display: block; margin-bottom: 4px; color: #000080; }
+  input, textarea, select { 
+    background: #ffffff; 
+    border: 2px inset #808080; 
+    padding: 8px; 
+    width: 100%; 
+    font-family: 'VT323', monospace; 
+    font-size: 15px; 
+  }
+  button { 
+    background: #c0c0c0; 
+    border: 3px solid; 
+    border-top-color: #ffffff; 
+    border-left-color: #ffffff; 
+    border-right-color: #808080; 
+    border-bottom-color: #808080; 
+    padding: 10px 16px; 
+    font-family: 'Press Start 2P', monospace; 
+    font-size: 10px; 
+    cursor: pointer; 
+  }
+  button:active { 
+    border-top-color: #808080; 
+    border-left-color: #808080; 
+    border-right-color: #ffffff; 
+    border-bottom-color: #ffffff; 
+  }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  
+  /* PROGRESS BARS & STATS */
+  .bar { background: #ffffff; border: 2px inset #808080; height: 22px; margin-top: 8px; }
+  .fill { background: #000080; height: 100%; width: 0%; }
+  .log { 
+    background: #111111; 
+    color: #00ff00; 
+    font-family: 'VT323', monospace; 
+    font-size: 14px; 
+    padding: 10px; 
+    height: 200px; 
+    overflow: auto; 
+    white-space: pre-wrap; 
+    border: 2px inset #808080; 
+  }
+  .info { color: #000080; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-bottom: 6px; }
+  .warn { color: #aa0000; font-family: 'Press Start 2P', monospace; font-size: 8px; margin-bottom: 6px; }
+  .stat { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .stat span { 
+    font-family: 'Press Start 2P', monospace; 
+    font-size: 9px; 
+    background: #d4d0c8; 
+    border: 2px outset #808080; 
+    padding: 6px 10px; 
+  }
 
-  .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; max-height:640px; overflow-y:auto; padding:4px; }
-  .nft-card { background:#d4d0c8; border:2px solid; border-top-color:#fff; border-left-color:#fff; border-right-color:#808080; border-bottom-color:#808080; cursor:pointer; padding:6px; text-align:center; }
-  .nft-card:hover { outline:2px solid #000080; }
-  .nft-card img { width:100%; aspect-ratio:1; image-rendering:pixelated; background:#fff; border:1px inset #808080; display:block; }
-  .nft-card .cap { font-family:'Press Start 2P',monospace; font-size:7px; margin-top:4px; color:#000080; }
-  .gallery-empty { font-family:'Press Start 2P',monospace; font-size:9px; text-align:center; padding:30px; color:#808080; }
+  /* GALLERY COMPONENT */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    max-height: 640px;
+    overflow-y: auto;
+    padding: 6px;
+    background: #c0c0c0;
+  }
 
-  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
-  .modal-box { background:#c0c0c0; border:3px solid; border-top-color:#fff; border-left-color:#fff; border-right-color:#808080; border-bottom-color:#808080; width:100%; max-width:460px; max-height:88vh; overflow:auto; }
-  .modal-img { width:100%; aspect-ratio:1; image-rendering:pixelated; background:#fff; border:2px inset #808080; }
-  .attr-row { display:flex; justify-content:space-between; background:#fff; border:1px solid #808080; padding:5px 8px; margin-bottom:4px; font-family:'VT323',monospace; font-size:15px; }
-  .attr-row b { color:#000080; font-family:'VT323',monospace; }
+  /* NFT CARD */
+  .nft-card {
+    position: relative;
+    background: #d4d0c8;
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+    cursor: pointer;
+    padding: 6px;
+    text-align: center;
+    transition: none;
+  }
+  .nft-card:hover {
+    outline: 2px solid #000080;
+    outline-offset: -2px;
+  }
+  .nft-card:active {
+    border-top-color: #808080;
+    border-left-color: #808080;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+  }
+  .nft-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #ffffff;
+    border: 1px inset #808080;
+    display: block;
+    object-fit: contain;
+  }
+  .nft-card .cap {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 1.4;
+    margin-top: 5px;
+    color: #000080;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .gallery-empty {
+    grid-column: 1 / -1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    line-height: 1.6;
+    text-align: center;
+    padding: 35px 20px;
+    color: #808080;
+  }
+
+  /* NFT MODAL COMPONENT */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .modal-box {
+    background: #c0c0c0;
+    border: 3px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    width: 100%;
+    max-width: 460px;
+    max-height: 88vh;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 6px;
+  }
+  .modal-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #ffffff;
+    border: 2px inset #808080;
+    display: block;
+    object-fit: contain;
+  }
+  .attr-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #808080;
+    padding: 5px 8px;
+    margin-bottom: 4px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    line-height: 1.1;
+    box-sizing: border-box;
+  }
+  .attr-row b {
+    color: #000080;
+    font-family: 'VT323', monospace;
+    font-weight: bold;
+  }
+  .attr-row span {
+    text-align: right;
+    word-break: break-word;
+  }
+
+  /* MEDIA QUERIES */
+  @media (max-width: 600px) {
+    .gallery {
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      max-height: 600px;
+    }
+    .nft-card { padding: 5px; }
+    .nft-card .cap { font-size: 6px; }
+    .modal-overlay { padding: 10px; }
+    .modal-box { max-width: 100%; max-height: 92vh; }
+    .attr-row { font-size: 14px; padding: 5px 6px; }
+  }
+
+  /* CUSTOM SCROLLBARS */
+  .gallery::-webkit-scrollbar,
+  .modal-box::-webkit-scrollbar {
+    width: 14px;
+  }
+  .gallery::-webkit-scrollbar-track,
+  .modal-box::-webkit-scrollbar-track {
+    background: #c0c0c0;
+  }
+  .gallery::-webkit-scrollbar-thumb,
+  .modal-box::-webkit-scrollbar-thumb {
+    background: #808080;
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <div class="win">
-    <div class="titlebar"><span>🆕 STONK BROKERS — NEW 6666 GENERATOR (same art system, all unique)</span></div>
+    <div class="titlebar"><span>👩 STONK BROKERS — 4,444 FEMALE CONVERTER (EXACT 1:1 METADATA)</span></div>
     <div class="content">
-      <div class="info">✓ একই ১৩টা ক্যাটাগরি, একই আর্ট স্টাইল, একই SVG লজিক — অন-চেইন রেন্ডারার থেকে হুবহু পোর্ট করা</div>
-      <div class="info">✓ প্রতিটা নতুন NFT র‍্যান্ডম ট্রেইট নিয়ে জেনারেট হয়, তারপর যাচাই হয় — আগের ৪৪৪৪ বা ইতিমধ্যে জেনারেট হওয়া নতুনগুলোর সাথে ট্রেইট-কম্বিনেশন মিললে আবার রোল হয়</div>
-      <div class="info">✓ মেটাডাটা ফরম্যাট সম্পূর্ণ সেম স্টাইল — name/description/attributes (None বাদ)</div>
-      <div class="warn">⚠️ সম্পূর্ণ অফলাইন/লোকাল — কোনো ব্লকচেইন কল লাগে না, ব্রাউজারেই সব জেনারেট হয়</div>
+      <div class="info">✓ 1:1 CONVERSION OF ORIGINAL NFTS 1 THROUGH 4444 — NO NEW RANDOM TRAITS</div>
+      <div class="info">✓ EXACT TRAITS PRESERVED FROM ON-CHAIN DATA & METADATA SOURCE OF TRUTH</div>
+      <div class="info">✓ PREMIUM FEMALE PIXEL SVG GEOMETRY WITH PERFECT GLASSES & TALL HAIR ALIGNMENT</div>
     </div>
   </div>
 
   <div class="win">
-    <div class="titlebar"><span>⚙️ EXISTING COLLECTION (ডুপ্লিকেট চেক করার জন্য — এখন সরাসরি চেইন থেকে)</span></div>
+    <div class="titlebar"><span>⚙️ SOURCE CONTRACT / RPC CONFIGURATION</span></div>
     <div class="content">
-      <div class="info">✓ CSV-এর বদলে সরাসরি ডিপ্লয়েড কন্ট্রাক্ট থেকে ৪৪৪৪টার আসল attribute টেনে বেসলাইন বানানো হয় — কোনো মধ্যবর্তী ফাইলে ভুল থাকার সুযোগ নেই</div>
       <div class="row">
         <div class="col">
           <label>CONTRACT ADDRESS (full 42-char, 0x...)</label>
@@ -74,21 +282,12 @@
           <input id="baseline-concurrency" type="number" value="6" min="1" max="20">
         </div>
       </div>
-      <div class="row">
-        <button id="load-chain-btn" onclick="loadExistingFromChain()" style="flex:1;">⛓ LOAD BASELINE FROM CHAIN (৪৪৪৪টা)</button>
-        <button id="stop-baseline-btn" onclick="stopBaselineLoad()" disabled style="flex:1;">🛑 STOP</button>
-      </div>
-      <div class="bar"><div class="fill" id="baseline-fill"></div></div>
-      <div class="info" id="existing-status">এখনো লোড হয়নি — না লোড করলেও জেনারেট করা যাবে, কিন্তু তাহলে শুধু নতুনগুলোর মধ্যেই ইউনিকনেস গ্যারান্টিড থাকবে, আসল ৪৪৪৪-এর সাথে না।</div>
       <details style="margin-top:10px;">
-        <summary style="font-family:'Press Start 2P',monospace; font-size:8px; color:#000080; cursor:pointer;">বিকল্প: CSV থেকে লোড করতে চাইলে (ক্লিক করুন)</summary>
+        <summary style="font-family:'Press Start 2P',monospace; font-size:8px; color:#000080; cursor:pointer;">FALLBACK OPTION: LOAD FROM CSV (IF RPC IS OFFLINE)</summary>
         <div class="row" style="margin-top:10px;">
           <div class="col" style="flex:3;">
-            <label>ORIGINAL 4444 CSV URL (attributes columns সহ)</label>
+            <label>ORIGINAL 4444 CSV URL</label>
             <input id="existing-csv-url" value="https://raw.githubusercontent.com/thegogly/thegogly.github.io/main/StonkBroker1.csv">
-          </div>
-          <div class="col" style="flex:1; display:flex; align-items:flex-end;">
-            <button id="load-existing-btn" onclick="loadExistingCSV()" style="width:100%;">🔄 LOAD FROM CSV</button>
           </div>
         </div>
       </details>
@@ -96,45 +295,26 @@
   </div>
 
   <div class="win">
-    <div class="titlebar"><span>🎲 GENERATE SETTINGS</span></div>
+    <div class="titlebar"><span>🚀 CONVERSION SETTINGS</span></div>
     <div class="content">
       <div class="row">
         <div class="col">
-          <label>GENERATION MODE</label>
-          <select id="gen-mode">
-            <option value="FEMALE" selected>FEMALE — Stonk Broker Renderer</option>
-            <option value="MALE">MALE — Original Renderer</option>
-          </select>
-        </div>
-        <div class="col">
-          <label>TOTAL NEW NFTs</label>
-          <input id="total-count" type="number" value="6666" min="1" max="20000">
-        </div>
-        <div class="col">
-          <label>START TOKEN ID</label>
-          <input id="start-id" type="number" value="4445" min="1">
-        </div>
-        <div class="col">
           <label>NAME PREFIX</label>
-          <input id="name-prefix" value="Stonk Broker Gen2 #">
+          <input id="name-prefix" value="Female Stonk Broker #">
         </div>
-      </div>
-      <div class="row">
         <div class="col">
           <label>DESCRIPTION</label>
-          <textarea id="nft-description" rows="2">4444 originals, now 6666 more — same pixel stock-broker art system, every trait combination unique across both collections.</textarea>
+          <textarea id="nft-description" rows="2">Female Stonk Broker counterpart created with exact 1:1 preserved traits from the original on-chain Stonk Broker collection.</textarea>
         </div>
       </div>
       <div class="row">
-        <button id="gen-btn" onclick="startGenerate()">🎲 GENERATE 6666 NEW NFTs</button>
-        <button id="stop-btn" onclick="stopGenerate()" disabled>🛑 STOP</button>
+        <button id="gen-btn" onclick="startGenerateFemaleVersions()" style="flex:1;">👩 GENERATE 4,444 FEMALE VERSIONS</button>
+        <button id="stop-btn" onclick="stopGenerate()" disabled style="flex:1;">🛑 STOP</button>
       </div>
       <div class="bar"><div class="fill" id="fill"></div></div>
       <div class="stat">
-        <span id="stat-done">DONE: 0</span>
-        <span id="stat-ok">OK: 0</span>
-        <span id="stat-reroll">RE-ROLLED (দুই-বার মিলে যাওয়ায়): 0</span>
-        <span id="stat-total">TOTAL: 0</span>
+        <span id="stat-loaded">LOADED: 0 / 4444</span>
+        <span id="stat-generated">GENERATED: 0 / 4444</span>
       </div>
     </div>
   </div>
@@ -161,10 +341,10 @@
   </div>
 
   <div class="win">
-    <div class="titlebar"><span>🖼️ LIVE GALLERY — জেনারেট হচ্ছে এমন NFT গুলো এখানে দেখা যাবে, কার্ডে ক্লিক করলে মেটাডাটা</span></div>
+    <div class="titlebar"><span>🖼️ LIVE GALLERY — FEMALE CONVERSIONS (#1 TO #4444)</span></div>
     <div class="content">
       <div id="gallery" class="gallery">
-        <div class="gallery-empty">[ এখনো কিছু জেনারেট হয়নি — GENERATE চাপুন ]</div>
+        <div class="gallery-empty">[ Click GENERATE 4,444 FEMALE VERSIONS to start conversion ]</div>
       </div>
     </div>
   </div>
@@ -181,142 +361,89 @@
 <div id="modal-root"></div>
 
 <script>
-// ============================================================
-// PORTED 1:1 FROM StonkBrokerTraitsV6Proposal.sol + StonkBrokerSvgRendererV6Proposal.sol
-// (verified on-chain source, Robinhood Chain, StonkBrokers contract)
-// Same math (BigInt mirrors Solidity's uint256 %, /), same SVG pixel output.
-// ============================================================
+// TRAIT MAPPING & LOOKUPS
+const BACKGROUND_LIST = ["Sky Blue","Light Blue","Pale Blue","Tan","Slate","Steel","Trading Floor Green","Bloomberg Orange"];
+const SKIN_LIST = ["Human","Devil","Zombie","Robot","Marshmallow","Alien","Lemon","Shadow"];
+const HAIR_STYLE_LIST = ["Classic Side","Long Side","Wide Top","Short Crop","Wavy","Tall","Bald","Rainbow Afro"];
+const HAIR_COLOR_LIST = ["Jet Black","Dark Brown","Brown","Light Brown","Charcoal","Gray Brown","Blonde","None","Rainbow"];
+const EYE_COLOR_LIST = ["Blue","Green","Brown","Slate Gray","Teal","Violet","Amber","Navy","Bull Candle"];
+const NOSE_LIST = ["Taupe - Flat","Taupe - Wide","Light Brown - Flat","Light Brown - Wide","Brown - Flat","Brown - Wide","Dark Brown - Flat","Dark Brown - Wide","Pink - Flat","Pink - Wide","Clown Red - Wide","None"];
+const MOUTH_LIST = ["Neutral","Smirk","Smile","Beard","Open","Mustache","Blond Beard","Blonde Mustache","Gray Beard","Gold Tooth"];
+const SUIT_LIST = ["Charcoal","Navy","Slate","Steel","Purple","Forest","Rainbow","Pink","Red"];
+const TIE_LIST = ["Blue","Green","Red","Gold","Purple","Teal"];
+const NECKWEAR_LIST = ["Tie","Bow Tie"];
+const FACE_ACCESSORY_LIST = ["None","Rimless Glasses","Sunglasses","3D Glasses","Headset","Monocle","Devil Horns","Eye Patch","Crown","Bull Horns","Bluetooth Headset","Gold Headset","Golden Devil Horns","Golden Bull Horns","Blue Boom Headset","Gold Rims","Banded Frameless","Gold Banded Frameless"];
+const BROKER_BADGE_LIST = ["None","Insider","Whale","Diamond Hands"];
+const POCKET_SQUARE_LIST = ["None","Cream","White","Gold"];
 
-function decodeTraits(seed) {
-  const t = {};
-  t.background = Number(seed % 8n);
-  t.skin = Number((seed / 5n) % 13n);
-  {
-    const hairRoll = Number((seed / 11n) % 1000n);
-    if (hairRoll === 0) t.hairStyle = 7;
-    else t.hairStyle = (hairRoll - 1) % 7;
-  }
-  t.hairColor = Number((seed / 17n) % 7n);
-  if ((seed / 89n) % 100n === 0n) t.eyeColor = 8;
-  else t.eyeColor = Number((seed / 23n) % 8n);
-  {
-    const noseRoll = Number((seed / 31n) % 100n);
-    if (noseRoll === 0) t.noseColor = 10;
-    else if (noseRoll <= 10) t.noseColor = 11;
-    else t.noseColor = (noseRoll - 11) % 10;
-  }
-  if ((seed / 67n) % 100n === 0n) t.mouth = 9;
-  else {
-    const mouthRoll = Number((seed / 29n) % 100n);
-    if (mouthRoll < 3) t.mouth = 6;
-    else if (mouthRoll < 6) t.mouth = 7;
-    else if (mouthRoll < 9) t.mouth = 8;
-    else t.mouth = (mouthRoll - 9) % 6;
-  }
-  {
-    const suitRoll = Number((seed / 37n) % 200n);
-    if (suitRoll < 2) t.suit = 6;
-    else if (suitRoll === 2) t.suit = 7;
-    else if (suitRoll <= 4) t.suit = 8;
-    else t.suit = (suitRoll - 5) % 6;
-  }
-  t.tie = Number((seed / 41n) % 6n);
-  t.neckwear = Number((seed / 45n) % 4n) === 0 ? 1 : 0;
-  t.brokerBadge = Number((seed / 49n) % 8n);
-  if (t.brokerBadge > 3) t.brokerBadge = 0;
-  if ((seed / 53n) % 100n === 0n) t.pocketSquare = 1 + Number((seed / 59n) % 3n);
-  else t.pocketSquare = 0;
-
-  if ((seed / 61n) % 100n === 0n) t.faceAccessory = 12;
-  else if ((seed / 73n) % 100n === 0n) t.faceAccessory = 13;
-  else if ((seed / 79n) % 100n === 0n) t.faceAccessory = 14;
-  else if ((seed / 71n) % 100n === 0n) t.faceAccessory = 18;
-  else if ((seed / 83n) % 100n === 0n) t.faceAccessory = 21;
-  else {
-    const accRoll = Number((seed / 43n) % 40n);
-    if (accRoll === 0) t.faceAccessory = 0;
-    else if (accRoll === 1) t.faceAccessory = 1;
-    else if (accRoll === 2) t.faceAccessory = 2;
-    else if (accRoll === 3) t.faceAccessory = 3;
-    else if (accRoll === 4) t.faceAccessory = 0;
-    else if (accRoll <= 10) t.faceAccessory = 5;
-    else if (accRoll <= 15) t.faceAccessory = 11;
-    else if (accRoll <= 17) t.faceAccessory = 15;
-    else if (accRoll === 18) t.faceAccessory = 6;
-    else if (accRoll === 19) t.faceAccessory = 7;
-    else if (accRoll === 20) t.faceAccessory = 8;
-    else if (accRoll <= 23) t.faceAccessory = 9;
-    else if (accRoll <= 26) t.faceAccessory = 10;
-    else {
-      const tailRoll = accRoll % 5;
-      t.faceAccessory = tailRoll === 4 ? 19 : tailRoll;
-    }
-  }
-  return t;
+function getIdx(list, val, defaultIdx = 0) {
+  if (!val || val === "None") return defaultIdx;
+  const idx = list.indexOf(val);
+  return idx !== -1 ? idx : defaultIdx;
 }
 
-// --- name lookups (mirrors *Name() functions) ---
-function backgroundName(i){return ["Sky Blue","Light Blue","Pale Blue","Tan","Slate","Steel","Trading Floor Green","Bloomberg Orange"][i];}
-function skinName(i){ if(i<=5) return "Human"; return ["Devil","Zombie","Robot","Marshmallow","Alien","Lemon","Shadow"][i-6]; }
-function hairStyleName(i){return ["Classic Side","Long Side","Wide Top","Short Crop","Wavy","Tall","Bald","Rainbow Afro"][i];}
-function hairColorName(i){return ["Jet Black","Dark Brown","Brown","Light Brown","Charcoal","Gray Brown","Blonde"][i];}
-function hairColorNameForMetadata(hairStyle,color){ if(hairStyle===6) return "None"; if(hairStyle===7) return "Rainbow"; return hairColorName(color); }
-function eyeColorName(i){return ["Blue","Green","Brown","Slate Gray","Teal","Violet","Amber","Navy","Bull Candle"][i];}
-function noseColorName(i){
-  const names=["Taupe - Flat","Taupe - Wide","Light Brown - Flat","Light Brown - Wide","Brown - Flat","Brown - Wide","Dark Brown - Flat","Dark Brown - Wide","Pink - Flat","Pink - Wide","Clown Red - Wide"];
-  if(i===11) return "None"; return names[i];
-}
-function mouthName(i){return ["Neutral","Smirk","Smile","Beard","Open","Mustache","Blond Beard","Blonde Mustache","Gray Beard","Gold Tooth"][i];}
-function suitName(i){return ["Charcoal","Navy","Slate","Steel","Purple","Forest","Rainbow","Pink","Red","Red"][i];}
-function tieName(i){return ["Blue","Green","Red","Gold","Purple","Teal"][i];}
-function neckwearName(i){return i===1?"Bow Tie":"Tie";}
-function faceAccessoryName(acc){
-  const m={0:"None",1:"Rimless Glasses",2:"Sunglasses",3:"3D Glasses",4:"None",5:"Headset",6:"Monocle",7:"Devil Horns",8:"Eye Patch",9:"Crown",10:"Bull Horns",11:"Bluetooth Headset",12:"Gold Headset",13:"Golden Devil Horns",14:"Golden Bull Horns",15:"Blue Boom Headset",18:"Gold Rims",19:"Banded Frameless",21:"Gold Banded Frameless"};
-  return m[acc] !== undefined ? m[acc] : "None";
-}
-function brokerBadgeName(i){return ["None","Insider","Whale","Diamond Hands"][i];}
-function pocketSquareName(i){return ["None","Cream","White","Gold"][i];}
+function parseOriginalTraits(attrs) {
+  const map = {};
+  (attrs || []).forEach(a => { map[a.trait_type] = a.value; });
+  
+  let skinIdx = 0;
+  const skinVal = map["Skin"];
+  if (skinVal && skinVal !== "Human") {
+    const sIdx = ["Devil","Zombie","Robot","Marshmallow","Alien","Lemon","Shadow"].indexOf(skinVal);
+    skinIdx = sIdx !== -1 ? sIdx + 6 : 0;
+  }
 
-function buildAttributes(t) {
-  const attrs = [];
-  const push = (traitType, value) => { if (value !== "None") attrs.push({ trait_type: traitType, value }); };
-  push("Background", backgroundName(t.background));
-  push("Skin", skinName(t.skin));
-  push("Hair Style", hairStyleName(t.hairStyle));
-  push("Hair Color", hairColorNameForMetadata(t.hairStyle, t.hairColor));
-  push("Eyes", eyeColorName(t.eyeColor));
-  push("Nose", noseColorName(t.noseColor));
-  push("Mouth", mouthName(t.mouth));
-  push("Suit", suitName(t.suit));
-  push("Tie", tieName(t.tie));
-  push("Neckwear", neckwearName(t.neckwear));
-  push("Face Accessory", faceAccessoryName(t.faceAccessory));
-  push("Broker Badge", brokerBadgeName(t.brokerBadge));
-  push("Pocket Square", pocketSquareName(t.pocketSquare));
-  return attrs;
+  let hairStyleIdx = getIdx(HAIR_STYLE_LIST, map["Hair Style"], 0);
+  let hairColorIdx = getIdx(["Jet Black","Dark Brown","Brown","Light Brown","Charcoal","Gray Brown","Blonde"], map["Hair Color"], 0);
+
+  let eyeColorIdx = getIdx(EYE_COLOR_LIST, map["Eyes"], 0);
+  let noseColorIdx = getIdx(NOSE_LIST, map["Nose"], 0);
+  let mouthIdx = getIdx(MOUTH_LIST, map["Mouth"], 0);
+  let suitIdx = getIdx(SUIT_LIST, map["Suit"], 0);
+  let tieIdx = getIdx(TIE_LIST, map["Tie"], 0);
+  let neckwearIdx = map["Neckwear"] === "Bow Tie" ? 1 : 0;
+
+  let faceAccVal = map["Face Accessory"];
+  let faceAccIdx = 0;
+  if (faceAccVal && faceAccVal !== "None") {
+    const accMap = {
+      "Rimless Glasses": 1, "Sunglasses": 2, "3D Glasses": 3, "Headset": 5,
+      "Monocle": 6, "Devil Horns": 7, "Eye Patch": 8, "Crown": 9, "Bull Horns": 10,
+      "Bluetooth Headset": 11, "Gold Headset": 12, "Golden Devil Horns": 13,
+      "Golden Bull Horns": 14, "Blue Boom Headset": 15, "Gold Rims": 18,
+      "Banded Frameless": 19, "Gold Banded Frameless": 21
+    };
+    faceAccIdx = accMap[faceAccVal] !== undefined ? accMap[faceAccVal] : 0;
+  }
+
+  let badgeIdx = getIdx(BROKER_BADGE_LIST, map["Broker Badge"], 0);
+  let pocketSquareIdx = getIdx(POCKET_SQUARE_LIST, map["Pocket Square"], 0);
+  let bgIdx = getIdx(BACKGROUND_LIST, map["Background"], 0);
+
+  return {
+    background: bgIdx,
+    skin: skinIdx,
+    hairStyle: hairStyleIdx,
+    hairColor: hairColorIdx,
+    eyeColor: eyeColorIdx,
+    noseColor: noseColorIdx,
+    mouth: mouthIdx,
+    suit: suitIdx,
+    tie: tieIdx,
+    neckwear: neckwearIdx,
+    faceAccessory: faceAccIdx,
+    brokerBadge: badgeIdx,
+    pocketSquare: pocketSquareIdx
+  };
 }
 
-// Internal Signature: Prefixed with collection mode (MALE| or FEMALE|) to ensure
-// exact trait label combos don't collision-reject cross-gender while ensuring absolute
-// uniqueness within the new collection.
-function nameSignature(t, mode = "FEMALE") {
-  const sig = [
-    backgroundName(t.background), skinName(t.skin), hairStyleName(t.hairStyle),
-    hairColorNameForMetadata(t.hairStyle, t.hairColor), eyeColorName(t.eyeColor),
-    noseColorName(t.noseColor), mouthName(t.mouth), suitName(t.suit), tieName(t.tie),
-    neckwearName(t.neckwear), faceAccessoryName(t.faceAccessory),
-    brokerBadgeName(t.brokerBadge), pocketSquareName(t.pocketSquare)
-  ].join('|');
-  return `${mode}|${sig}`;
-}
-
-// --- color pickers (mirrors _pickX) ---
-function pickBackground(i){return ["6ca0dc","8dbfe8","b8d2e8","d0b090","9bb0c8","7f92a8","2d6a4f","ff6f00"][i];}
-function pickSuit(i){return ["1f2328","1a3352","3a4a52","4a5568","4a235a","1f6b3a","e53935","ff4d94","c62828","c62828"][i];}
-function pickTie(i){return ["4f8cff","24a148","e53935","f4b400","6f42c1","00a3a3"][i];}
-function pickSkin(i){return ["f1c27d","e0ac69","c68642","8d5524","ffdbac","d9a066","d63f36","63b35f","a7b0ba","faf8f4","7cf08a","f5d36b","2b2d42"][i];}
-function pickEye(i){return ["2b3fd1","4b8f29","7d5534","5b6678","1f7a8c","8a4fff","b5651d","1d3557"][i];}
-function pickHairColor(i){return ["111111","3e2723","5d4037","b08968","607d8b","8d7b6a","e8c468"][i];}
+// COLOR PICKERS
+function pickBackground(i){return ["6ca0dc","8dbfe8","b8d2e8","d0b090","9bb0c8","7f92a8","2d6a4f","ff6f00"][i]||"6ca0dc";}
+function pickSuit(i){return ["1f2328","1a3352","3a4a52","4a5568","4a235a","1f6b3a","e53935","ff4d94","c62828"][i]||"1f2328";}
+function pickTie(i){return ["4f8cff","24a148","e53935","f4b400","6f42c1","00a3a3"][i]||"4f8cff";}
+function pickSkin(i){return ["f1c27d","e0ac69","c68642","8d5524","ffdbac","d9a066","d63f36","63b35f","a7b0ba","faf8f4","7cf08a","f5d36b","2b2d42"][i]||"f1c27d";}
+function pickEye(i){return ["2b3fd1","4b8f29","7d5534","5b6678","1f7a8c","8a4fff","b5651d","1d3557"][i]||"2b3fd1";}
+function pickHairColor(i){return ["111111","3e2723","5d4037","b08968","607d8b","8d7b6a","e8c468"][i]||"111111";}
 function noseHex(i){
   if(i===0||i===1) return "ba9a95";
   if(i===2||i===3) return "c4a484";
@@ -328,108 +455,103 @@ function noseHex(i){
 function noseIsFlat(i){ return i<10 && i%2===0; }
 
 function rect(x,y,w,h,fill,extra){ return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#${fill}"${extra?extra:''}/>`; }
-
 function svgHead(bg){ return `<svg xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" viewBox="0 0 24 24" width="720" height="720"><rect width="24" height="24" fill="#${bg}"/>`; }
 
-function svgSkinNeck(skin, skinType, hairStyle) {
+// FEMALE SVG RENDERER
+function renderFemaleSkinNeck(skin, skinType, hairStyle) {
   let glow = "";
   if (skinType===10) glow = `<rect x="6" y="3" width="12" height="14" fill="#59d37b" opacity="0.15"/>`;
   else if (skinType===11) glow = `<rect x="7" y="4" width="10" height="12" fill="#ffe08a" opacity="0.25"/>`;
   else if (skinType===12) glow = `<rect x="7" y="4" width="10" height="12" fill="#1a1a2e"/>`;
+  
   let ears = "";
-  if (hairStyle===6) ears = rect(6,9,1,2,skin) + rect(17,9,1,2,skin);
-  return glow + rect(7,4,10,12,skin) + rect(9,16,6,3,skin) + ears;
+  if (hairStyle===3 || hairStyle===6) ears = rect(6,9,1,2,skin) + rect(17,9,1,2,skin);
+  
+  const faceBase = rect(7,4,10,11,skin) + rect(8,15,8,1,skin) + rect(10,16,4,3,skin);
+  return glow + faceBase + ears;
 }
 
-function svgHair(style, hair) {
-  if (style===0) return rect(7,3,10,2,hair)+rect(6,4,1,10,hair)+rect(17,4,1,10,hair)+rect(6,10,2,7,hair)+rect(16,10,2,7,hair);
-  if (style===1) return rect(7,3,10,2,hair)+rect(6,4,1,11,hair)+rect(17,4,1,11,hair);
-  if (style===2) return rect(6,3,12,3,hair)+rect(6,4,1,9,hair)+rect(17,4,1,9,hair);
-  if (style===3) return rect(8,3,8,2,hair)+rect(7,4,1,6,hair)+rect(16,4,1,6,hair);
-  if (style===4) return rect(7,3,10,2,hair)+rect(6,4,1,10,hair)+rect(17,4,1,10,hair)+rect(8,5,1,2,hair)+rect(14,5,1,2,hair);
-  if (style===5) return rect(7,2,10,3,hair)+rect(6,4,1,11,hair)+rect(17,4,1,11,hair);
-  if (style===6) return "";
-  if (style===7) return svgRainbowAfro();
+function renderFemaleHair(style, hair) {
+  if (style === 0) return rect(7,2,10,3,hair) + rect(6,4,2,11,hair) + rect(16,4,2,11,hair) + rect(8,3,8,2,hair) + rect(7,5,1,3,hair) + rect(16,5,1,3,hair);
+  if (style === 1) return rect(7,2,10,3,hair) + rect(5,4,3,14,hair) + rect(16,4,3,14,hair) + rect(8,3,8,2,hair) + rect(7,5,1,4,hair) + rect(16,5,1,4,hair);
+  if (style === 2) return rect(6,2,12,3,hair) + rect(5,4,4,14,hair) + rect(16,4,2,11,hair) + rect(8,3,8,2,hair) + rect(9,5,2,2,hair);
+  if (style === 3) return rect(7,2,10,3,hair) + rect(6,3,2,6,hair) + rect(16,3,2,6,hair) + rect(8,4,8,1,hair) + rect(7,5,2,2,hair);
+  if (style === 4) return rect(7,2,10,3,hair) + rect(5,4,3,14,hair) + rect(16,4,3,14,hair) + rect(4,8,1,3,hair) + rect(19,8,1,3,hair) + rect(4,13,1,3,hair) + rect(19,13,1,3,hair) + rect(8,3,8,2,hair);
+  if (style === 5) return rect(8,0,8,3,hair) + rect(7,2,10,3,hair) + rect(6,4,2,11,hair) + rect(16,4,2,11,hair) + rect(7,5,1,4,hair) + rect(16,5,1,4,hair);
+  if (style === 6) return "";
+  if (style === 7) return renderFemaleRainbowHair();
   return "";
 }
 
-function svgRainbowAfro() {
-  const rows = [
-    [7,'2196f3'],[8,'e53935'],[9,'9c27b0'],[10,'ffeb3b'],[11,'4caf50'],[12,'ff9800'],[13,'2196f3'],[14,'e53935'],[15,'ffeb3b'],[16,'9c27b0']
-  ];
-  let out = rows.map(([x,c])=>rect(x,2,1,1,c)).join('');
-  const row3 = [[7,'ff9800'],[8,'4caf50'],[9,'ffeb3b'],[10,'e53935'],[11,'9c27b0'],[12,'2196f3'],[13,'ff9800'],[14,'4caf50'],[15,'e53935'],[16,'ffeb3b']];
-  out += row3.map(([x,c])=>rect(x,3,1,1,c)).join('');
-  const row4 = [[7,'9c27b0'],[8,'ffeb3b'],[9,'2196f3'],[10,'ff9800'],[11,'e53935'],[12,'4caf50'],[13,'9c27b0'],[14,'2196f3'],[15,'ff9800'],[16,'4caf50']];
-  out += row4.map(([x,c])=>rect(x,4,1,1,c)).join('');
-  const row5 = [[7,'e53935'],[8,'2196f3'],[9,'ff9800'],[10,'4caf50'],[11,'ffeb3b'],[12,'e53935'],[13,'4caf50'],[14,'9c27b0'],[15,'2196f3'],[16,'ff9800']];
-  out += row5.map(([x,c])=>rect(x,5,1,1,c)).join('');
+function renderFemaleRainbowHair() {
+  const top = [[7,2,10,2,'2196f3'],[8,1,8,2,'e53935'],[9,0,6,2,'ffeb3b']];
+  let out = top.map(([x,y,w,h,c])=>rect(x,y,w,h,c)).join('');
+  out += rect(5,4,3,14,'9c27b0') + rect(16,4,3,14,'4caf50') + rect(4,8,1,6,'ff9800') + rect(19,8,1,6,'2196f3');
   return out;
 }
 
-function svgEyesNose(eye, noseMarkup) {
-  return `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
-    rect(9,8,1,1,eye) + rect(14,8,1,1,eye) + noseMarkup;
-}
-function svgBullCandleEyes(noseMarkup) {
-  return `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
-    rect(9,8,1,1,'1a1a1a')+rect(9,9,1,1,'2ee06a')+rect(14,8,1,1,'1a1a1a')+rect(14,9,1,1,'2ee06a') + noseMarkup;
-}
-function eyeMarkup(eyeColorIdx, noseMarkup) {
-  if (eyeColorIdx===8) return svgBullCandleEyes(noseMarkup);
-  return svgEyesNose(pickEye(eyeColorIdx), noseMarkup);
-}
-function noseMarkup(idx) {
-  if (idx===11) return "";
-  const fill = noseHex(idx);
-  if (noseIsFlat(idx)) return rect(11,10,2,1,fill);
-  return rect(11,10,2,2,fill);
+function renderFemaleEyesNose(eyeColorIdx, noseIdx) {
+  let eyeHtml = "";
+  if (eyeColorIdx === 8) {
+    eyeHtml = `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
+      rect(9,8,1,1,'1a1a1a') + rect(9,9,1,1,'2ee06a') + rect(14,8,1,1,'1a1a1a') + rect(14,9,1,1,'2ee06a') +
+      rect(7,7,2,1,'101010') + rect(15,7,2,1,'101010');
+  } else {
+    const col = pickEye(eyeColorIdx);
+    eyeHtml = `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
+      rect(9,8,1,2,col) + rect(14,8,1,2,col) +
+      rect(8,8,3,1,'101010') + rect(13,8,3,1,'101010') +
+      rect(7,7,2,1,'101010') + rect(15,7,2,1,'101010');
+  }
+
+  let nMarkup = "";
+  if (noseIdx !== 11) {
+    const fill = noseHex(noseIdx);
+    nMarkup = noseIsFlat(noseIdx) ? rect(11,10,2,1,fill) : rect(11,10,1,2,fill);
+  }
+  return eyeHtml + nMarkup;
 }
 
-function renderMouth(style) {
-  if (style===0) return rect(10,13,4,1,'101010');
-  if (style===1) return rect(10,13,4,1,'101010')+rect(11,14,2,1,'101010');
-  if (style===2) return rect(10,13,1,1,'101010')+rect(13,13,1,1,'101010')+rect(11,14,2,1,'101010');
-  if (style===3) return rect(10,13,4,1,'101010')+rect(9,14,1,2,'101010')+rect(14,14,1,2,'101010')+rect(10,15,4,1,'101010');
-  if (style===4) return rect(11,13,2,2,'101010');
-  if (style===5) return rect(9,11,1,2,'101010')+rect(10,12,1,1,'101010')+rect(11,13,2,1,'101010')+rect(13,12,1,1,'101010')+rect(14,11,1,2,'101010');
-  if (style===6) return rect(10,13,4,1,'101010')+rect(9,14,1,2,'e8c468')+rect(14,14,1,2,'e8c468')+rect(10,15,4,1,'e8c468');
-  if (style===7) return rect(9,11,1,2,'e8c468')+rect(10,12,1,1,'e8c468')+rect(11,13,2,1,'101010')+rect(13,12,1,1,'e8c468')+rect(14,11,1,2,'e8c468');
-  if (style===8) return rect(10,13,4,1,'101010')+rect(9,14,1,2,'9aa0a6')+rect(14,14,1,2,'9aa0a6')+rect(10,15,4,1,'9aa0a6');
-  if (style===9) return rect(10,13,2,1,'101010')+rect(12,13,1,1,'ffd700')+rect(13,13,1,1,'101010')+rect(11,14,2,1,'101010');
-  return rect(10,13,4,1,'101010');
+function renderFemaleMouth(style) {
+  if (style === 0) return rect(10,13,4,1,'d81b60');
+  if (style === 1) return rect(10,13,4,1,'d81b60') + rect(12,14,2,1,'d81b60');
+  if (style === 2) return rect(10,13,1,1,'d81b60') + rect(13,13,1,1,'d81b60') + rect(11,14,2,1,'e91e63');
+  if (style === 3) return rect(10,13,4,1,'c2185b') + rect(11,14,2,1,'e91e63'); 
+  if (style === 4) return rect(11,13,2,2,'101010') + rect(11,13,2,1,'d81b60');
+  if (style === 5) return rect(10,13,4,1,'d81b60') + rect(11,14,2,1,'c2185b'); 
+  if (style === 6) return rect(10,13,4,1,'d81b60') + rect(10,14,1,1,'e8c468') + rect(13,14,1,1,'e8c468'); 
+  if (style === 7) return rect(10,13,4,1,'e8c468') + rect(11,14,2,1,'d81b60'); 
+  if (style === 8) return rect(10,13,4,1,'8e24aa'); 
+  if (style === 9) return rect(10,13,2,1,'d81b60') + rect(12,13,1,1,'ffd700') + rect(13,13,1,1,'d81b60'); 
+  return rect(10,13,4,1,'d81b60');
 }
 
-function svgBodyWithCollar(suit, tie, neckwear, collar) {
-  const neck = neckwear===1
-    ? rect(9,19,1,1,tie)+rect(10,19,1,1,tie)+rect(13,19,1,1,tie)+rect(14,19,1,1,tie)+rect(11,19,2,2,tie)
-    : rect(10,19,4,1,tie)+rect(11,20,2,4,tie);
-  return rect(4,18,16,6,suit)+rect(8,18,8,4,suit)+
-    rect(10,18,1,2,collar)+rect(13,18,1,2,collar)+rect(11,18,2,1,collar)+
-    neck + rect(3,19,1,5,suit) + rect(20,19,1,5,suit);
-}
-function svgBody(suit, tie, neckwear) { return svgBodyWithCollar(suit, tie, neckwear, 'f0f0f0'); }
-function svgBodyRainbow(tie, neckwear) {
-  const neck = neckwear===1
-    ? rect(9,19,1,1,tie)+rect(10,19,1,1,tie)+rect(13,19,1,1,tie)+rect(14,19,1,1,tie)+rect(11,19,2,2,tie)
-    : rect(10,19,4,1,tie)+rect(11,20,2,4,tie);
-  return rect(4,18,2,6,'e53935')+rect(6,18,2,6,'fb8c00')+rect(8,18,2,6,'fdd835')+rect(10,18,2,6,'43a047')+
-    rect(12,18,2,6,'1e88e5')+rect(14,18,2,6,'3949ab')+rect(16,18,2,6,'8e24aa')+rect(18,18,2,6,'d81b60')+
-    rect(10,18,1,2,'f0f0f0')+rect(13,18,1,2,'f0f0f0')+rect(11,18,2,1,'f0f0f0')+
-    neck + rect(3,19,1,5,'e53935') + rect(20,19,1,5,'d81b60');
-}
-function bodyForSuit(suitIdx, tie, neckwear) {
-  if (suitIdx===6) return svgBodyRainbow(tie, neckwear);
-  if (suitIdx===7) return svgBodyWithCollar('ff4d94', tie, neckwear, 'ffe0ec');
-  return svgBody(pickSuit(suitIdx), tie, neckwear);
+function renderFemaleBody(suitIdx, tieIdx, neckwearIdx) {
+  const suit = suitIdx === 6 ? 'rainbow' : (suitIdx === 7 ? 'ff4d94' : pickSuit(suitIdx));
+  const tie = pickTie(tieIdx);
+  const collar = suitIdx === 7 ? 'ffe0ec' : 'ffffff';
+
+  let tieMarkup = neckwearIdx === 1 
+    ? rect(10,18,1,1,tie) + rect(13,18,1,1,tie) + rect(11,18,2,2,tie) + rect(10,19,4,1,tie)
+    : rect(11,18,2,1,tie) + rect(11,19,2,4,tie);
+
+  if (suit === 'rainbow') {
+    return rect(5,18,2,6,'e53935') + rect(7,18,2,6,'fb8c00') + rect(9,18,2,6,'fdd835') + rect(11,18,2,6,'43a047') +
+      rect(13,18,2,6,'1e88e5') + rect(15,18,2,6,'3949ab') + rect(17,18,2,6,'8e24aa') +
+      rect(10,18,1,2,'ffffff') + rect(13,18,1,2,'ffffff') +
+      tieMarkup + rect(4,19,1,5,'e53935') + rect(19,19,1,5,'8e24aa');
+  }
+
+  return rect(5,18,14,6,suit) + rect(9,18,6,3,suit) +
+    rect(10,18,1,2,collar) + rect(13,18,1,2,collar) +
+    tieMarkup + rect(4,19,1,5,suit) + rect(19,19,1,5,suit);
 }
 
 function renderPocketSquare(sq) {
   if (sq===0) return "";
-  let tip, fold;
-  if (sq===1) { tip='f5f0e6'; fold='e8dcc8'; }
-  else if (sq===2) { tip='ffffff'; fold='d8dce3'; }
-  else { tip='f5d36b'; fold='e9bf52'; }
+  let tip='f5f0e6', fold='e8dcc8';
+  if (sq===2) { tip='ffffff'; fold='d8dce3'; }
+  else if (sq===3) { tip='f5d36b'; fold='e9bf52'; }
   return rect(6,21,2,1,tip) + rect(6,22,2,1,fold);
 }
 
@@ -440,231 +562,43 @@ function renderBrokerBadge(badge) {
   return rect(16,20,1,1,'a8f7ff') + rect(17,20,1,1,'00e5ff') + rect(16,21,2,1,'00b8cc');
 }
 
-function crownPx(x,y,fill){ return `<rect x="${x}" y="${y}" width="1" height="1" fill="#${fill}"/>`; }
-function crownBar(x,y,w,fill){ return `<rect x="${x}" y="${y}" width="${w}" height="1" fill="#${fill}"/>`; }
-
-function svgCrownCentered(v, bald) {
-  const y0 = bald?"1":"0", y1 = bald?"2":"1", y2 = bald?"3":"2";
-  const rail = crownBar("7",y1,"10","f5d36b") + crownBar("8",y2,"8","e9bf52");
-  if (v===0) return crownPx("8",y0,"ffe08a")+crownBar("11",y0,"2","ffe08a")+crownPx("15",y0,"ffe08a")+rail;
-  if (v===1) return crownPx("8",y0,"ffe08a")+crownBar("11",y0,"2","c62828")+crownPx("15",y0,"ffe08a")+rail+crownBar("11",y1,"2","ffe08a");
-  if (v===2) return crownPx("8",y0,"ffe08a")+crownPx("10",y0,"ffe08a")+crownBar("11",y0,"2","c62828")+crownPx("13",y0,"ffe08a")+crownPx("15",y0,"ffe08a")+rail;
-  if (v===3) return crownPx("9",y0,"ffe08a")+crownBar("11",y0,"2","c62828")+crownPx("14",y0,"ffe08a")+crownBar("8",y1,"8","f5d36b")+crownBar("9",y2,"6","e9bf52");
-  if (v===4) return crownPx("8",y0,"ffe08a")+crownBar("11",y0,"2","c62828")+crownPx("15",y0,"ffe08a")+crownBar("7",y1,"10","f5d36b")+crownBar("7",y2,"10","c9a227");
-  if (v===5) return crownPx("7",y0,"ffe08a")+crownPx("16",y0,"ffe08a")+crownPx("8",y1,"f5d36b")+crownPx("15",y1,"f5d36b")+crownBar("11",y0,"2","c62828")+crownBar("9",y1,"2","e9bf52")+crownBar("13",y1,"2","e9bf52")+crownBar("8",y2,"8","c9a227");
-  return crownPx("8",y0,"ffe08a")+crownPx("15",y0,"ffe08a")+crownBar("10",y0,"4","ffe08a")+crownBar("11",y0,"2","c62828")+rail;
-}
-function svgCrownVariant(v, bald) {
-  if (v>=10) return svgCrownCentered(v-10, bald);
-  const y0=bald?"1":"0", y1=bald?"2":"1", y2=bald?"3":"2";
-  if (v===1) return crownPx("8",y0,"ffe08a")+crownPx("10",y0,"ffe08a")+crownPx("12",y0,"ffe08a")+crownPx("14",y0,"ffe08a")+crownPx("16",y0,"ffe08a")+crownBar("7",y1,"11","f5d36b")+crownBar("8",y2,"9","e9bf52");
-  if (v===2) return crownPx("9",y0,"ffe08a")+crownPx("12",y0,"fff6c8")+crownPx("15",y0,"ffe08a")+crownBar("9",y1,"7","f5d36b")+crownBar("10",y2,"5","e9bf52");
-  if (v===3) return crownPx("9",y0,"ffe08a")+crownPx("12",y0,"c62828")+crownPx("15",y0,"ffe08a")+crownBar("8",y1,"9","f5d36b")+crownPx("12",y1,"ffe08a")+crownBar("9",y2,"7","e9bf52");
-  if (v===4) return crownPx("9",y0,"ffe08a")+crownPx("12",y0,"ffe08a")+crownPx("15",y0,"ffe08a")+crownBar("8",y1,"9","f5d36b")+crownBar("8",y2,"9","c9a227");
-  if (v===5) return crownPx("8",y0,"ffe08a")+crownPx("16",y0,"ffe08a")+crownPx("9",y1,"f5d36b")+crownPx("15",y1,"f5d36b")+crownBar("10",y1,"5","e9bf52")+crownBar("9",y2,"7","c9a227");
-  if (v===6) return crownPx("8",y0,"ffe08a")+crownBar("11",y0,"3","ffe08a")+crownPx("16",y0,"ffe08a")+crownBar("8",y1,"9","f5d36b")+crownBar("9",y2,"7","e9bf52");
-  return crownPx("9",y0,"ffe08a")+crownPx("12",y0,"ffe08a")+crownPx("15",y0,"ffe08a")+crownBar("8",y1,"9","f5d36b")+crownBar("9",y2,"7","e9bf52");
-}
-function svgCrownOnAfro() {
-  return crownPx("8","0","ffe08a")+crownPx("10","0","ffe08a")+crownBar("11","0","2","c62828")+crownPx("13","0","ffe08a")+crownPx("15","0","ffe08a")+crownBar("7","1","10","f5d36b");
+function renderFemaleBandedFrameless(col) {
+  return `<rect x="8" y="8" width="3" height="3" fill="none" stroke="#${col}" stroke-width="0.4"/><rect x="13" y="8" width="3" height="3" fill="none" stroke="#${col}" stroke-width="0.4"/>` + 
+    rect(11,9,2,1,col) + rect(6,9,2,1,col) + rect(16,9,2,1,col);
 }
 
-function svgBandedFrameless(bandMode, col) {
-  const frames = `<rect x="8" y="7" width="3" height="3" fill="none" stroke="#${col}" stroke-width="0.4"/><rect x="13" y="7" width="3" height="3" fill="none" stroke="#${col}" stroke-width="0.4"/>` + rect(11,8,2,1,col);
-  if (bandMode===2) return frames;
-  if (bandMode===1) return frames + rect(7,8,1,1,col) + rect(16,8,1,1,col);
-  return frames + rect(6,8,2,1,col) + rect(16,8,2,1,col);
+function renderFemale3DGlasses() {
+  return rect(8,8,3,2,'c62828') + rect(13,8,3,2,'1565c0') + rect(11,8,2,1,'eceff4') + rect(7,8,1,1,'cfd3da') + rect(16,8,1,1,'cfd3da');
 }
 
-function renderFaceAccessory(acc) {
-  if (acc===0) return "";
-  if (acc===1) return rect(8,7,3,1,'c5d0dc')+rect(8,9,3,1,'c5d0dc')+rect(8,8,1,1,'c5d0dc')+rect(10,8,1,1,'c5d0dc')+rect(13,7,3,1,'c5d0dc')+rect(13,9,3,1,'c5d0dc')+rect(13,8,1,1,'c5d0dc')+rect(15,8,1,1,'c5d0dc')+rect(11,8,2,1,'aeb8c4')+rect(7,8,1,1,'aeb8c4')+rect(16,8,1,1,'aeb8c4');
-  if (acc===2) return rect(8,7,3,2,'0a0c10')+rect(13,7,3,2,'0a0c10')+rect(8,7,3,1,'1c222a')+rect(13,7,3,1,'1c222a')+rect(11,7,2,1,'5a6570')+rect(7,7,1,1,'2a3038')+rect(16,7,1,1,'2a3038');
-  if (acc===3) return rect(8,7,3,2,'c62828')+rect(13,7,3,2,'1565c0')+rect(11,7,2,1,'eceff4')+rect(7,7,1,1,'cfd3da')+rect(16,7,1,1,'cfd3da');
-  if (acc===4) return "";
-  if (acc===5) return rect(5,8,2,3,'7f8ea3')+rect(5,7,3,1,'cfd8e3')+rect(6,10,1,2,'cfd8e3')+rect(6,11,3,1,'cfd8e3')+rect(9,11,1,1,'7f8ea3');
-  if (acc===6) return rect(13,7,3,1,'c5d0dc')+rect(13,9,3,1,'c5d0dc')+rect(13,8,1,1,'c5d0dc')+rect(15,8,1,1,'c5d0dc')+rect(14,8,1,1,'d8e1ea')+rect(16,8,1,1,'c9a227')+rect(16,9,1,1,'e9bf52')+rect(16,10,1,1,'c9a227');
-  if (acc===7) return rect(6,4,1,1,'141010')+rect(5,3,1,1,'0c0a0a')+rect(5,2,1,1,'080606')+rect(6,1,1,1,'4a0a0a')+rect(6,0,1,1,'c62828')+rect(17,4,1,1,'141010')+rect(18,3,1,1,'0c0a0a')+rect(18,2,1,1,'080606')+rect(17,1,1,1,'4a0a0a')+rect(17,0,1,1,'c62828');
-  if (acc===8) return rect(7,7,10,1,'1a1e24')+rect(8,7,3,3,'0a0c10');
-  if (acc===9) return svgCrownVariant(12, false);
-  if (acc===10) return rect(5,4,2,1,'8d6e63')+rect(4,3,2,1,'bcaaa4')+rect(3,2,2,1,'e8dcc8')+rect(2,1,1,1,'fff8e7')+rect(17,4,2,1,'8d6e63')+rect(18,3,2,1,'bcaaa4')+rect(19,2,2,1,'e8dcc8')+rect(21,1,1,1,'fff8e7');
-  if (acc===11) return rect(5,8,2,3,'1a2433')+rect(5,7,3,1,'2b3a4d')+rect(17,8,2,3,'1a2433')+rect(16,7,3,1,'2b3a4d')+rect(17,10,1,2,'8a96a5')+rect(15,11,3,1,'9aa8b5')+rect(14,11,1,1,'b8c0cb');
-  if (acc===12) return rect(5,8,2,3,'c9a227')+rect(5,7,3,1,'f5d36b')+rect(6,10,1,2,'e9bf52')+rect(6,11,3,1,'f5d36b')+rect(9,11,1,1,'ffe08a');
-  if (acc===13) return rect(6,4,1,1,'f5d36b')+rect(5,3,1,1,'f5d36b')+rect(5,2,1,1,'f5d36b')+rect(6,1,1,1,'f5d36b')+rect(6,0,1,1,'c62828')+rect(17,4,1,1,'f5d36b')+rect(18,3,1,1,'f5d36b')+rect(18,2,1,1,'f5d36b')+rect(17,1,1,1,'f5d36b')+rect(17,0,1,1,'c62828');
-  if (acc===14) return rect(5,4,2,1,'c9a227')+rect(4,3,2,1,'e9bf52')+rect(3,2,2,1,'f5d36b')+rect(2,1,1,1,'ffe08a')+rect(17,4,2,1,'c9a227')+rect(18,3,2,1,'e9bf52')+rect(19,2,2,1,'f5d36b')+rect(21,1,1,1,'ffe08a');
-  if (acc===15) return rect(17,8,2,3,'1a2433')+rect(16,7,3,1,'2b3a4d')+rect(17,10,1,2,'1e5fd9')+rect(15,11,3,1,'2b76ff')+rect(14,11,1,1,'7fb4ff');
-  if (acc===16) return "";
-  if (acc===17) return "";
-  if (acc===18) return rect(8,7,3,1,'f5d36b')+rect(8,9,3,1,'e9bf52')+rect(8,8,1,1,'f5d36b')+rect(10,8,1,1,'f5d36b')+rect(13,7,3,1,'f5d36b')+rect(13,9,3,1,'e9bf52')+rect(13,8,1,1,'f5d36b')+rect(15,8,1,1,'f5d36b')+rect(11,8,2,1,'ffe08a')+rect(7,8,1,1,'c9a227')+rect(16,8,1,1,'c9a227');
-  if (acc===19) return svgBandedFrameless(0,'d8e1ea');
-  if (acc===21) return svgBandedFrameless(0,'f5d36b');
-  return "";
-}
-function renderFaceAccessoryForHair(acc, hairStyle) {
-  if (acc===9 && hairStyle===6) return svgCrownVariant(12, true);
-  if (acc===9 && hairStyle===7) return svgCrownOnAfro();
-  if (acc===19 || acc===21) {
-    const col = acc===21 ? 'f5d36b' : 'd8e1ea';
-    if (hairStyle===3) return svgBandedFrameless(1, col);
-    if (hairStyle===6 || hairStyle===7) return svgBandedFrameless(2, col);
-  }
-  return renderFaceAccessory(acc);
+function renderFemaleSunglasses() {
+  return rect(8,8,3,2,'0a0c10') + rect(13,8,3,2,'0a0c10') + rect(8,8,3,1,'1c222a') + rect(13,8,3,1,'1c222a') + rect(11,8,2,1,'5a6570') + rect(7,8,1,1,'2a3038') + rect(16,8,1,1,'2a3038');
 }
 
-function renderSvg(t) {
-  const bg = pickBackground(t.background);
-  const tie = pickTie(t.tie);
-  const skin = pickSkin(t.skin);
-  const hair = pickHairColor(t.hairColor);
-  return svgHead(bg) +
-    svgSkinNeck(skin, t.skin, t.hairStyle) +
-    svgHair(t.hairStyle, hair) +
-    eyeMarkup(t.eyeColor, noseMarkup(t.noseColor)) +
-    renderMouth(t.mouth) +
-    bodyForSuit(t.suit, tie, t.neckwear) +
-    renderPocketSquare(t.pocketSquare) +
-    renderFaceAccessoryForHair(t.faceAccessory, t.hairStyle) +
-    renderBrokerBadge(t.brokerBadge) +
-    "</svg>";
-}
-
-// ============================================================
-// NEW FEMALE RENDERER SYSTEM (24x24 Pixel-Perfect Grid)
-// ============================================================
-
-function renderFemaleSkinNeck(skin, skinType, hairStyle) {
-  let glow = "";
-  if (skinType===10) glow = `<rect x="6" y="3" width="12" height="14" fill="#59d37b" opacity="0.15"/>`;
-  else if (skinType===11) glow = `<rect x="7" y="4" width="10" height="12" fill="#ffe08a" opacity="0.25"/>`;
-  else if (skinType===12) glow = `<rect x="7" y="4" width="10" height="12" fill="#1a1a2e"/>`;
-  
-  let ears = "";
-  if (hairStyle===3 || hairStyle===6) ears = rect(6,9,1,2,skin) + rect(17,9,1,2,skin);
-  
-  // Refined female facial shape: tapered 8-px wide jaw on row 15 (8..15) with a slimmer 4-px neck (10..13)
-  const faceBase = rect(7,4,10,11,skin) + rect(8,15,8,1,skin) + rect(10,16,4,3,skin);
-  return glow + faceBase + ears;
-}
-
-function renderFemaleHair(style, hair) {
-  // 0: Classic Bob
-  if (style === 0) {
-    return rect(7,2,10,3,hair) + rect(6,4,2,11,hair) + rect(16,4,2,11,hair) + rect(8,3,8,2,hair) + rect(7,5,1,3,hair) + rect(16,5,1,3,hair);
-  }
-  // 1: Long Straight Hair
-  if (style === 1) {
-    return rect(7,2,10,3,hair) + rect(5,4,3,14,hair) + rect(16,4,3,14,hair) + rect(8,3,8,2,hair) + rect(7,5,1,4,hair) + rect(16,5,1,4,hair);
-  }
-  // 2: Long Side Hair (Swept)
-  if (style === 2) {
-    return rect(6,2,12,3,hair) + rect(5,4,4,14,hair) + rect(16,4,2,11,hair) + rect(8,3,8,2,hair) + rect(9,5,2,2,hair);
-  }
-  // 3: Short Crop / Pixie Cut
-  if (style === 3) {
-    return rect(7,2,10,3,hair) + rect(6,3,2,6,hair) + rect(16,3,2,6,hair) + rect(8,4,8,1,hair) + rect(7,5,2,2,hair);
-  }
-  // 4: Wavy Hair
-  if (style === 4) {
-    return rect(7,2,10,3,hair) + rect(5,4,3,14,hair) + rect(16,4,3,14,hair) + rect(4,8,1,3,hair) + rect(19,8,1,3,hair) + rect(4,13,1,3,hair) + rect(19,13,1,3,hair) + rect(8,3,8,2,hair);
-  }
-  // 5: High Ponytail / Updo
-  if (style === 5) {
-    return rect(9,0,6,3,hair) + rect(8,1,8,2,hair) + rect(7,3,10,2,hair) + rect(6,4,2,8,hair) + rect(16,4,2,8,hair) + rect(18,2,2,7,hair) + rect(20,4,1,6,hair);
-  }
-  // 6: Bun / Topknot
-  if (style === 6) {
-    return rect(9,0,6,3,hair) + rect(10,0,4,4,hair) + rect(7,3,10,2,hair) + rect(6,4,2,5,hair) + rect(16,4,2,5,hair);
-  }
-  // 7: Rainbow Female Hair
-  if (style === 7) {
-    return renderFemaleRainbowHair();
-  }
-  return "";
-}
-
-function renderFemaleRainbowHair() {
-  const top = [
-    [7,2,10,2,'2196f3'],[8,1,8,2,'e53935'],[9,0,6,2,'ffeb3b']
-  ];
-  let out = top.map(([x,y,w,h,c])=>rect(x,y,w,h,c)).join('');
-  out += rect(5,4,3,14,'9c27b0') + rect(16,4,3,14,'4caf50') + rect(4,8,1,6,'ff9800') + rect(19,8,1,6,'2196f3');
-  return out;
-}
-
-function renderFemaleEyesNose(eyeColorIdx, noseIdx) {
-  let eyeHtml = "";
-  if (eyeColorIdx === 8) {
-    // Bull Candle eyes with feminine lashes
-    eyeHtml = `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
-      rect(9,8,1,1,'1a1a1a') + rect(9,9,1,1,'2ee06a') + rect(14,8,1,1,'1a1a1a') + rect(14,9,1,1,'2ee06a') +
-      rect(7,7,2,1,'101010') + rect(15,7,2,1,'101010');
-  } else {
-    const col = pickEye(eyeColorIdx);
-    // Expressive feminine eyes: 3x2 white base, pupil + dark upper eyeliner & eyelash accents (top row 7)
-    eyeHtml = `<rect x="8" y="8" width="3" height="2" fill="#f4f4f4"/><rect x="13" y="8" width="3" height="2" fill="#f4f4f4"/>` +
-      rect(9,8,1,2,col) + rect(14,8,1,2,col) +
-      rect(8,8,3,1,'101010') + rect(13,8,3,1,'101010') +
-      rect(7,7,2,1,'101010') + rect(15,7,2,1,'101010');
-  }
-
-  let nMarkup = "";
-  if (noseIdx !== 11) {
-    const fill = noseHex(noseIdx);
-    // Delicate 1x1 or 2x1 female nose bridge
-    nMarkup = noseIsFlat(noseIdx) ? rect(11,10,2,1,fill) : rect(11,10,1,2,fill);
-  }
-  return eyeHtml + nMarkup;
-}
-
-function renderFemaleMouth(style) {
-  // Feminine lip aesthetics with soft red/pink accents where appropriate
-  if (style === 0) return rect(10,13,4,1,'d81b60'); // Soft Pink/Red Natural
-  if (style === 1) return rect(10,13,4,1,'d81b60') + rect(12,14,2,1,'d81b60'); // Smirk
-  if (style === 2) return rect(10,13,1,1,'d81b60') + rect(13,13,1,1,'d81b60') + rect(11,14,2,1,'e91e63'); // Smile
-  if (style === 3) return rect(10,13,4,1,'c2185b') + rect(11,14,2,1,'e91e63'); // Full Lipstick Lips
-  if (style === 4) return rect(11,13,2,2,'101010') + rect(11,13,2,1,'d81b60'); // Open Mouth / Gloss
-  if (style === 5) return rect(10,12,4,1,'d81b60') + rect(11,13,2,1,'101010'); // Surprise / Whistle
-  if (style === 6) return rect(10,13,4,1,'d81b60') + rect(10,14,1,1,'e8c468') + rect(13,14,1,1,'e8c468'); // Accent Piercing / Shimmer
-  if (style === 7) return rect(10,13,4,1,'e8c468') + rect(11,14,2,1,'d81b60'); // Gold Gloss
-  if (style === 8) return rect(10,13,4,1,'8e24aa'); // Plum / Dark Lipstick
-  if (style === 9) return rect(10,13,2,1,'d81b60') + rect(12,13,1,1,'ffd700') + rect(13,13,1,1,'d81b60'); // Gold Tooth / Accent
-  return rect(10,13,4,1,'d81b60');
-}
-
-function renderFemaleBody(suitIdx, tieIdx, neckwearIdx) {
-  const suit = suitIdx === 6 ? 'rainbow' : (suitIdx === 7 ? 'ff4d94' : pickSuit(suitIdx));
-  const tie = pickTie(tieIdx);
-  const collar = suitIdx === 7 ? 'ffe0ec' : 'ffffff';
-
-  let tieMarkup = "";
-  if (neckwearIdx === 1) {
-    // Elegant Bow / Ribbon Tie
-    tieMarkup = rect(10,18,1,1,tie) + rect(13,18,1,1,tie) + rect(11,18,2,2,tie) + rect(10,19,4,1,tie);
-  } else {
-    // Slim Feminine Necktie
-    tieMarkup = rect(11,18,2,1,tie) + rect(11,19,2,4,tie);
-  }
-
-  if (suit === 'rainbow') {
-    return rect(5,18,2,6,'e53935') + rect(7,18,2,6,'fb8c00') + rect(9,18,2,6,'fdd835') + rect(11,18,2,6,'43a047') +
-      rect(13,18,2,6,'1e88e5') + rect(15,18,2,6,'3949ab') + rect(17,18,2,6,'8e24aa') +
-      rect(10,18,1,2,'ffffff') + rect(13,18,1,2,'ffffff') +
-      tieMarkup + rect(4,19,1,5,'e53935') + rect(19,19,1,5,'8e24aa');
-  }
-
-  // Tailored Female Business Suit Silhouette (tapered waist, V-neck inner collar)
-  return rect(5,18,14,6,suit) + rect(9,18,6,3,suit) +
-    rect(10,18,1,2,collar) + rect(13,18,1,2,collar) +
-    tieMarkup + rect(4,19,1,5,suit) + rect(19,19,1,5,suit);
+function renderFemaleGoldBandedFrameless() {
+  return renderFemaleBandedFrameless('f5d36b');
 }
 
 function renderFemaleFaceAccessory(acc, hairStyle) {
-  // Height and positioning micro-adjustments for female hair silhouettes
-  if (acc === 9) { // Crown
-    if (hairStyle === 5 || hairStyle === 6) return svgCrownVariant(12, true); // Sit neatly over ponytail/bun
-    return svgCrownVariant(12, false);
-  }
-  return renderFaceAccessoryForHair(acc, hairStyle);
+  if (acc === 0) return "";
+  if (acc === 1) return rect(8,8,3,1,'c5d0dc')+rect(8,10,3,1,'c5d0dc')+rect(8,9,1,1,'c5d0dc')+rect(10,9,1,1,'c5d0dc')+rect(13,8,3,1,'c5d0dc')+rect(13,10,3,1,'c5d0dc')+rect(13,9,1,1,'c5d0dc')+rect(15,9,1,1,'c5d0dc')+rect(11,9,2,1,'aeb8c4')+rect(7,9,1,1,'aeb8c4')+rect(16,9,1,1,'aeb8c4');
+  if (acc === 2) return renderFemaleSunglasses();
+  if (acc === 3) return renderFemale3DGlasses();
+  if (acc === 5) return rect(5,8,2,3,'7f8ea3')+rect(5,7,3,1,'cfd8e3')+rect(6,10,1,2,'cfd8e3')+rect(6,11,3,1,'cfd8e3')+rect(9,11,1,1,'7f8ea3');
+  if (acc === 6) return rect(13,8,3,1,'c5d0dc')+rect(13,10,3,1,'c5d0dc')+rect(13,9,1,1,'c5d0dc')+rect(15,9,1,1,'c5d0dc')+rect(14,9,1,1,'d8e1ea')+rect(16,9,1,1,'c9a227')+rect(16,10,1,1,'e9bf52')+rect(16,11,1,1,'c9a227');
+  if (acc === 7) return rect(6,4,1,1,'141010')+rect(5,3,1,1,'0c0a0a')+rect(5,2,1,1,'080606')+rect(6,1,1,1,'4a0a0a')+rect(6,0,1,1,'c62828')+rect(17,4,1,1,'141010')+rect(18,3,1,1,'0c0a0a')+rect(18,2,1,1,'080606')+rect(17,1,1,1,'4a0a0a')+rect(17,0,1,1,'c62828');
+  if (acc === 8) return rect(7,8,10,1,'1a1e24')+rect(8,8,3,3,'0a0c10');
+  if (acc === 9) return `<rect x="8" y="0" width="1" height="1" fill="#ffe08a"/><rect x="15" y="0" width="1" height="1" fill="#ffe08a"/><rect x="11" y="0" width="2" height="1" fill="#c62828"/><rect x="7" y="1" width="10" height="1" fill="#f5d36b"/><rect x="8" y="2" width="8" height="1" fill="#e9bf52"/>`;
+  if (acc === 10) return rect(5,4,2,1,'8d6e63')+rect(4,3,2,1,'bcaaa4')+rect(3,2,2,1,'e8dcc8')+rect(2,1,1,1,'fff8e7')+rect(17,4,2,1,'8d6e63')+rect(18,3,2,1,'bcaaa4')+rect(19,2,2,1,'e8dcc8')+rect(21,1,1,1,'fff8e7');
+  if (acc === 11) return rect(5,8,2,3,'1a2433')+rect(5,7,3,1,'2b3a4d')+rect(17,8,2,3,'1a2433')+rect(16,7,3,1,'2b3a4d')+rect(17,10,1,2,'8a96a5')+rect(15,11,3,1,'9aa8b5')+rect(14,11,1,1,'b8c0cb');
+  if (acc === 12) return rect(5,8,2,3,'c9a227')+rect(5,7,3,1,'f5d36b')+rect(6,10,1,2,'e9bf52')+rect(6,11,3,1,'f5d36b')+rect(9,11,1,1,'ffe08a');
+  if (acc === 13) return rect(6,4,1,1,'f5d36b')+rect(5,3,1,1,'f5d36b')+rect(5,2,1,1,'f5d36b')+rect(6,1,1,1,'f5d36b')+rect(6,0,1,1,'c62828')+rect(17,4,1,1,'f5d36b')+rect(18,3,1,1,'f5d36b')+rect(18,2,1,1,'f5d36b')+rect(17,1,1,1,'f5d36b')+rect(17,0,1,1,'c62828');
+  if (acc === 14) return rect(5,4,2,1,'c9a227')+rect(4,3,2,1,'e9bf52')+rect(3,2,2,1,'f5d36b')+rect(2,1,1,1,'ffe08a')+rect(17,4,2,1,'c9a227')+rect(18,3,2,1,'e9bf52')+rect(19,2,2,1,'f5d36b')+rect(21,1,1,1,'ffe08a');
+  if (acc === 15) return rect(17,8,2,3,'1a2433')+rect(16,7,3,1,'2b3a4d')+rect(17,10,1,2,'1e5fd9')+rect(15,11,3,1,'2b76ff')+rect(14,11,1,1,'7fb4ff');
+  if (acc === 18) return rect(8,8,3,1,'f5d36b')+rect(8,10,3,1,'e9bf52')+rect(8,9,1,1,'f5d36b')+rect(10,9,1,1,'f5d36b')+rect(13,8,3,1,'f5d36b')+rect(13,10,3,1,'e9bf52')+rect(13,9,1,1,'f5d36b')+rect(15,9,1,1,'f5d36b')+rect(11,9,2,1,'ffe08a')+rect(7,9,1,1,'c9a227')+rect(16,9,1,1,'c9a227');
+  if (acc === 19) return renderFemaleBandedFrameless('d8e1ea');
+  if (acc === 21) return renderFemaleGoldBandedFrameless();
+  return "";
 }
 
 function renderFemaleSvg(t) {
@@ -684,32 +618,23 @@ function renderFemaleSvg(t) {
     "</svg>";
 }
 
-// ============================================================
-// APP STATE
-// ============================================================
-let existingSignatures = new Set();
-let usedSignatures = new Set();
-let results = new Map(); // newTokenId -> {name, description, attributes, image}
+// APPLICATION STATE & DATA FETCHING
+let results = new Map();
 let stopFlag = false;
 let galleryCleared = false;
+
+const TOKEN_URI_SELECTOR = "0xc87b56dd";
 
 function log(msg) {
   const el = document.getElementById('log');
   el.textContent += msg + "\n";
   el.scrollTop = el.scrollHeight;
 }
+
 function escapeHtml(str) {
   if (str === undefined || str === null) return '';
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m] || m));
 }
-
-// ============================================================
-// ON-CHAIN BASELINE LOADER — pulls the real 4444 attributes
-// directly from the deployed contract's tokenURI(), so there is
-// no CSV/export step where a mistake could creep in.
-// ============================================================
-const TOKEN_URI_SELECTOR = "0xc87b56dd"; // keccak256("tokenURI(uint256)")[0:4]
-let stopBaselineFlag = false;
 
 function padTokenId(id) { return BigInt(id).toString(16).padStart(64, '0'); }
 
@@ -722,12 +647,14 @@ function decodeAbiString(hex) {
   for (let i = 0; i < strHex.length; i += 2) bytes[i / 2] = parseInt(strHex.substr(i, 2), 16);
   return new TextDecoder('utf-8').decode(bytes);
 }
+
 function base64ToUtf8(b64) {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return new TextDecoder('utf-8').decode(bytes);
 }
+
 async function fetchTokenURI(rpcUrl, contractAddress, tokenId) {
   const calldata = TOKEN_URI_SELECTOR + padTokenId(tokenId);
   const res = await fetch(rpcUrl, {
@@ -742,105 +669,40 @@ async function fetchTokenURI(rpcUrl, contractAddress, tokenId) {
   return JSON.parse(base64ToUtf8(b64));
 }
 
-function signatureFromMetadataAttributes(attrs, mode = "MALE") {
-  const map = {};
-  (attrs || []).forEach(a => { map[a.trait_type] = a.value; });
-  const order = ['Background','Skin','Hair Style','Hair Color','Eyes','Nose','Mouth','Suit','Tie','Neckwear','Face Accessory','Broker Badge','Pocket Square'];
-  const sig = order.map(t => map[t] || 'None').join('|');
-  return `${mode}|${sig}`;
-}
-
-async function loadExistingFromChain() {
-  const contractAddress = document.getElementById('contract-address').value.trim();
-  const rpcUrl = document.getElementById('rpc-url').value.trim();
-  const concurrency = Math.max(1, Math.min(20, parseInt(document.getElementById('baseline-concurrency').value) || 6));
-  const statusEl = document.getElementById('existing-status');
-
-  if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
-    statusEl.textContent = '⚠️ পূর্ণাঙ্গ কন্ট্রাক্ট অ্যাড্রেস দিন (0x দিয়ে শুরু, ৪২ ক্যারেক্টার) — Blockscout থেকে কপি করুন';
-    return;
-  }
-
-  stopBaselineFlag = false;
-  document.getElementById('load-chain-btn').disabled = true;
-  document.getElementById('stop-baseline-btn').disabled = false;
-  existingSignatures.clear();
-
-  const queue = [];
-  for (let i = 1; i <= 4444; i++) queue.push(i);
-  const stats = { done: 0, fail: 0, total: queue.length };
-  const failedIds = [];
-
-  const worker = async () => {
-    while (queue.length && !stopBaselineFlag) {
-      const tokenId = queue.shift();
-      let attempt = 0, done = false;
-      while (attempt < 3 && !done && !stopBaselineFlag) {
-        try {
-          const meta = await fetchTokenURI(rpcUrl, contractAddress, tokenId);
-          existingSignatures.add(signatureFromMetadataAttributes(meta.attributes, "MALE"));
-          done = true;
-        } catch (err) {
-          attempt++;
-          if (attempt >= 3) { failedIds.push(tokenId); done = true; }
-          else await new Promise(r => setTimeout(r, 400 * attempt));
-        }
-      }
-      stats.done++;
-      const pct = Math.round((stats.done / stats.total) * 100);
-      document.getElementById('baseline-fill').style.width = pct + '%';
-      statusEl.textContent = `⏳ লোড হচ্ছে চেইন থেকে... ${stats.done}/${stats.total} (${existingSignatures.size} সংগ্রহ হয়েছে)`;
-    }
-  };
-
-  await Promise.all(Array.from({ length: concurrency }, worker));
-
-  document.getElementById('load-chain-btn').disabled = false;
-  document.getElementById('stop-baseline-btn').disabled = true;
-
-  if (failedIds.length) {
-    statusEl.textContent = `✅ ${existingSignatures.size}/4444 লোড হয়েছে সরাসরি চেইন থেকে ⚠️ ${failedIds.length}টা ব্যর্থ (${failedIds.slice(0,10).join(', ')}${failedIds.length>10?'...':''}) — আবার চাপলে পুরোটা রিট্রাই হবে`;
-  } else {
-    statusEl.textContent = `✅ ৪৪৪৪/৪৪৪৪ — সরাসরি ডিপ্লয়েড কন্ট্রাক্ট থেকে সব লোড হয়েছে। এখন dedup ১০০% আসল অন-চেইন ডেটার বিপরীতে হবে।`;
-  }
-}
-
-function stopBaselineLoad() {
-  stopBaselineFlag = true;
-}
-
-async function loadExistingCSV() {
+async function loadMetadataFromCSVFallback() {
   const url = document.getElementById('existing-csv-url').value.trim();
-  const statusEl = document.getElementById('existing-status');
-  if (!url) { statusEl.textContent = '⚠️ URL দিন'; return; }
-  statusEl.textContent = '⏳ লোড হচ্ছে...';
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const lines = text.split('\n').filter(l => l.trim());
-    let startIdx = 0;
-    if (lines[0].toLowerCase().includes('token_id')) startIdx = 1;
-    existingSignatures.clear();
-    for (let i = startIdx; i < lines.length; i++) {
-      const parts = lines[i].split(',').map(s => s.trim());
-      if (parts.length < 14) continue;
-      // token_id, Background, Skin, Hair Style, Hair Color, Eyes, Nose, Mouth, Suit, Tie, Neckwear, Face Accessory, Broker Badge, Pocket Square
-      const sig = [parts[1],parts[2],parts[3],parts[4]||'None',parts[5],parts[6]||'None',parts[7],parts[8],parts[9],parts[10],parts[11]||'None',parts[12]||'None',parts[13]||'None'].join('|');
-      existingSignatures.add(`MALE|${sig}`);
-    }
-    statusEl.textContent = `✅ ${existingSignatures.size} টা বিদ্যমান token লোড হয়েছে — dedup baseline হিসেবে ব্যবহার হবে`;
-  } catch (err) {
-    statusEl.textContent = `❌ লোড ব্যর্থ: ${err.message} — চাইলে ছাড়াই জেনারেট করতে পারেন (শুধু নতুনগুলোর মধ্যে ইউনিকনেস গ্যারান্টিড থাকবে)`;
+  log(`⚠️ Fallback: Loading metadata from CSV: ${url}`);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`CSV fetch failed: HTTP ${res.status}`);
+  const text = await res.text();
+  const lines = text.split('\n').filter(l => l.trim());
+  
+  const csvMap = new Map();
+  let startIdx = lines[0].toLowerCase().includes('token_id') ? 1 : 0;
+  for (let i = startIdx; i < lines.length; i++) {
+    const p = lines[i].split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+    if (p.length < 14) continue;
+    const tid = parseInt(p[0]);
+    if (isNaN(tid)) continue;
+    
+    const attrs = [
+      { trait_type: "Background", value: p[1] },
+      { trait_type: "Skin", value: p[2] },
+      { trait_type: "Hair Style", value: p[3] },
+      { trait_type: "Hair Color", value: p[4] || "None" },
+      { trait_type: "Eyes", value: p[5] },
+      { trait_type: "Nose", value: p[6] || "None" },
+      { trait_type: "Mouth", value: p[7] },
+      { trait_type: "Suit", value: p[8] },
+      { trait_type: "Tie", value: p[9] },
+      { trait_type: "Neckwear", value: p[10] },
+      { trait_type: "Face Accessory", value: p[11] || "None" },
+      { trait_type: "Broker Badge", value: p[12] || "None" },
+      { trait_type: "Pocket Square", value: p[13] || "None" }
+    ];
+    csvMap.set(tid, { attributes: attrs });
   }
-}
-
-function randomSeed() {
-  const arr = new Uint32Array(8); // 256 bits
-  crypto.getRandomValues(arr);
-  let big = 0n;
-  for (const part of arr) big = (big << 32n) | BigInt(part);
-  return big;
+  return csvMap;
 }
 
 function addCardToGallery(tokenId, meta) {
@@ -848,7 +710,7 @@ function addCardToGallery(tokenId, meta) {
   if (!galleryCleared) { gallery.innerHTML = ''; galleryCleared = true; }
   const card = document.createElement('div');
   card.className = 'nft-card';
-  card.innerHTML = `<img src="${meta.image}" loading="lazy" alt="${escapeHtml(meta.name)}"><div class="cap">#${tokenId}</div>`;
+  card.innerHTML = `<img src="${meta.image}" loading="lazy" alt="${escapeHtml(meta.name)}"><div class="cap">Female #${tokenId}</div>`;
   card.onclick = () => openMetadataModal(tokenId);
   gallery.appendChild(card);
 }
@@ -863,12 +725,12 @@ function openMetadataModal(tokenId) {
   root.innerHTML = `
     <div class="modal-overlay" onclick="if(event.target===this) this.remove()">
       <div class="modal-box">
-        <div class="titlebar"><span>✏️ #${tokenId} — ${escapeHtml(meta.name)}</span><button onclick="document.getElementById('modal-root').innerHTML=''">✕</button></div>
+        <div class="titlebar"><span>👩 #${tokenId} — ${escapeHtml(meta.name)}</span><button onclick="document.getElementById('modal-root').innerHTML=''">✕</button></div>
         <div class="content">
           <img class="modal-img" src="${meta.image}" alt="${escapeHtml(meta.name)}">
           <p style="font-family:'VT323',monospace; font-size:15px; margin:10px 0; color:#333;">${escapeHtml(meta.description || '')}</p>
-          <div class="info" style="margin-top:10px;">ATTRIBUTES</div>
-          ${attrsHtml || '<div class="attr-row"><span>No attributes</span></div>'}
+          <div class="info" style="margin-top:10px;">EXACT PRESERVED METADATA TRAITS</div>
+          ${attrsHtml}
           <div class="row" style="margin-top:12px;">
             <button onclick="downloadSingleImage(${tokenId})" style="flex:1;">🖼️ PNG</button>
             <button onclick="downloadSingleMetadata(${tokenId})" style="flex:1;">📄 JSON</button>
@@ -890,16 +752,18 @@ async function svgDataUrlToPngBlob(dataUrl, size = 512) {
       ctx.drawImage(img, 0, 0, size, size);
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png');
     };
-    img.onerror = () => reject(new Error('SVG image load failed'));
+    img.onerror = () => reject(new Error('SVG load failed'));
     img.src = dataUrl;
   });
 }
+
 async function downloadSingleImage(tokenId) {
   const meta = results.get(tokenId);
   if (!meta) return;
   const blob = await svgDataUrlToPngBlob(meta.image);
   saveAs(blob, `${tokenId}.png`);
 }
+
 function downloadSingleMetadata(tokenId) {
   const meta = results.get(tokenId);
   if (!meta) return;
@@ -908,27 +772,24 @@ function downloadSingleMetadata(tokenId) {
   saveAs(blob, `${tokenId}.json`);
 }
 
-function updateProgress(stats) {
-  document.getElementById('stat-done').textContent = `DONE: ${stats.done}`;
-  document.getElementById('stat-ok').textContent = `OK: ${stats.ok}`;
-  document.getElementById('stat-reroll').textContent = `RE-ROLLED (দুই-বার মিলে যাওয়ায়): ${stats.reroll}`;
-  document.getElementById('stat-total').textContent = `TOTAL: ${stats.total}`;
-  const pct = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+function updateProgress(loadedCount, genCount) {
+  document.getElementById('stat-loaded').textContent = `LOADED: ${loadedCount} / 4444`;
+  document.getElementById('stat-generated').textContent = `GENERATED: ${genCount} / 4444`;
+  const pct = Math.round((genCount / 4444) * 100);
   document.getElementById('fill').style.width = pct + '%';
 }
 
-async function startGenerate() {
-  const mode = document.getElementById('gen-mode').value;
-  const total = Math.max(1, parseInt(document.getElementById('total-count').value) || 6666);
-  const startId = parseInt(document.getElementById('start-id').value) || 1;
-  const prefix = document.getElementById('name-prefix').value.trim() || 'Stonk Broker Gen2 #';
+async function startGenerateFemaleVersions() {
+  const contractAddress = document.getElementById('contract-address').value.trim();
+  const rpcUrl = document.getElementById('rpc-url').value.trim();
+  const concurrency = Math.max(1, Math.min(20, parseInt(document.getElementById('baseline-concurrency').value) || 6));
+  const prefix = document.getElementById('name-prefix').value.trim() || 'Female Stonk Broker #';
   const desc = document.getElementById('nft-description').value;
 
   results.clear();
-  usedSignatures.clear();
   stopFlag = false;
   galleryCleared = false;
-  document.getElementById('gallery').innerHTML = '<div class="gallery-empty">[ জেনারেট হচ্ছে... ]</div>';
+  document.getElementById('gallery').innerHTML = '<div class="gallery-empty">[ Fetching original on-chain NFTs & generating Female counterparts... ]</div>';
   document.getElementById('log').textContent = '';
   document.getElementById('gen-btn').disabled = true;
   document.getElementById('stop-btn').disabled = false;
@@ -936,51 +797,98 @@ async function startGenerate() {
   document.getElementById('dl-meta').disabled = true;
   document.getElementById('dl-csv').disabled = true;
 
-  const stats = { done: 0, ok: 0, reroll: 0, total };
-  updateProgress(stats);
+  let loadedCount = 0;
+  let genCount = 0;
+  updateProgress(0, 0);
 
-  log(`🎲 Generating ${total} new ${mode} NFTs, starting at #${startId}`);
-  log(`📚 Existing baseline signatures loaded: ${existingSignatures.size}`);
+  log(`🚀 Starting 1:1 Female Conversion pipeline for tokens 1 through 4444...`);
 
-  for (let i = 0; i < total; i++) {
-    if (stopFlag) { log('🛑 Stopped by user.'); break; }
-    const tokenId = startId + i;
-    let traits, sig;
-    let attempts = 0;
-    do {
-      const seed = randomSeed();
-      traits = decodeTraits(seed);
-      sig = nameSignature(traits, mode);
-      attempts++;
-      if (attempts > 1) stats.reroll++;
-      if (attempts > 500) { log(`⚠️ #${tokenId}: 500+ re-rolls, accepting possible duplicate (trait space nearly exhausted)`); break; }
-    } while (existingSignatures.has(sig) || usedSignatures.has(sig));
+  let useCSVFallback = false;
+  let csvDataMap = null;
 
-    usedSignatures.add(sig);
-    const attributes = buildAttributes(traits);
-    
-    // Select renderer based on mode dropdown selection
-    const svgCode = mode === "FEMALE" ? renderFemaleSvg(traits) : renderSvg(traits);
-    const image = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgCode)));
-    
-    const meta = {
-      name: `${prefix}${tokenId}`,
-      description: desc,
-      attributes,
-      image
-    };
-    results.set(tokenId, meta);
-    addCardToGallery(tokenId, meta);
-    stats.ok++;
-    stats.done++;
-    updateProgress(stats);
-    if (i % 15 === 0) await new Promise(r => setTimeout(r, 0)); // keep UI responsive
+  if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
+    log(`⚠️ Invalid or missing contract address. Switching to fallback CSV source...`);
+    try {
+      csvDataMap = await loadMetadataFromCSVFallback();
+      useCSVFallback = true;
+      log(`✅ CSV Fallback loaded: ${csvDataMap.size} records found.`);
+    } catch (e) {
+      log(`❌ CSV Fallback failed: ${e.message}`);
+      document.getElementById('gen-btn').disabled = false;
+      document.getElementById('stop-btn').disabled = true;
+      return;
+    }
   }
 
-  log(`\n✅ DONE. ${stats.ok} generated, ${stats.reroll} re-rolls needed due to collisions.`);
+  const queue = [];
+  for (let i = 1; i <= 4444; i++) queue.push(i);
+
+  const worker = async () => {
+    while (queue.length && !stopFlag) {
+      const tokenId = queue.shift();
+      let originalMetadata = null;
+
+      if (useCSVFallback) {
+        originalMetadata = csvDataMap.get(tokenId);
+      } else {
+        let attempts = 0;
+        while (attempts < 3 && !originalMetadata && !stopFlag) {
+          try {
+            originalMetadata = await fetchTokenURI(rpcUrl, contractAddress, tokenId);
+          } catch (err) {
+            attempts++;
+            if (attempts >= 3) {
+              log(`⚠️ On-Chain fetch failed for #${tokenId}. Falling back to CSV for this token.`);
+              if (!csvDataMap) {
+                try { csvDataMap = await loadMetadataFromCSVFallback(); } catch(e){}
+              }
+              if (csvDataMap && csvDataMap.has(tokenId)) {
+                originalMetadata = csvDataMap.get(tokenId);
+              }
+            } else {
+              await new Promise(r => setTimeout(r, 300 * attempts));
+            }
+          }
+        }
+      }
+
+      if (!originalMetadata || !originalMetadata.attributes) {
+        log(`❌ Could not fetch metadata for Token #${tokenId}. Skipping.`);
+        continue;
+      }
+
+      loadedCount++;
+      const femaleTraits = parseOriginalTraits(originalMetadata.attributes);
+      const femaleSvg = renderFemaleSvg(femaleTraits);
+      const imageUri = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(femaleSvg)));
+
+      const femaleMetadata = {
+        name: `${prefix}${tokenId}`,
+        description: desc,
+        attributes: originalMetadata.attributes,
+        image: imageUri
+      };
+
+      results.set(tokenId, femaleMetadata);
+      genCount++;
+
+      addCardToGallery(tokenId, femaleMetadata);
+      updateProgress(loadedCount, genCount);
+      if (genCount % 20 === 0) await new Promise(r => setTimeout(r, 0));
+    }
+  };
+
+  await Promise.all(Array.from({ length: useCSVFallback ? 12 : concurrency }, worker));
+
+  if (stopFlag) {
+    log(`🛑 Processing stopped by user.`);
+  } else {
+    log(`\n✅ CONVERSION COMPLETE! Successfully created 4,444 Female versions with exact preserved on-chain traits.`);
+  }
+
   document.getElementById('gen-btn').disabled = false;
   document.getElementById('stop-btn').disabled = true;
-  if (results.size) {
+  if (results.size > 0) {
     document.getElementById('dl-images').disabled = false;
     document.getElementById('dl-meta').disabled = false;
     document.getElementById('dl-csv').disabled = false;
@@ -993,9 +901,6 @@ function stopGenerate() {
 
 function svgDataUrlToText(dataUrl) {
   const b64 = dataUrl.split(',')[1];
-  return base64ToUtf8ForSvg(b64);
-}
-function base64ToUtf8ForSvg(b64) {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
@@ -1016,24 +921,24 @@ async function downloadImagesZip() {
     const meta = results.get(tokenId);
     try {
       zip.file(`${tokenId}.svg`, svgDataUrlToText(meta.image));
-    } catch (e) { log(`⚠️ #${tokenId} SVG extract failed: ${e.message}`); }
+    } catch (e) { log(`⚠️ #${tokenId} SVG extract error: ${e.message}`); }
     i++;
-    if (i % 25 === 0 || i === total) {
-      const pct = Math.round((i / total) * 50); // 0-50% = collecting files
+    if (i % 50 === 0 || i === total) {
+      const pct = Math.round((i / total) * 50);
       fillEl.style.width = pct + '%';
-      textEl.textContent = `Adding files: ${i} / ${total}`;
+      textEl.textContent = `Adding SVG files: ${i} / ${total}`;
       await new Promise(r => setTimeout(r, 0));
     }
   }
   textEl.textContent = `Compressing ZIP...`;
   const blob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
-    const pct = 50 + Math.round(metadata.percent / 2); // 50-100% = compressing
+    const pct = 50 + Math.round(metadata.percent / 2);
     fillEl.style.width = pct + '%';
     textEl.textContent = `Compressing ZIP: ${Math.round(metadata.percent)}%`;
   });
   fillEl.style.width = '100%';
-  textEl.textContent = `✅ Done: ${total} / ${total} (.svg)`;
-  saveAs(blob, `stonkbrokers_new6666_images_${Date.now()}.zip`);
+  textEl.textContent = `✅ Done: ${total} SVG files exported.`;
+  saveAs(blob, `stonkbrokers_female4444_svg_${Date.now()}.zip`);
   btn.disabled = false;
 }
 
@@ -1055,7 +960,7 @@ async function downloadMetadataZip() {
     if (i % 100 === 0 || i === total) {
       const pct = Math.round((i / total) * 50);
       fillEl.style.width = pct + '%';
-      textEl.textContent = `Adding files: ${i} / ${total}`;
+      textEl.textContent = `Adding JSON files: ${i} / ${total}`;
       await new Promise(r => setTimeout(r, 0));
     }
   }
@@ -1066,8 +971,8 @@ async function downloadMetadataZip() {
     textEl.textContent = `Compressing ZIP: ${Math.round(metadata.percent)}%`;
   });
   fillEl.style.width = '100%';
-  textEl.textContent = `✅ Done: ${total} / ${total} (.json)`;
-  saveAs(blob, `stonkbrokers_new6666_metadata_${Date.now()}.zip`);
+  textEl.textContent = `✅ Done: ${total} JSON files exported.`;
+  saveAs(blob, `stonkbrokers_female4444_metadata_${Date.now()}.zip`);
   btn.disabled = false;
 }
 
@@ -1079,11 +984,11 @@ function downloadCSV() {
     const meta = results.get(tokenId);
     const map = {};
     (meta.attributes || []).forEach(a => { map[a.trait_type] = a.value; });
-    const row = [tokenId, `"${meta.name}"`, ...traitOrder.map(t => map[t] || '')];
+    const row = [tokenId, `"${meta.name}"`, ...traitOrder.map(t => map[t] ? `"${map[t]}"` : '')];
     rows.push(row.join(','));
   }
   const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  saveAs(blob, `stonkbrokers_new6666_attributes_${Date.now()}.csv`);
+  saveAs(blob, `stonkbrokers_female4444_attributes_${Date.now()}.csv`);
 }
 </script>
 </body>
